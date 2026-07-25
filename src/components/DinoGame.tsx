@@ -133,8 +133,11 @@ export default function DinoGame({ className = "" }: DinoGameProps) {
         return;
       }
 
-      if (e.code === "Space" || e.code === "ArrowUp") {
+      if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Space", " "].includes(e.key) || ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Space"].includes(e.code)) {
         e.preventDefault();
+      }
+
+      if (e.code === "Space" || e.code === "ArrowUp") {
         jump();
       }
     };
@@ -162,23 +165,26 @@ export default function DinoGame({ className = "" }: DinoGameProps) {
     const gameLoop = (timestamp: number) => {
       const s = stateRef.current;
       
+      ctx.save();
+      ctx.scale(2, 2);
+
       // Clear canvas with a stylish grid background matching Artistic Flair
       ctx.fillStyle = "#ffffff";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillRect(0, 0, 320, 140);
 
       // Draw subtle retro grid
       ctx.strokeStyle = "#f3f4f6";
       ctx.lineWidth = 1;
-      for (let i = 0; i < canvas.width; i += 20) {
+      for (let i = 0; i < 320; i += 20) {
         ctx.beginPath();
         ctx.moveTo(i, 0);
-        ctx.lineTo(i, canvas.height);
+        ctx.lineTo(i, 140);
         ctx.stroke();
       }
-      for (let j = 0; j < canvas.height; j += 20) {
+      for (let j = 0; j < 140; j += 20) {
         ctx.beginPath();
         ctx.moveTo(0, j);
-        ctx.lineTo(canvas.width, j);
+        ctx.lineTo(320, j);
         ctx.stroke();
       }
 
@@ -187,7 +193,7 @@ export default function DinoGame({ className = "" }: DinoGameProps) {
       ctx.lineWidth = 1.5;
       ctx.beginPath();
       ctx.moveTo(0, GROUND_Y);
-      ctx.lineTo(canvas.width, GROUND_Y);
+      ctx.lineTo(320, GROUND_Y);
       ctx.stroke();
 
       // Only update physics and obstacles if playing
@@ -216,7 +222,7 @@ export default function DinoGame({ className = "" }: DinoGameProps) {
         s.clouds.forEach(cloud => {
           cloud.x -= cloud.speed;
           if (cloud.x < -40) {
-            cloud.x = canvas.width + 20;
+            cloud.x = 320 + 20;
             cloud.y = Math.random() * 40 + 10;
           }
         });
@@ -229,7 +235,7 @@ export default function DinoGame({ className = "" }: DinoGameProps) {
           const cactusWidth = cactusHeight === 24 ? 12 : 8;
           const speedMultiplier = 1.5 + Math.min(2.5, s.score / 200); // Gradual speedup
           s.obstacles.push({
-            x: canvas.width,
+            x: 320,
             width: cactusWidth,
             height: cactusHeight,
             speed: speedMultiplier,
@@ -346,33 +352,35 @@ export default function DinoGame({ className = "" }: DinoGameProps) {
 
       // Draw game over screen overlay inside canvas
       if (s.isGameOver) {
-        ctx.fillStyle = "rgba(255, 255, 255, 0.85)";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = "rgba(255, 255, 255, 0.88)";
+        ctx.fillRect(0, 0, 320, 140);
 
         ctx.fillStyle = "#ef4444";
         ctx.font = "bold 13px 'JetBrains Mono', monospace";
         ctx.textAlign = "center";
-        ctx.fillText("O'YIN TUGADI", canvas.width / 2, 45);
+        ctx.fillText("O'YIN TUGADI", 160, 45);
 
         ctx.fillStyle = "#111111";
         ctx.font = "10px 'JetBrains Mono', monospace";
-        ctx.fillText("Boshlash uchun bosing yoki Space bosing", canvas.width / 2, 65);
-        ctx.fillText(`Hisobingiz: ${s.score}`, canvas.width / 2, 85);
+        ctx.fillText("Boshlash uchun bosing yoki Space bosing", 160, 65);
+        ctx.fillText(`Hisobingiz: ${s.score}`, 160, 85);
       } else if (!s.isPlaying) {
         // Start screen
-        ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = "rgba(255, 255, 255, 0.85)";
+        ctx.fillRect(0, 0, 320, 140);
 
         ctx.fillStyle = "#111111";
         ctx.font = "bold 13px 'JetBrains Mono', monospace";
         ctx.textAlign = "center";
-        ctx.fillText("AV DINO ADVENTURE", canvas.width / 2, 45);
+        ctx.fillText("AV DINO ADVENTURE", 160, 45);
 
         ctx.fillStyle = "#6b7280";
         ctx.font = "9px 'JetBrains Mono', monospace";
-        ctx.fillText("Boshlash uchun istalgan joyga bosing", canvas.width / 2, 65);
-        ctx.fillText("Tepa o'q yoki Space - Sakrash", canvas.width / 2, 80);
+        ctx.fillText("Boshlash uchun istalgan joyga bosing", 160, 65);
+        ctx.fillText("Tepa o'q yoki Space - Sakrash", 160, 80);
       }
+
+      ctx.restore();
 
       animationId = requestAnimationFrame(gameLoop);
     };
@@ -398,12 +406,12 @@ export default function DinoGame({ className = "" }: DinoGameProps) {
         </div>
       </div>
 
-      <div className="relative border border-gray-200 bg-white overflow-hidden flex items-center justify-center">
+      <div className="relative border border-gray-200 bg-white overflow-hidden flex items-center justify-center rounded-xl shadow-inner">
         <canvas 
           ref={canvasRef} 
-          width={280} 
-          height={130}
-          className="w-full h-auto block cursor-pointer"
+          width={640} 
+          height={280}
+          className="w-full aspect-[320/140] block cursor-pointer"
         />
       </div>
 
