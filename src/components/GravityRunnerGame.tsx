@@ -48,6 +48,19 @@ export default function GravityRunnerGame({ className = "" }: { className?: stri
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      const tag = target?.tagName?.toLowerCase();
+      if (
+        tag === "input" ||
+        tag === "textarea" ||
+        tag === "select" ||
+        target?.isContentEditable ||
+        document.activeElement?.tagName === "INPUT" ||
+        document.activeElement?.tagName === "TEXTAREA"
+      ) {
+        return;
+      }
+
       if (["Space", " ", "ArrowUp", "KeyW"].includes(e.code) || ["Space", " ", "ArrowUp", "w", "W"].includes(e.key)) {
         e.preventDefault();
         flipGravity();

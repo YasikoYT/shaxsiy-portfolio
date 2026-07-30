@@ -88,6 +88,19 @@ export default function TowerStackGame({ className = "" }: { className?: string 
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      const tag = target?.tagName?.toLowerCase();
+      if (
+        tag === "input" ||
+        tag === "textarea" ||
+        tag === "select" ||
+        target?.isContentEditable ||
+        document.activeElement?.tagName === "INPUT" ||
+        document.activeElement?.tagName === "TEXTAREA"
+      ) {
+        return;
+      }
+
       if (["Space", " ", "ArrowUp"].includes(e.code) || ["Space", " ", "ArrowUp"].includes(e.key)) {
         e.preventDefault();
         dropBlock();

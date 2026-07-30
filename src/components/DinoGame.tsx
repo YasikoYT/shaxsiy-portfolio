@@ -122,13 +122,16 @@ export default function DinoGame({ className = "" }: DinoGameProps) {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Ignore if typing in an input, textarea or contenteditable element
+      // Ignore if typing in an input, textarea, select or contenteditable element
       const target = e.target as HTMLElement | null;
+      const tag = target?.tagName?.toLowerCase();
       if (
-        target &&
-        (target.tagName === "INPUT" ||
-         target.tagName === "TEXTAREA" ||
-         target.isContentEditable)
+        tag === "input" ||
+        tag === "textarea" ||
+        tag === "select" ||
+        target?.isContentEditable ||
+        document.activeElement?.tagName === "INPUT" ||
+        document.activeElement?.tagName === "TEXTAREA"
       ) {
         return;
       }

@@ -112,7 +112,43 @@ export default function AdminPanelModal({
   // Config editor state
   const [formData, setFormData] = useState<SiteConfig>(siteConfig);
   const [saveSuccess, setSaveSuccess] = useState(false);
-  const [activeTab, setActiveTab] = useState<"profile" | "stats" | "projects" | "goals" | "ai" | "game" | "security">("profile");
+  const [activeTab, setActiveTab] = useState<"profile" | "inbox" | "banner" | "stats" | "projects" | "goals" | "ai" | "game" | "security">("inbox");
+  const [inboxMessages, setInboxMessages] = useState<Array<{ id: string; name: string; email: string; message: string; timestamp: string; status: string }>>([]);
+  const [inboxLoading, setInboxLoading] = useState(false);
+
+  // Fetch contact messages when inbox tab is opened or on mount
+  const fetchInboxMessages = React.useCallback(async () => {
+    setInboxLoading(true);
+    let localMsgs: any[] = [];
+    try {
+      const saved = localStorage.getItem("anvar_inbox_messages");
+      if (saved) localMsgs = JSON.parse(saved);
+    } catch (e) {}
+
+    try {
+      const res = await fetch("/api/contact/list");
+      if (res.ok) {
+        const data = await res.json();
+        const serverMsgs = data.messages || [];
+        // Merge server and local messages cleanly by ID
+        const combinedMap = new Map();
+        [...serverMsgs, ...localMsgs].forEach(m => combinedMap.set(m.id, m));
+        setInboxMessages(Array.from(combinedMap.values()));
+      } else {
+        setInboxMessages(localMsgs);
+      }
+    } catch (err) {
+      setInboxMessages(localMsgs);
+    } finally {
+      setInboxLoading(false);
+    }
+  }, []);
+
+  React.useEffect(() => {
+    if (isLoggedIn) {
+      fetchInboxMessages();
+    }
+  }, [isLoggedIn, fetchInboxMessages]);
 
   // Custom project modal inside CMS
   const [newProject, setNewProject] = useState<Partial<Project>>({
@@ -336,6 +372,35 @@ export default function AdminPanelModal({
                 <div className="flex flex-wrap items-center gap-2 border-b border-neutral-800 pb-4 font-mono text-xs">
                   <button
                     type="button"
+                    onClick={() => setActiveTab("inbox")}
+                    className={`px-4 py-2.5 rounded-xl transition-all cursor-pointer font-bold flex items-center gap-2 relative ${
+                      activeTab === "inbox" 
+                        ? "bg-amber-500 text-black shadow-lg shadow-amber-500/20" 
+                        : "bg-neutral-900 text-neutral-300 hover:bg-neutral-800 hover:text-white"
+                    }`}
+                  >
+                    <Mail className="w-4 h-4" /> Kelgan Murojaatlar / SMS
+                    {inboxMessages.length > 0 && (
+                      <span className="bg-emerald-500 text-black text-[10px] font-bold px-1.5 py-0.5 rounded-full">
+                        {inboxMessages.length}
+                      </span>
+                    )}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab("banner")}
+                    className={`px-4 py-2.5 rounded-xl transition-all cursor-pointer font-bold flex items-center gap-2 ${
+                      activeTab === "banner" 
+                        ? "bg-amber-500 text-black shadow-lg shadow-amber-500/20" 
+                        : "bg-neutral-900 text-neutral-300 hover:bg-neutral-800 hover:text-white"
+                    }`}
+                  >
+                    <Sparkles className="w-4 h-4" /> Sayt E'lon Banderi
+                  </button>
+
+                  <button
+                    type="button"
                     onClick={() => setActiveTab("profile")}
                     className={`px-4 py-2.5 rounded-xl transition-all cursor-pointer font-bold flex items-center gap-2 ${
                       activeTab === "profile" 
@@ -418,6 +483,117 @@ export default function AdminPanelModal({
                     <Lock className="w-4 h-4" /> Parol & Xavfsizlik
                   </button>
                 </div>
+
+                {/* TAB 0-A: INBOX MESSAGES */}
+                {activeTab === "inbox" && (
+                  <div className="space-y-4 font-mono text-xs">
+                    <div className="flex justify-between items-center bg-neutral-900/80 p-4 rounded-2xl border border-neutral-800">
+                      <div>
+                        <h4 className="font-bold text-sm text-white flex items-center gap-2">
+                          <Mail className="w-4 h-4 text-amber-400" /> Kelgan SMS va Murojaatlar jurnali
+                        </h4>
+                        <p className="text-[11px] text-neutral-400 font-sans mt-0.5">
+                          Foydalanuvchilar tomonidan yuborilgan barcha xabarlar 100% bu yerga keladi va saqlanadi.
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={fetchInboxMessages}
+                        className="px-3 py-1.5 bg-neutral-800 hover:bg-neutral-700 text-amber-400 rounded-lg text-[11px] font-bold flex items-center gap-1 cursor-pointer transition-colors"
+                      >
+                        <RotateCcw className="w-3.5 h-3.5" /> Yangilash
+                      </button>
+                    </div>
+
+                    {inboxLoading ? (
+                      <div className="p-8 text-center text-neutral-500 font-mono">
+                        Xabarlar yuklanmoqda...
+                      </div>
+                    ) : inboxMessages.length === 0 ? (
+                      <div className="p-12 text-center bg-neutral-900/40 rounded-2xl border border-neutral-800 space-y-2">
+                        <Mail className="w-10 h-10 text-neutral-600 mx-auto" />
+                        <div className="text-neutral-400 font-bold">Hozircha kelgan yangi xabar yo'q</div>
+                        <p className="text-[11px] text-neutral-500 max-w-sm mx-auto font-sans">
+                          Foydalanuvchilar "Menga bog'laning" formasidan xabar yuborganda, bu yerda 100% ko'rinadi.
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="space-y-3 max-h-[460px] overflow-y-auto pr-1">
+                        {inboxMessages.map((msg, idx) => (
+                          <div 
+                            key={msg.id || idx}
+                            className="bg-neutral-900 border border-neutral-800 p-4 rounded-2xl space-y-2.5 hover:border-amber-500/50 transition-colors"
+                          >
+                            <div className="flex flex-wrap justify-between items-center gap-2 border-b border-neutral-800 pb-2">
+                              <div className="flex items-center gap-2">
+                                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                                <span className="font-bold text-white text-sm">{msg.name}</span>
+                                <span className="text-[11px] text-amber-400 bg-amber-400/10 px-2.5 py-0.5 rounded-full border border-amber-400/20">
+                                  {msg.email}
+                                </span>
+                              </div>
+                              <span className="text-[10px] text-neutral-500">
+                                {new Date(msg.timestamp).toLocaleString()}
+                              </span>
+                            </div>
+                            <div className="text-neutral-200 text-xs font-sans whitespace-pre-line leading-relaxed bg-black/40 p-3 rounded-xl border border-neutral-800/80">
+                              {msg.message}
+                            </div>
+                            <div className="flex justify-between items-center pt-1 text-[10px]">
+                              <span className="text-emerald-400 font-bold flex items-center gap-1">
+                                <CheckCircle2 className="w-3 h-3 text-emerald-400" /> {msg.status || "Yetkazildi"}
+                              </span>
+                              <a
+                                href={`mailto:${msg.email}?subject=Re:%20Akramov%20Anvar%20Portfoliosi`}
+                                className="px-3 py-1 bg-amber-500 text-black font-bold rounded-lg hover:bg-amber-400 transition-colors flex items-center gap-1"
+                              >
+                                <Send className="w-3 h-3" /> Javob Berish
+                              </a>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* TAB 0-B: ANNOUNCEMENT BANNER */}
+                {activeTab === "banner" && (
+                  <div className="space-y-4 font-mono text-xs">
+                    <div className="bg-neutral-900 p-5 rounded-2xl border border-neutral-800 space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h4 className="font-bold text-white text-sm flex items-center gap-2">
+                            <Sparkles className="w-4 h-4 text-amber-400" /> Sayt Yuqori E'lon Banderi
+                          </h4>
+                          <p className="text-[11px] text-neutral-400 font-sans mt-0.5">
+                            Saytning eng tepa qismida ko'rinadigan maxsus e'lon va bildirishnoma matni
+                          </p>
+                        </div>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={!!formData.showBanner}
+                            onChange={(e) => setFormData({ ...formData, showBanner: e.target.checked })}
+                            className="sr-only peer"
+                          />
+                          <div className="w-11 h-6 bg-neutral-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
+                        </label>
+                      </div>
+
+                      <div className="space-y-1.5 pt-2">
+                        <label className="text-neutral-400 font-bold uppercase">E'lon Matni:</label>
+                        <input
+                          type="text"
+                          value={formData.bannerText || "🔥 Akramov Anvar - 15 yoshli Full-Stack Dasturchi va AI Assistent platformasiga xush kelibsiz!"}
+                          onChange={(e) => setFormData({ ...formData, bannerText: e.target.value })}
+                          placeholder="E'lon matnini kiriting..."
+                          className="w-full bg-black border border-neutral-800 rounded-xl px-4 py-3 text-xs text-amber-300 font-bold focus:outline-none focus:border-amber-500"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 {/* TAB 1: PROFILE INFO */}
                 {activeTab === "profile" && (

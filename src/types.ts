@@ -34,6 +34,15 @@ export interface SkillItem {
   category: 'Frontend' | 'Backend' | 'Database' | 'Tools';
 }
 
+export interface ContactMessage {
+  id: string;
+  name: string;
+  email: string;
+  message: string;
+  timestamp: string;
+  status: string;
+}
+
 export interface SiteConfig {
   name: string;
   firstName: string;
@@ -46,6 +55,10 @@ export interface SiteConfig {
   instagram?: string;
   badgeText: string;
   bio: string;
+  
+  // Announcement Banner
+  showBanner?: boolean;
+  bannerText?: string;
   
   // Admin security
   adminUsername?: string;

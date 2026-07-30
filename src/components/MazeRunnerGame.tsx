@@ -43,6 +43,19 @@ export default function MazeRunnerGame({ className = "" }: { className?: string 
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      const tag = target?.tagName?.toLowerCase();
+      if (
+        tag === "input" ||
+        tag === "textarea" ||
+        tag === "select" ||
+        target?.isContentEditable ||
+        document.activeElement?.tagName === "INPUT" ||
+        document.activeElement?.tagName === "TEXTAREA"
+      ) {
+        return;
+      }
+
       if (gameState !== "playing") return;
       if (e.key === "ArrowUp" || e.key === "w") movePlayer(-1, 0);
       if (e.key === "ArrowDown" || e.key === "s") movePlayer(1, 0);

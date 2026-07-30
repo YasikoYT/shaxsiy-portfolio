@@ -27,6 +27,19 @@ export default function WhackAMoleGame({ className = "" }: { className?: string 
   // Prevent page scroll when using keys 1-9
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      const tag = target?.tagName?.toLowerCase();
+      if (
+        tag === "input" ||
+        tag === "textarea" ||
+        tag === "select" ||
+        target?.isContentEditable ||
+        document.activeElement?.tagName === "INPUT" ||
+        document.activeElement?.tagName === "TEXTAREA"
+      ) {
+        return;
+      }
+
       if (gameStateRef.current !== "playing") return;
       const num = parseInt(e.key, 10);
       if (num >= 1 && num <= 9) {

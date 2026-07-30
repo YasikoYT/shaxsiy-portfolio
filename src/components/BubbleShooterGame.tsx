@@ -159,9 +159,105 @@ export default function BubbleShooterGame({ className = "" }: { className?: stri
         const c = Math.max(0, Math.min(7, Math.floor(engine.bullet.x / (bubbleRadius * 2))));
 
         if (engine.grid[r]) {
-          engine.grid[r][c] = engine.bullet.color;
-          engine.score += 10;
-          setScore(engine.score);
+          const shotColor = engine.bullet.color;
+          engine.grid[r][c] = shotColor;
+
+          // Helper to get neighbor coordinates
+          const getNeighbors = (row: number, col: number) => {
+            const neighbors: { r: number; c: number }[] = [];
+            const dirs = [
+              [-1, 0], [1, 0], [0, -1], [0, 1],
+              [-1, -1], [-1, 1], [1, -1], [1, 1]
+            ];
+            for (const [dr, dc] of dirs) {
+              const nr = row + dr;
+              const nc = col + dc;
+              if (nr >= 0 && nr < 10 && nc >= 0 && nc < 8) {
+                neighbors.push({ r: nr, c: nc });
+              }
+            }
+            return neighbors;
+          };
+
+          // Find connected bubbles of the same color (BFS)
+          const queue: { r: number; c: number }[] = [{ r, c }];
+          const visited = new Set<string>();
+          visited.add(`${r},${c}`);
+          const matches: { r: number; c: number }[] = [];
+
+          while (queue.length > 0) {
+            const curr = queue.shift()!;
+            matches.push(curr);
+
+            for (const nb of getNeighbors(curr.r, curr.c)) {
+              const key = `${nb.r},${nb.c}`;
+              if (!visited.has(key) && engine.grid[nb.r]?.[nb.c] === shotColor) {
+                visited.add(key);
+                queue.push(nb);
+              }
+            }
+          }
+
+          // If 3 or more bubbles match in color, pop them all!
+          if (matches.length >= 3) {
+            matches.forEach((m) => {
+              engine.grid[m.r][m.c] = null;
+            });
+
+            // Find and drop floating bubbles that are disconnected from row 0
+            const connectedToTop = new Set<string>();
+            const topQueue: { r: number; c: number }[] = [];
+
+            for (let col = 0; col < 8; col++) {
+              if (engine.grid[0][col] !== null) {
+                topQueue.push({ r: 0, c: col });
+                connectedToTop.add(`0,${col}`);
+              }
+            }
+
+            while (topQueue.length > 0) {
+              const curr = topQueue.shift()!;
+              for (const nb of getNeighbors(curr.r, curr.c)) {
+                const key = `${nb.r},${nb.c}`;
+                if (!connectedToTop.has(key) && engine.grid[nb.r]?.[nb.c] !== null) {
+                  connectedToTop.add(key);
+                  topQueue.push(nb);
+                }
+              }
+            }
+
+            let droppedCount = 0;
+            for (let row = 0; row < 10; row++) {
+              for (let col = 0; col < 8; col++) {
+                if (engine.grid[row][col] !== null && !connectedToTop.has(`${row},${col}`)) {
+                  engine.grid[row][col] = null;
+                  droppedCount++;
+                }
+              }
+            }
+
+            // Award points: 30 pts per matched bubble + 50 pts per dropped bubble
+            const pts = matches.length * 30 + droppedCount * 50;
+            engine.score += pts;
+            setScore(engine.score);
+
+            // Check if grid is completely cleared
+            const isEmpty = engine.grid.every((row) => row.every((cell) => cell === null));
+            if (isEmpty) {
+              engine.score += 500; // Clearing bonus
+              setScore(engine.score);
+              // Respawn new wave
+              for (let row = 0; row < 5; row++) {
+                for (let col = 0; col < 8; col++) {
+                  engine.grid[row][col] = getRandomColor();
+                }
+              }
+            }
+          } else {
+            // Just single shot score if less than 3
+            engine.score += 10;
+            setScore(engine.score);
+          }
         }
 
         engine.bullet = null;
