@@ -44,7 +44,7 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
   location: "O'zbekiston, Surxondaryo",
   email: "yasikouz152@gmail.com",
   phone: "+998 90 123 45 67",
-  telegram: "@akramovanvar",
+  telegram: "@mineestaxx",
   github: "https://github.com/akramovanvar",
   instagram: "https://instagram.com/akramovanvar",
   badgeText: "<yosh dasturchining portfoliosi>",

@@ -59,7 +59,7 @@ async function startServer() {
     location: "O'zbekiston, Surxondaryo",
     email: "yasikouz152@gmail.com",
     phone: "+998 90 123 45 67",
-    telegram: "@akramovanvar",
+    telegram: "@mineestaxx",
     github: "https://github.com/akramovanvar",
     instagram: "https://instagram.com/akramovanvar",
     badgeText: "<yosh dasturchining portfoliosi>",
@@ -108,6 +108,7 @@ async function startServer() {
           if (cfg.aiCustomKnowledge && cfg.aiCustomKnowledge.includes("15")) cfg.aiCustomKnowledge = cfg.aiCustomKnowledge.replace(/15/g, "16");
           if (cfg.location && cfg.location.includes("Denov")) cfg.location = cfg.location.replace(/,\s*Denov/g, "").replace(/Denov/g, "").trim();
           if (cfg.aiCustomKnowledge && cfg.aiCustomKnowledge.includes("Denov")) cfg.aiCustomKnowledge = cfg.aiCustomKnowledge.replace(/Denov tumanidan/g, "viloyatidan").replace(/Denov/g, "");
+          if (!cfg.telegram || cfg.telegram === "@akramovanvar") cfg.telegram = "@mineestaxx";
           return cfg;
         }
       }

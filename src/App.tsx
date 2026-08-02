@@ -1953,7 +1953,7 @@ export default function App() {
                       
                       <div className="pt-3 flex flex-wrap justify-center gap-3">
                         <a
-                          href={`https://t.me/${(siteConfig.telegram || "@akramovanvar").replace("@", "")}?text=${encodeURIComponent(`Assalomu alaykum Anvar! Men portfoliodan yozmoqdaman.\nIsmim: ${formName}\nKontakt: ${formEmail}\n\nXabar: ${formMessage}`)}`}
+                          href={`https://t.me/${(siteConfig.telegram || "@mineestaxx").replace("@", "")}?text=${encodeURIComponent(`Assalomu alaykum Anvar! Men portfoliodan yozmoqdaman.\nIsmim: ${formName}\nKontakt: ${formEmail}\n\nXabar: ${formMessage}`)}`}
                           target="_blank"
                           rel="noreferrer"
                           className="inline-flex items-center gap-2 px-6 py-3.5 bg-sky-500 text-white text-xs font-mono font-bold uppercase rounded-xl hover:bg-sky-400 transition-colors shadow-lg"
