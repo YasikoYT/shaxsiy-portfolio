@@ -73,6 +73,7 @@ import HelixJumpGame from "./components/HelixJumpGame";
 import AimTrainerGame from "./components/AimTrainerGame";
 import MazeRunnerGame from "./components/MazeRunnerGame";
 import PatternMemoryGame from "./components/PatternMemoryGame";
+import ProjectsShowcase from "./components/ProjectsShowcase";
 import DoodleJumpGame from "./components/DoodleJumpGame";
 import NumberMergeChainGame from "./components/NumberMergeChainGame";
 import AdminPanelModal, { DEFAULT_SITE_CONFIG } from "./components/AdminPanelModal";
@@ -289,29 +290,89 @@ export default function App() {
     }
   }, [isDarkMode]);
 
-  // Site Config state (persisted in localStorage)
+  // Site Config state (persisted on server disk + fallback cache in localStorage)
   const [siteConfig, setSiteConfig] = useState<SiteConfig>(() => {
     try {
-      const saved = localStorage.getItem("anvar_site_config");
-      if (saved) return JSON.parse(saved);
+      const saved = localStorage.getItem("anvar_site_config_v4");
+      if (saved) {
+        return JSON.parse(saved);
+      }
     } catch (e) {
       console.error("Failed to parse site config", e);
     }
-    return DEFAULT_SITE_CONFIG;
+    return {
+      ...DEFAULT_SITE_CONFIG,
+      customProjects: []
+    };
   });
+
+  // Global server state sync: fetch site config & custom projects across all devices
+  useEffect(() => {
+    const fetchGlobalConfig = async () => {
+      try {
+        const res = await fetch("/api/config");
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.config) {
+            setSiteConfig(data.config);
+            try {
+              localStorage.setItem("anvar_site_config_v4", JSON.stringify(data.config));
+            } catch (e) {}
+          }
+        }
+      } catch (err) {
+        console.warn("Server config sync error:", err);
+      }
+    };
+
+    fetchGlobalConfig();
+    // Auto-sync every 8 seconds for all devices
+    const timer = setInterval(fetchGlobalConfig, 8000);
+    return () => clearInterval(timer);
+  }, []);
 
   // Admin modal & authentication states
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(() => {
     return localStorage.getItem("anvar_admin_logged_in") === "true";
   });
   const [showAdminModal, setShowAdminModal] = useState(false);
+  const [inboxCount, setInboxCount] = useState(0);
 
-  const handleSaveConfig = (newConfig: SiteConfig) => {
+  // Poll server for incoming SMS/messages count across all devices
+  useEffect(() => {
+    const fetchInboxCount = async () => {
+      try {
+        const res = await fetch("/api/contact/list");
+        if (res.ok) {
+          const data = await res.json();
+          if (data && Array.isArray(data.messages)) {
+            setInboxCount(data.messages.length);
+          }
+        }
+      } catch (err) {}
+    };
+
+    fetchInboxCount();
+    const timer = setInterval(fetchInboxCount, 4000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const handleSaveConfig = async (newConfig: SiteConfig) => {
     setSiteConfig(newConfig);
     try {
-      localStorage.setItem("anvar_site_config", JSON.stringify(newConfig));
+      localStorage.setItem("anvar_site_config_v4", JSON.stringify(newConfig));
     } catch (e) {
-      console.error("Failed to save site config", e);
+      console.error("Failed to save site config locally", e);
+    }
+
+    try {
+      await fetch("/api/config/save", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ config: newConfig })
+      });
+    } catch (err) {
+      console.error("Failed to sync config to server", err);
     }
   };
 
@@ -436,8 +497,8 @@ export default function App() {
 
   const chatMessagesContainerRef = useRef<HTMLDivElement>(null);
 
-  // Custom gentle & smooth scroll handler with cubic easing (slow, elegant scrolling)
-  const smoothScrollTo = (target: string | number | HTMLElement | null, duration = 1200) => {
+  // Fast, high-performance smooth scroll handler using native browser behavior
+  const smoothScrollTo = (target: string | number | HTMLElement | null, _duration?: number) => {
     if (target === null || target === undefined) return;
     const startY = window.pageYOffset || document.documentElement.scrollTop;
     let targetY = 0;
@@ -456,29 +517,10 @@ export default function App() {
       targetY = target.getBoundingClientRect().top + startY - 80;
     }
 
-    const distance = targetY - startY;
-    if (Math.abs(distance) < 2) return;
-
-    let startTime: number | null = null;
-
-    const easeInOutCubic = (t: number) => {
-      return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
-    };
-
-    const step = (currentTime: number) => {
-      if (startTime === null) startTime = currentTime;
-      const elapsed = currentTime - startTime;
-      const progress = Math.min(elapsed / duration, 1);
-      const easedProgress = easeInOutCubic(progress);
-
-      window.scrollTo(0, startY + distance * easedProgress);
-
-      if (elapsed < duration) {
-        requestAnimationFrame(step);
-      }
-    };
-
-    requestAnimationFrame(step);
+    window.scrollTo({
+      top: targetY,
+      behavior: "smooth"
+    });
   };
 
   // Scroll position listener for Scroll-To-Top button
@@ -552,7 +594,7 @@ export default function App() {
     if (progress < 30) {
       setLoadingPhase("Akramov Anvar portfolio komponentlari yuklanmoqda...");
     } else if (progress < 65) {
-      setLoadingPhase("15 yoshli Full-Stack dasturchi ma'lumotlari indekslanmoqda...");
+      setLoadingPhase("16 yoshli Full-Stack dasturchi ma'lumotlari indekslanmoqda...");
     } else if (progress < 90) {
       setLoadingPhase("Google Gemini AI va interaktiv arcade tizimi sozlanmoqda...");
     } else {
@@ -625,17 +667,19 @@ export default function App() {
     }
   };
 
-  // Contact Form Submission handler (100% Guaranteed Delivery to Server and Admin Panel)
+  // Contact Form Submission handler (100% Guaranteed Delivery across all devices)
   const handleContactSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formName || !formEmail || !formMessage) return;
+    if (!formName.trim() || !formMessage.trim()) return;
 
     setFormSending(true);
+
+    const contactInfo = formEmail.trim() || "Kiritilmagan";
 
     const newMsg = {
       id: `msg-${Date.now()}`,
       name: formName.trim(),
-      email: formEmail.trim(),
+      email: contactInfo,
       message: formMessage.trim(),
       timestamp: new Date().toISOString(),
       status: "Yangi (SMS yetkazildi)"
@@ -648,15 +692,15 @@ export default function App() {
       localStorage.setItem("anvar_inbox_messages", JSON.stringify(existing));
     } catch (e) {}
 
-    // Post to Server API
+    // Post to Server API for server-side persistence in data/inbox_bundle.json
     try {
       await fetch("/api/contact/send", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          name: formName,
-          email: formEmail,
-          message: formMessage
+          name: formName.trim(),
+          email: contactInfo,
+          message: formMessage.trim()
         })
       });
     } catch (err) {
@@ -702,7 +746,7 @@ export default function App() {
                   SYSTEM ONLINE
                 </span>
                 <span className="hidden sm:inline-block font-mono text-xs text-emerald-400 font-bold bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">
-                  15 YOSH
+                  16 YOSH
                 </span>
               </div>
             </div>
@@ -746,7 +790,7 @@ export default function App() {
                   className="font-mono text-xs sm:text-sm uppercase tracking-widest text-emerald-400 font-bold flex items-center justify-center gap-2"
                 >
                   <Sparkles className="w-3.5 h-3.5 text-amber-400 animate-spin" />
-                  Full-Stack Dasturchi // 15 Yoshda // Surxondaryo
+                  Full-Stack Dasturchi // 16 Yoshda // Surxondaryo
                 </motion.div>
               </div>
 
@@ -859,7 +903,13 @@ export default function App() {
                   title="Admin Panel Login (AA)"
                 >
                   AA
-                  <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-amber-400 rounded-full border-2 border-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                  {inboxCount > 0 ? (
+                    <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 bg-rose-500 rounded-full border-2 border-white text-[9px] font-mono font-bold text-white flex items-center justify-center shadow-md animate-pulse">
+                      {inboxCount}
+                    </span>
+                  ) : (
+                    <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-amber-400 rounded-full border-2 border-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                  )}
                 </motion.button>
 
                 {/* Name & Subtitle - Navigates to Home */}
@@ -876,7 +926,7 @@ export default function App() {
                   <span className={`font-serif text-base tracking-[0.15em] font-extrabold uppercase leading-none ${isDarkMode ? 'text-white' : 'text-black'}`}>
                     {siteConfig.firstName} {siteConfig.lastName}
                   </span>
-                  <span className={`text-[10px] font-mono mt-1 font-semibold ${isDarkMode ? 'text-neutral-400' : 'text-neutral-500'}`}>Full-Stack Dev // 15 yosh</span>
+                  <span className={`text-[10px] font-mono mt-1 font-semibold ${isDarkMode ? 'text-neutral-400' : 'text-neutral-500'}`}>Full-Stack Dev // 16 yosh</span>
                 </motion.div>
               </div>
 
@@ -884,6 +934,7 @@ export default function App() {
               <nav className="hidden lg:flex items-center gap-8 text-xs font-mono uppercase tracking-wider font-semibold">
                 {[
                   { id: "home", label: "Asosiy" },
+                  ...(siteConfig.customProjects && siteConfig.customProjects.length > 0 ? [{ id: "projects", label: "Loyihalarim" }] : []),
                   { id: "games", label: "O'yinlar Arena" },
                   { id: "ai-assistant", label: "AI Markazi" },
                   { id: "goals", label: "Maqsadlarim" },
@@ -896,7 +947,7 @@ export default function App() {
                     id={`nav-link-${item.id}`}
                     onClick={() => {
                       setActiveTab(item.id);
-                      smoothScrollTo(item.id, 1200);
+                      smoothScrollTo(item.id);
                     }}
                     className={`relative py-2 cursor-pointer transition-colors ${
                       activeTab === item.id 
@@ -994,6 +1045,7 @@ export default function App() {
                 >
                   {[
                     { id: "home", label: "Asosiy Sahifa" },
+                    ...(siteConfig.customProjects && siteConfig.customProjects.length > 0 ? [{ id: "projects", label: "Loyihalarim" }] : []),
                     { id: "games", label: "O'yinlar Arena" },
                     { id: "ai-assistant", label: "AI Markazi" },
                     { id: "goals", label: "Maqsadlarim" },
@@ -1005,7 +1057,7 @@ export default function App() {
                       onClick={() => {
                         setActiveTab(item.id);
                         setMobileMenuOpen(false);
-                        smoothScrollTo(item.id, 1200);
+                        smoothScrollTo(item.id);
                       }}
                       className={`block w-full text-left py-2.5 text-xs uppercase tracking-widest font-mono font-medium rounded-lg transition-colors ${
                         activeTab === item.id 
@@ -1018,7 +1070,7 @@ export default function App() {
                   ))}
                   <div className={`pt-3 border-t flex items-center justify-between ${isDarkMode ? 'border-neutral-800' : 'border-neutral-100'}`}>
                     <span className={`text-xs font-mono ${isDarkMode ? 'text-neutral-400' : 'text-neutral-500'}`}>
-                      Akramov Anvar // 15 yosh
+                      Akramov Anvar // 16 yosh
                     </span>
                     <button
                       onClick={() => setIsDarkMode(!isDarkMode)}
@@ -1183,7 +1235,13 @@ export default function App() {
               </div>
             </motion.section>
 
-            {/* SECTION 2: INTERAKTIV O'YINLAR ARENASI */}
+            {/* SECTION 2: MENING SHAXSIY LOYIHALARIM (PROJECTS SHOWCASE) */}
+            <ProjectsShowcase 
+              projects={siteConfig.customProjects} 
+              isDarkMode={isDarkMode} 
+            />
+
+            {/* SECTION 3: INTERAKTIV O'YINLAR ARENASI */}
             <motion.section 
               id="games" 
               className="scroll-mt-24 space-y-8"
@@ -1320,211 +1378,71 @@ export default function App() {
                 );
               })()}
 
-              {/* Active Game Display Area */}
-              <div className="w-full">
-                {activeGameTab === "bubbleshooter" && (
-                  <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="max-w-2xl mx-auto">
-                    <BubbleShooterGame className="w-full shadow-2xl" />
-                  </motion.div>
-                )}
+              {/* Active Game Display Area with Ultra Smooth AnimatePresence Transitions */}
+              <div className="w-full relative py-2">
+                {/* Ambient Glowing Backdrop */}
+                <div className="absolute inset-0 bg-gradient-to-tr from-amber-500/15 via-purple-500/10 to-cyan-500/15 rounded-3xl blur-3xl pointer-events-none -z-10" />
 
-                {activeGameTab === "spaceinvaders" && (
-                  <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="max-w-2xl mx-auto">
-                    <SpaceInvadersGame className="w-full shadow-2xl" />
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={activeGameTab}
+                    initial={{ opacity: 0, y: 35, scale: 0.93, filter: "blur(12px)" }}
+                    animate={{ 
+                      opacity: 1, 
+                      y: 0, 
+                      scale: 1,
+                      filter: "blur(0px)"
+                    }}
+                    exit={{ 
+                      opacity: 0, 
+                      y: -25, 
+                      scale: 0.95,
+                      filter: "blur(8px)"
+                    }}
+                    transition={{
+                      type: "spring",
+                      stiffness: 280,
+                      damping: 24,
+                      mass: 0.85
+                    }}
+                    className="max-w-2xl mx-auto"
+                  >
+                    {activeGameTab === "bubbleshooter" && <BubbleShooterGame className="w-full shadow-2xl" />}
+                    {activeGameTab === "spaceinvaders" && <SpaceInvadersGame className="w-full shadow-2xl" />}
+                    {activeGameTab === "typingracer" && <TypingSpeedRacerGame className="w-full shadow-2xl" />}
+                    {activeGameTab === "sudoku" && <SudokuMiniGame className="w-full shadow-2xl" />}
+                    {activeGameTab === "helixjump" && <HelixJumpGame className="w-full shadow-2xl" />}
+                    {activeGameTab === "aimtrainer" && <AimTrainerGame className="w-full shadow-2xl" />}
+                    {activeGameTab === "mazerunner" && <MazeRunnerGame className="w-full shadow-2xl" />}
+                    {activeGameTab === "patternmemory" && <PatternMemoryGame className="w-full shadow-2xl" />}
+                    {activeGameTab === "doodlejump" && <DoodleJumpGame className="w-full shadow-2xl" />}
+                    {activeGameTab === "numbermerge" && <NumberMergeChainGame className="w-full shadow-2xl" />}
+                    {activeGameTab === "tetris" && <TetrisGame className="w-full shadow-2xl" />}
+                    {activeGameTab === "whackamole" && <WhackAMoleGame className="w-full shadow-2xl" />}
+                    {activeGameTab === "simon" && <SimonSaysGame className="w-full shadow-2xl" />}
+                    {activeGameTab === "wordscramble" && <WordScrambleGame className="w-full shadow-2xl" />}
+                    {activeGameTab === "speedtyping" && <SpeedTypingGame className="w-full shadow-2xl" />}
+                    {activeGameTab === "gravityrunner" && <GravityRunnerGame className="w-full shadow-2xl" />}
+                    {activeGameTab === "connectfour" && <ConnectFourGame className="w-full shadow-2xl" />}
+                    {activeGameTab === "knifehit" && <KnifeHitGame className="w-full shadow-2xl" />}
+                    {activeGameTab === "fruitninja" && <FruitNinjaGame className="w-full shadow-2xl" />}
+                    {activeGameTab === "archery" && <ArcheryShooterGame className="w-full shadow-2xl" />}
+                    {activeGameTab === "towerstack" && <TowerStackGame className="w-full shadow-2xl" />}
+                    {activeGameTab === "tile2048" && <Tile2048Game className="w-full shadow-2xl" />}
+                    {activeGameTab === "brick" && <BrickBreakerGame className="w-full shadow-2xl" />}
+                    {activeGameTab === "sniper" && <SniperGame className="w-full shadow-2xl" />}
+                    {activeGameTab === "colorrush" && <ColorRushGame className="w-full shadow-2xl" />}
+                    {activeGameTab === "minesweeper" && <MinesweeperGame className="w-full shadow-2xl" />}
+                    {activeGameTab === "fastmath" && <FastMathGame className="w-full shadow-2xl" />}
+                    {activeGameTab === "tictactoe" && <TicTacToeGame className="w-full shadow-2xl" />}
+                    {activeGameTab === "snake" && <SnakeGame className="w-full shadow-2xl" />}
+                    {activeGameTab === "flappy" && <FlappyBirdGame className="w-full shadow-2xl" />}
+                    {activeGameTab === "pong" && <PingPongGame className="w-full shadow-2xl" />}
+                    {activeGameTab === "memory" && <MemoryMatchGame className="w-full shadow-2xl" />}
+                    {activeGameTab === "space" && <SpaceShooter className="w-full shadow-2xl" />}
+                    {activeGameTab === "dino" && <DinoGame className="w-full shadow-2xl bg-white border border-neutral-200" />}
                   </motion.div>
-                )}
-
-                {activeGameTab === "typingracer" && (
-                  <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="max-w-2xl mx-auto">
-                    <TypingSpeedRacerGame className="w-full shadow-2xl" />
-                  </motion.div>
-                )}
-
-                {activeGameTab === "sudoku" && (
-                  <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="max-w-2xl mx-auto">
-                    <SudokuMiniGame className="w-full shadow-2xl" />
-                  </motion.div>
-                )}
-
-                {activeGameTab === "helixjump" && (
-                  <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="max-w-2xl mx-auto">
-                    <HelixJumpGame className="w-full shadow-2xl" />
-                  </motion.div>
-                )}
-
-                {activeGameTab === "aimtrainer" && (
-                  <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="max-w-2xl mx-auto">
-                    <AimTrainerGame className="w-full shadow-2xl" />
-                  </motion.div>
-                )}
-
-                {activeGameTab === "mazerunner" && (
-                  <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="max-w-2xl mx-auto">
-                    <MazeRunnerGame className="w-full shadow-2xl" />
-                  </motion.div>
-                )}
-
-                {activeGameTab === "patternmemory" && (
-                  <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="max-w-2xl mx-auto">
-                    <PatternMemoryGame className="w-full shadow-2xl" />
-                  </motion.div>
-                )}
-
-                {activeGameTab === "doodlejump" && (
-                  <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="max-w-2xl mx-auto">
-                    <DoodleJumpGame className="w-full shadow-2xl" />
-                  </motion.div>
-                )}
-
-                {activeGameTab === "numbermerge" && (
-                  <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="max-w-2xl mx-auto">
-                    <NumberMergeChainGame className="w-full shadow-2xl" />
-                  </motion.div>
-                )}
-
-                {activeGameTab === "tetris" && (
-                  <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="max-w-2xl mx-auto">
-                    <TetrisGame className="w-full shadow-2xl" />
-                  </motion.div>
-                )}
-
-                {activeGameTab === "whackamole" && (
-                  <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="max-w-2xl mx-auto">
-                    <WhackAMoleGame className="w-full shadow-2xl" />
-                  </motion.div>
-                )}
-
-                {activeGameTab === "simon" && (
-                  <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="max-w-2xl mx-auto">
-                    <SimonSaysGame className="w-full shadow-2xl" />
-                  </motion.div>
-                )}
-
-                {activeGameTab === "wordscramble" && (
-                  <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="max-w-2xl mx-auto">
-                    <WordScrambleGame className="w-full shadow-2xl" />
-                  </motion.div>
-                )}
-
-                {activeGameTab === "speedtyping" && (
-                  <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="max-w-2xl mx-auto">
-                    <SpeedTypingGame className="w-full shadow-2xl" />
-                  </motion.div>
-                )}
-
-                {activeGameTab === "gravityrunner" && (
-                  <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="max-w-2xl mx-auto">
-                    <GravityRunnerGame className="w-full shadow-2xl" />
-                  </motion.div>
-                )}
-
-                {activeGameTab === "connectfour" && (
-                  <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="max-w-2xl mx-auto">
-                    <ConnectFourGame className="w-full shadow-2xl" />
-                  </motion.div>
-                )}
-
-                {activeGameTab === "knifehit" && (
-                  <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="max-w-2xl mx-auto">
-                    <KnifeHitGame className="w-full shadow-2xl" />
-                  </motion.div>
-                )}
-
-                {activeGameTab === "fruitninja" && (
-                  <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="max-w-2xl mx-auto">
-                    <FruitNinjaGame className="w-full shadow-2xl" />
-                  </motion.div>
-                )}
-
-                {activeGameTab === "archery" && (
-                  <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="max-w-2xl mx-auto">
-                    <ArcheryShooterGame className="w-full shadow-2xl" />
-                  </motion.div>
-                )}
-
-                {activeGameTab === "towerstack" && (
-                  <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="max-w-2xl mx-auto">
-                    <TowerStackGame className="w-full shadow-2xl" />
-                  </motion.div>
-                )}
-
-                {activeGameTab === "tile2048" && (
-                  <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="max-w-2xl mx-auto">
-                    <Tile2048Game className="w-full shadow-2xl" />
-                  </motion.div>
-                )}
-
-                {activeGameTab === "brick" && (
-                  <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="max-w-2xl mx-auto">
-                    <BrickBreakerGame className="w-full shadow-2xl" />
-                  </motion.div>
-                )}
-
-                {activeGameTab === "sniper" && (
-                  <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="max-w-2xl mx-auto">
-                    <SniperGame className="w-full shadow-2xl" />
-                  </motion.div>
-                )}
-
-                {activeGameTab === "colorrush" && (
-                  <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="max-w-2xl mx-auto">
-                    <ColorRushGame className="w-full shadow-2xl" />
-                  </motion.div>
-                )}
-
-                {activeGameTab === "minesweeper" && (
-                  <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="max-w-2xl mx-auto">
-                    <MinesweeperGame className="w-full shadow-2xl" />
-                  </motion.div>
-                )}
-
-                {activeGameTab === "fastmath" && (
-                  <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="max-w-2xl mx-auto">
-                    <FastMathGame className="w-full shadow-2xl" />
-                  </motion.div>
-                )}
-
-                {activeGameTab === "tictactoe" && (
-                  <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="max-w-2xl mx-auto">
-                    <TicTacToeGame className="w-full shadow-2xl" />
-                  </motion.div>
-                )}
-
-                {activeGameTab === "snake" && (
-                  <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="max-w-2xl mx-auto">
-                    <SnakeGame className="w-full shadow-2xl" />
-                  </motion.div>
-                )}
-
-                {activeGameTab === "flappy" && (
-                  <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="max-w-2xl mx-auto">
-                    <FlappyBirdGame className="w-full shadow-2xl" />
-                  </motion.div>
-                )}
-
-                {activeGameTab === "pong" && (
-                  <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="max-w-2xl mx-auto">
-                    <PingPongGame className="w-full shadow-2xl" />
-                  </motion.div>
-                )}
-
-                {activeGameTab === "memory" && (
-                  <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="max-w-2xl mx-auto">
-                    <MemoryMatchGame className="w-full shadow-2xl" />
-                  </motion.div>
-                )}
-
-                {activeGameTab === "space" && (
-                  <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="max-w-2xl mx-auto">
-                    <SpaceShooter className="w-full shadow-2xl" />
-                  </motion.div>
-                )}
-
-                {activeGameTab === "dino" && (
-                  <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="max-w-xl mx-auto">
-                    <DinoGame className="w-full shadow-2xl bg-white border border-neutral-200" />
-                  </motion.div>
-                )}
+                </AnimatePresence>
               </div>
             </motion.section>
 
@@ -2021,21 +1939,29 @@ export default function App() {
                         <Check className="w-8 h-8" />
                       </div>
                       <h3 className={`font-serif text-2xl font-light ${isDarkMode ? 'text-white' : 'text-black'}`}>
-                        SMS va Xabar 100% yetkazildi!
+                        SMS va Murojaat 100% yetkazildi!
                       </h3>
                       <div className="p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl max-w-md mx-auto text-xs font-mono text-emerald-400 space-y-1">
                         <div className="font-bold flex items-center justify-center gap-1.5">
                           <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                          Server va Admin Panel SMS jurnali tasdiqlandi
+                          Server va Admin Panel Jurnali Tasdiqlandi
                         </div>
                         <p className="text-[11px] text-neutral-300 font-sans">
-                          Xabaringiz Akramov Anvarga 100% muvaffaqiyatli yetkazildi. Javob tez orada beriladi.
+                          Xabaringiz barcha qurilmalar va server bazasiga 100% muvaffaqiyatli saqlandi va Anvarga yetkazildi.
                         </p>
                       </div>
                       
                       <div className="pt-3 flex flex-wrap justify-center gap-3">
                         <a
-                          href={`mailto:${siteConfig.email}?subject=Portfolio%20Murojaat%20(${encodeURIComponent(formName)})&body=${encodeURIComponent(`Ism: ${formName}\nEmail: ${formEmail}\n\nXabar:\n${formMessage}`)}`}
+                          href={`https://t.me/${(siteConfig.telegram || "@akramovanvar").replace("@", "")}?text=${encodeURIComponent(`Assalomu alaykum Anvar! Men portfoliodan yozmoqdaman.\nIsmim: ${formName}\nKontakt: ${formEmail}\n\nXabar: ${formMessage}`)}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center gap-2 px-6 py-3.5 bg-sky-500 text-white text-xs font-mono font-bold uppercase rounded-xl hover:bg-sky-400 transition-colors shadow-lg"
+                        >
+                          <Send className="w-4 h-4 text-white" /> Telegram Orqali Yuborish
+                        </a>
+                        <a
+                          href={`mailto:${siteConfig.email}?subject=Portfolio%20Murojaat%20(${encodeURIComponent(formName)})&body=${encodeURIComponent(`Ism: ${formName}\nKontakt: ${formEmail}\n\nXabar:\n${formMessage}`)}`}
                           className="inline-flex items-center gap-2 px-6 py-3.5 bg-amber-500 text-black text-xs font-mono font-bold uppercase rounded-xl hover:bg-amber-400 transition-colors shadow-lg"
                         >
                           <Mail className="w-4 h-4 text-black" /> Email Orqali Yuborish
@@ -2062,7 +1988,7 @@ export default function App() {
                           <label className={`text-[10px] font-mono uppercase tracking-widest font-bold ${
                             isDarkMode ? 'text-slate-400' : 'text-neutral-500'
                           }`}>
-                            Ism Familyangiz
+                            Ism Familyangiz *
                           </label>
                           <input
                             type="text"
@@ -2082,14 +2008,13 @@ export default function App() {
                           <label className={`text-[10px] font-mono uppercase tracking-widest font-bold ${
                             isDarkMode ? 'text-slate-400' : 'text-neutral-500'
                           }`}>
-                            Email Manzilingiz
+                            Email yoki Telefon Raqamingiz
                           </label>
                           <input
-                            type="email"
-                            required
+                            type="text"
                             value={formEmail}
                             onChange={(e) => setFormEmail(e.target.value)}
-                            placeholder="Masalan: sizning_email@gmail.com"
+                            placeholder="Masalan: +998901234567 yoki email@gmail.com"
                             className={`w-full border rounded-xl px-4 py-3 text-xs focus:outline-none transition-colors ${
                               isDarkMode 
                                 ? 'bg-[#1a2233] border-slate-700 text-white focus:border-amber-400 placeholder:text-slate-500' 

@@ -24,10 +24,15 @@ import {
   Github,
   Send,
   Gamepad2,
-  Download,
   Upload,
   Layers,
-  Code
+  Code,
+  Phone,
+  Share2,
+  FileText,
+  Sliders,
+  Play,
+  Sparkle
 } from "lucide-react";
 import { SiteConfig, Project } from "../types";
 
@@ -35,17 +40,24 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
   name: "Akramov Anvar",
   firstName: "Anvar",
   lastName: "Akramov",
-  age: "15 yosh",
-  location: "O'zbekiston, Surxondaryo, Denov",
+  age: "16 yosh",
+  location: "O'zbekiston, Surxondaryo",
   email: "yasikouz152@gmail.com",
+  phone: "+998 90 123 45 67",
   telegram: "@akramovanvar",
   github: "https://github.com/akramovanvar",
   instagram: "https://instagram.com/akramovanvar",
   badgeText: "<yosh dasturchining portfoliosi>",
-  bio: "Mening ismim Akramov Anvar. Men 15 yoshdaman va dasturlash bilan astoydil shug'ullanib kelayotgan professional yosh full-stack dasturchiman. Tengdoshlarimga murakkab algoritmlar va zamonaviy texnologiyalarni sodda, tushunarli tilda o'rgatish orqali IT sohasiga birinchi qadamlarini qo'yishda yordam bermoqdaman.",
+  bio: "Mening ismim Akramov Anvar. Men 16 yoshdaman va dasturlash bilan astoydil shug'ullanib kelayotgan professional yosh full-stack dasturchiman. Tengdoshlarimga murakkab algoritmlar va zamonaviy texnologiyalarni sodda, tushunarli tilda o'rgatish orqali IT sohasiga birinchi qadamlarini qo'yishda yordam bermoqdaman.",
+  customQuote: "Kod yozish - murakkab g'oyalarni haqiqatga va qulay yechimlarga aylantirish san'atidir.",
+  footerText: "© 2026 Akramov Anvar. Barcha huquqlar himoyalangan. Full-Stack & AI Portfolio.",
+  skillsFrontend: "React.js, TypeScript, Tailwind CSS, Next.js, HTML5/CSS3, Redux Toolkit",
+  skillsBackend: "Node.js, Express.js, REST API, Python, PostgreSQL, MongoDB, WebSockets",
+  skillsTools: "Git, GitHub, Vite, Docker, VS Code, Gemini AI SDK, Linux Cloud Run",
+  autoReplyText: "Assalomu alaykum! Murojaatingiz uchun rahmat. Tez orada siz bilan bog'lanaman.",
   adminUsername: "admin",
   adminPassword: "admin123",
-  stat1Value: "15",
+  stat1Value: "16",
   stat1Label: "Yoshim",
   stat2Value: "1+ Yil",
   stat2Label: "Tajribam",
@@ -59,30 +71,11 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
   goal3Desc: "O'zbekistonda yoshlar orasida eng faol va do'stona IT o'quv hamjamiyatini shakllantirish va tengdoshlarga yordam berish.",
   goal4Title: "Xalqaro IT Sertifikatsiyalar",
   goal4Desc: "Full-Stack va zamonaviy veb-arxitektura bo'yicha dunyo miqyosidagi nufuzli IT sertifikatlarini muvaffaqiyatli topshirish.",
-  aiCustomKnowledge: "Akramov Anvar 15 yoshda, Surxondaryo Denov tumanidan. Professional Full-Stack Dasturchi. U React, Node.js va Sun'iy intellekt integratsiyalarini zo'r biladi.",
+  aiCustomKnowledge: "Akramov Anvar 16 yoshda, Surxondaryo viloyatidan. Professional Full-Stack Dasturchi. U React, Node.js va Sun'iy intellekt integratsiyalarini zo'r biladi.",
   gameMultiplier: 1,
   gameInitialLives: 3,
   gameTitle: "CYBER STRIKE 2077",
-  customProjects: [
-    {
-      id: "p1",
-      title: "AI Chat Ecosystem",
-      category: "Full-Stack / AI",
-      description: "Gemini AI va Node.js Express orqali ishlaydigan aqlli sun'iy intellekt ekotizimi va ovozli o'zbekcha AI chat.",
-      tech: ["React", "TypeScript", "Node.js", "Gemini AI", "Tailwind CSS"],
-      demoUrl: "#",
-      githubUrl: "#"
-    },
-    {
-      id: "p2",
-      title: "Cyber Strike Arcade Engine",
-      category: "Game Dev",
-      description: "60 FPS Canvas va Web Audio API asosida tayyorlangan koinot urushi arcade o'yini.",
-      tech: ["HTML5 Canvas", "TypeScript", "Web Audio API"],
-      demoUrl: "#",
-      githubUrl: "#"
-    }
-  ]
+  customProjects: []
 };
 
 interface AdminPanelModalProps {
@@ -112,51 +105,177 @@ export default function AdminPanelModal({
   // Config editor state
   const [formData, setFormData] = useState<SiteConfig>(siteConfig);
   const [saveSuccess, setSaveSuccess] = useState(false);
-  const [activeTab, setActiveTab] = useState<"profile" | "inbox" | "banner" | "stats" | "projects" | "goals" | "ai" | "game" | "security">("inbox");
+  const [activeTab, setActiveTab] = useState<"inbox" | "projects" | "profile" | "banner" | "stats" | "contacts" | "skills" | "siteText" | "goals" | "ai" | "game" | "security">("inbox");
   const [inboxMessages, setInboxMessages] = useState<Array<{ id: string; name: string; email: string; message: string; timestamp: string; status: string }>>([]);
   const [inboxLoading, setInboxLoading] = useState(false);
 
+  // Projects CMS form state
+  const [editingProjectId, setEditingProjectId] = useState<string | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [projTitle, setProjTitle] = useState("");
+  const [projCategory, setProjCategory] = useState("Full-Stack / AI");
+  const [projDesc, setProjDesc] = useState("");
+  const [projImageUrl, setProjImageUrl] = useState("");
+  const [projDemoUrl, setProjDemoUrl] = useState("");
+  const [projGithubUrl, setProjGithubUrl] = useState("");
+  const [projTech, setProjTech] = useState("React, TypeScript, Node.js");
+
+  const handleSaveProject = () => {
+    if (!projTitle.trim()) return;
+    const techArray = projTech.split(",").map(t => t.trim()).filter(Boolean);
+    const updatedProjects = [...(formData.customProjects || [])];
+    
+    if (editingProjectId) {
+      const idx = updatedProjects.findIndex(p => p.id === editingProjectId);
+      if (idx !== -1) {
+        updatedProjects[idx] = {
+          id: editingProjectId,
+          title: projTitle,
+          category: projCategory,
+          description: projDesc,
+          tech: techArray,
+          imageUrl: projImageUrl || undefined,
+          demoUrl: projDemoUrl || undefined,
+          githubUrl: projGithubUrl || undefined,
+        };
+      }
+    } else {
+      const newProj: Project = {
+        id: `p-${Date.now()}`,
+        title: projTitle,
+        category: projCategory,
+        description: projDesc,
+        tech: techArray,
+        imageUrl: projImageUrl || undefined,
+        demoUrl: projDemoUrl || undefined,
+        githubUrl: projGithubUrl || undefined,
+      };
+      updatedProjects.unshift(newProj);
+    }
+
+    const newConfig = { ...formData, customProjects: updatedProjects };
+    setFormData(newConfig);
+    onSaveConfig(newConfig);
+
+    // Reset form
+    setEditingProjectId(null);
+    setProjTitle("");
+    setProjCategory("Full-Stack / AI");
+    setProjDesc("");
+    setProjImageUrl("");
+    setProjDemoUrl("");
+    setProjGithubUrl("");
+    setProjTech("React, TypeScript, Node.js");
+  };
+
+  const handleEditProject = (p: Project) => {
+    setEditingProjectId(p.id);
+    setProjTitle(p.title);
+    setProjCategory(p.category);
+    setProjDesc(p.description);
+    setProjImageUrl(p.imageUrl || "");
+    setProjDemoUrl(p.demoUrl || "");
+    setProjGithubUrl(p.githubUrl || "");
+    setProjTech(p.tech.join(", "));
+  };
+
+  const handleDeleteProject = (id: string) => {
+    const updated = (formData.customProjects || []).filter(p => p.id !== id);
+    const newConfig = { ...formData, customProjects: updated };
+    setFormData(newConfig);
+    onSaveConfig(newConfig);
+
+    if (editingProjectId === id) {
+      setEditingProjectId(null);
+      setProjTitle("");
+      setProjCategory("Full-Stack / AI");
+      setProjDesc("");
+      setProjImageUrl("");
+      setProjDemoUrl("");
+      setProjGithubUrl("");
+      setProjTech("React, TypeScript, Node.js");
+    }
+  };
+
+  // AI Test bench state
+  const [aiTestPrompt, setAiTestPrompt] = useState("");
+  const [aiTestResponse, setAiTestResponse] = useState("");
+  const [aiTestLoading, setAiTestLoading] = useState(false);
+
   // Fetch contact messages when inbox tab is opened or on mount
   const fetchInboxMessages = React.useCallback(async () => {
-    setInboxLoading(true);
-    let localMsgs: any[] = [];
-    try {
-      const saved = localStorage.getItem("anvar_inbox_messages");
-      if (saved) localMsgs = JSON.parse(saved);
-    } catch (e) {}
-
     try {
       const res = await fetch("/api/contact/list");
       if (res.ok) {
         const data = await res.json();
-        const serverMsgs = data.messages || [];
-        // Merge server and local messages cleanly by ID
-        const combinedMap = new Map();
-        [...serverMsgs, ...localMsgs].forEach(m => combinedMap.set(m.id, m));
-        setInboxMessages(Array.from(combinedMap.values()));
-      } else {
-        setInboxMessages(localMsgs);
+        setInboxMessages(data.messages || []);
       }
     } catch (err) {
-      setInboxMessages(localMsgs);
+      console.warn("Server inbox fetch failed:", err);
     } finally {
       setInboxLoading(false);
     }
   }, []);
 
-  React.useEffect(() => {
-    if (isLoggedIn) {
-      fetchInboxMessages();
-    }
-  }, [isLoggedIn, fetchInboxMessages]);
+  const handleDeleteInboxMessage = async (id: string) => {
+    try {
+      await fetch("/api/contact/delete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id })
+      });
+      setInboxMessages(prev => prev.filter(m => m.id !== id));
+      const saved = localStorage.getItem("anvar_inbox_messages");
+      if (saved) {
+        const parsed = JSON.parse(saved).filter((m: any) => m.id !== id);
+        localStorage.setItem("anvar_inbox_messages", JSON.stringify(parsed));
+      }
+    } catch (e) {}
+  };
 
-  // Custom project modal inside CMS
-  const [newProject, setNewProject] = useState<Partial<Project>>({
-    title: "",
-    category: "Full-Stack",
-    description: "",
-    tech: ["React", "TypeScript"]
-  });
+  const handleClearAllInbox = async () => {
+    if (!window.confirm("Barcha kelgan SMS va murojaatlarni tozalashni xohlaysizmi?")) return;
+    try {
+      await fetch("/api/contact/clear-all", { method: "POST" });
+      setInboxMessages([]);
+      localStorage.removeItem("anvar_inbox_messages");
+    } catch (e) {}
+  };
+
+  const handleRunAiTest = async () => {
+    if (!aiTestPrompt.trim()) return;
+    setAiTestLoading(true);
+    setAiTestResponse("");
+    try {
+      const res = await fetch("/api/gemini/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt: aiTestPrompt, history: [] })
+      });
+      const data = await res.json();
+      if (data.text) {
+        setAiTestResponse(data.text);
+      } else {
+        setAiTestResponse(data.error || "Xatolik yuz berdi.");
+      }
+    } catch (e: any) {
+      setAiTestResponse("Bog'lanish xatosi: " + e.message);
+    } finally {
+      setAiTestLoading(false);
+    }
+  };
+
+  React.useEffect(() => {
+    if (isLoggedIn && isOpen) {
+      setInboxLoading(true);
+      fetchInboxMessages();
+      // Auto-poll every 4 seconds for live incoming SMS/messages from any phone or PC
+      const timer = setInterval(() => {
+        fetchInboxMessages();
+      }, 4000);
+      return () => clearInterval(timer);
+    }
+  }, [isLoggedIn, isOpen, fetchInboxMessages]);
 
   // Keep local formData in sync when prop changes
   React.useEffect(() => {
@@ -198,65 +317,30 @@ export default function AdminPanelModal({
     }
   };
 
-  // Add project to CMS
-  const handleAddProject = () => {
-    if (!newProject.title || !newProject.description) return;
-    const projectToAdd: Project = {
-      id: `p-${Date.now()}`,
-      title: newProject.title || "Yangi Loyiha",
-      category: newProject.category || "Full-Stack",
-      description: newProject.description || "",
-      tech: newProject.tech || ["React", "Node.js"],
-      demoUrl: newProject.demoUrl || "#",
-      githubUrl: newProject.githubUrl || "#"
-    };
-
-    const updatedProjects = [...(formData.customProjects || []), projectToAdd];
-    setFormData({ ...formData, customProjects: updatedProjects });
-    setNewProject({ title: "", category: "Full-Stack", description: "", tech: ["React", "TypeScript"] });
-  };
-
-  // Delete project from CMS
-  const handleDeleteProject = (id: string) => {
-    const updated = (formData.customProjects || []).filter(p => p.id !== id);
-    setFormData({ ...formData, customProjects: updated });
-  };
-
-  // Export JSON Backup
-  const handleExportJSON = () => {
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(formData, null, 2));
-    const downloadAnchor = document.createElement("a");
-    downloadAnchor.setAttribute("href", dataStr);
-    downloadAnchor.setAttribute("download", `anvar_portfolio_config_${Date.now()}.json`);
-    document.body.appendChild(downloadAnchor);
-    downloadAnchor.click();
-    downloadAnchor.remove();
-  };
-
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-6 bg-black/80 backdrop-blur-xl overflow-y-auto">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/85 backdrop-blur-2xl overflow-y-auto">
         <motion.div
-          initial={{ opacity: 0, scale: 0.95, y: 10 }}
+          initial={{ opacity: 0, scale: 0.96, y: 15 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.95, y: 10 }}
-          className="relative w-full max-w-6xl bg-neutral-950 border border-neutral-800 rounded-3xl shadow-2xl overflow-hidden my-4 flex flex-col max-h-[92vh] text-white font-sans"
+          exit={{ opacity: 0, scale: 0.96, y: 15 }}
+          className="relative w-full max-w-7xl bg-neutral-950 border border-neutral-800/90 rounded-3xl shadow-2xl overflow-hidden my-2 flex flex-col max-h-[96vh] text-white font-sans"
         >
           {/* Header Bar */}
-          <div className="bg-black px-6 py-4 flex items-center justify-between border-b border-neutral-800 flex-shrink-0">
+          <div className="bg-black/90 px-6 py-4 flex items-center justify-between border-b border-neutral-800 flex-shrink-0">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 shadow-lg shadow-amber-500/10">
-                <ShieldCheck className="w-5 h-5" />
+              <div className="w-11 h-11 rounded-2xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 shadow-xl shadow-amber-500/10">
+                <ShieldCheck className="w-6 h-6" />
               </div>
               <div>
-                <h3 className="font-mono text-sm sm:text-base uppercase font-extrabold tracking-wider text-white flex items-center gap-2">
+                <h3 className="font-mono text-base sm:text-lg uppercase font-extrabold tracking-wider text-white flex items-center gap-2">
                   <span>ADMIN PANEL</span>
-                  <span className="text-[10px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-mono px-2 py-0.5 rounded-full font-bold">
-                    PRO CMS v3.0
+                  <span className="text-[10px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-mono px-2.5 py-0.5 rounded-full font-bold">
+                    FULL CMS CONTROL v4.0
                   </span>
                 </h3>
                 <p className="text-xs font-mono text-neutral-400">
-                  {isLoggedIn ? "Saytdagi barcha kontent va sozlamalarni jonli boshqarish" : "Admin tizimiga kirish oynasi"}
+                  {isLoggedIn ? "Saytdagi barcha kontent, xabarlar va sozlamalarni to'liq boshqarish binosi" : "Admin tizimiga kirish oynasi"}
                 </p>
               </div>
             </div>
@@ -389,6 +473,21 @@ export default function AdminPanelModal({
 
                   <button
                     type="button"
+                    onClick={() => setActiveTab("projects")}
+                    className={`px-4 py-2.5 rounded-xl transition-all cursor-pointer font-bold flex items-center gap-2 relative ${
+                      activeTab === "projects" 
+                        ? "bg-amber-500 text-black shadow-lg shadow-amber-500/20" 
+                        : "bg-neutral-900 text-amber-300 border border-amber-500/30 hover:bg-neutral-800"
+                    }`}
+                  >
+                    <FolderPlus className="w-4 h-4 text-amber-400" /> Loyihalar CMS
+                    <span className="bg-amber-400 text-black text-[10px] font-bold px-2 py-0.5 rounded-full">
+                      {(formData.customProjects || []).length}
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
                     onClick={() => setActiveTab("banner")}
                     className={`px-4 py-2.5 rounded-xl transition-all cursor-pointer font-bold flex items-center gap-2 ${
                       activeTab === "banner" 
@@ -425,14 +524,38 @@ export default function AdminPanelModal({
 
                   <button
                     type="button"
-                    onClick={() => setActiveTab("projects")}
+                    onClick={() => setActiveTab("contacts")}
                     className={`px-4 py-2.5 rounded-xl transition-all cursor-pointer font-bold flex items-center gap-2 ${
-                      activeTab === "projects" 
+                      activeTab === "contacts" 
                         ? "bg-amber-500 text-black shadow-lg shadow-amber-500/20" 
                         : "bg-neutral-900 text-neutral-400 hover:bg-neutral-800 hover:text-white"
                     }`}
                   >
-                    <FolderPlus className="w-4 h-4" /> Loyihalar CMS
+                    <Share2 className="w-4 h-4" /> Aloqa & Ijtimoiy Tarmoqlar
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab("skills")}
+                    className={`px-4 py-2.5 rounded-xl transition-all cursor-pointer font-bold flex items-center gap-2 ${
+                      activeTab === "skills" 
+                        ? "bg-amber-500 text-black shadow-lg shadow-amber-500/20" 
+                        : "bg-neutral-900 text-neutral-400 hover:bg-neutral-800 hover:text-white"
+                    }`}
+                  >
+                    <Code className="w-4 h-4" /> Ko'nikmalar & Texnologiyalar
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab("siteText")}
+                    className={`px-4 py-2.5 rounded-xl transition-all cursor-pointer font-bold flex items-center gap-2 ${
+                      activeTab === "siteText" 
+                        ? "bg-amber-500 text-black shadow-lg shadow-amber-500/20" 
+                        : "bg-neutral-900 text-neutral-400 hover:bg-neutral-800 hover:text-white"
+                    }`}
+                  >
+                    <FileText className="w-4 h-4" /> Ibora, Footer & Avto-Javob
                   </button>
 
                   <button
@@ -487,22 +610,33 @@ export default function AdminPanelModal({
                 {/* TAB 0-A: INBOX MESSAGES */}
                 {activeTab === "inbox" && (
                   <div className="space-y-4 font-mono text-xs">
-                    <div className="flex justify-between items-center bg-neutral-900/80 p-4 rounded-2xl border border-neutral-800">
+                    <div className="flex flex-wrap justify-between items-center bg-neutral-900/80 p-4 rounded-2xl border border-neutral-800 gap-3">
                       <div>
                         <h4 className="font-bold text-sm text-white flex items-center gap-2">
                           <Mail className="w-4 h-4 text-amber-400" /> Kelgan SMS va Murojaatlar jurnali
                         </h4>
                         <p className="text-[11px] text-neutral-400 font-sans mt-0.5">
-                          Foydalanuvchilar tomonidan yuborilgan barcha xabarlar 100% bu yerga keladi va saqlanadi.
+                          Foydalanuvchilar (telefon yoki kompyuter) tomonidan yuborilgan barcha xabarlar 100% bu yerga keladi va saqlanadi. (Har 4 soniyada avto-yangilanadi)
                         </p>
                       </div>
-                      <button
-                        type="button"
-                        onClick={fetchInboxMessages}
-                        className="px-3 py-1.5 bg-neutral-800 hover:bg-neutral-700 text-amber-400 rounded-lg text-[11px] font-bold flex items-center gap-1 cursor-pointer transition-colors"
-                      >
-                        <RotateCcw className="w-3.5 h-3.5" /> Yangilash
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={fetchInboxMessages}
+                          className="px-3 py-1.5 bg-neutral-800 hover:bg-neutral-700 text-amber-400 rounded-lg text-[11px] font-bold flex items-center gap-1 cursor-pointer transition-colors"
+                        >
+                          <RotateCcw className="w-3.5 h-3.5" /> Yangilash
+                        </button>
+                        {inboxMessages.length > 0 && (
+                          <button
+                            type="button"
+                            onClick={handleClearAllInbox}
+                            className="px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 rounded-lg text-[11px] font-bold flex items-center gap-1 cursor-pointer transition-colors"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" /> Tozalash
+                          </button>
+                        )}
+                      </div>
                     </div>
 
                     {inboxLoading ? (
@@ -514,7 +648,7 @@ export default function AdminPanelModal({
                         <Mail className="w-10 h-10 text-neutral-600 mx-auto" />
                         <div className="text-neutral-400 font-bold">Hozircha kelgan yangi xabar yo'q</div>
                         <p className="text-[11px] text-neutral-500 max-w-sm mx-auto font-sans">
-                          Foydalanuvchilar "Menga bog'laning" formasidan xabar yuborganda, bu yerda 100% ko'rinadi.
+                          Telefon yoki veb brauzerdan yozilgan har qanday SMS yoki murojaatlar bu yerda avtomatik 100% paydo bo'ladi.
                         </p>
                       </div>
                     ) : (
@@ -532,7 +666,7 @@ export default function AdminPanelModal({
                                   {msg.email}
                                 </span>
                               </div>
-                              <span className="text-[10px] text-neutral-500">
+                              <span className="text-[10px] text-neutral-500 font-mono">
                                 {new Date(msg.timestamp).toLocaleString()}
                               </span>
                             </div>
@@ -540,20 +674,292 @@ export default function AdminPanelModal({
                               {msg.message}
                             </div>
                             <div className="flex justify-between items-center pt-1 text-[10px]">
-                              <span className="text-emerald-400 font-bold flex items-center gap-1">
+                              <span className="text-emerald-400 font-bold flex items-center gap-1 font-mono">
                                 <CheckCircle2 className="w-3 h-3 text-emerald-400" /> {msg.status || "Yetkazildi"}
                               </span>
-                              <a
-                                href={`mailto:${msg.email}?subject=Re:%20Akramov%20Anvar%20Portfoliosi`}
-                                className="px-3 py-1 bg-amber-500 text-black font-bold rounded-lg hover:bg-amber-400 transition-colors flex items-center gap-1"
-                              >
-                                <Send className="w-3 h-3" /> Javob Berish
-                              </a>
+                              <div className="flex items-center gap-2">
+                                <button
+                                  type="button"
+                                  onClick={() => handleDeleteInboxMessage(msg.id)}
+                                  className="px-2.5 py-1 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 rounded-lg transition-colors flex items-center gap-1 font-bold cursor-pointer"
+                                >
+                                  <Trash2 className="w-3 h-3" /> O'chirish
+                                </button>
+                                <a
+                                  href={`mailto:${msg.email}?subject=Re:%20Akramov%20Anvar%20Portfoliosi`}
+                                  className="px-3 py-1 bg-amber-500 text-black font-bold rounded-lg hover:bg-amber-400 transition-colors flex items-center gap-1 cursor-pointer"
+                                >
+                                  <Send className="w-3 h-3" /> Javob Berish
+                                </a>
+                              </div>
                             </div>
                           </div>
                         ))}
                       </div>
                     )}
+                  </div>
+                )}
+
+                {/* TAB 0-PROJECTS: LOYIHALAR CMS EDITOR */}
+                {activeTab === "projects" && (
+                  <div className="space-y-6 font-mono text-xs">
+                    {/* Header Banner */}
+                    <div className="bg-neutral-900 p-5 rounded-2xl border border-neutral-800 flex flex-wrap justify-between items-center gap-4">
+                      <div>
+                        <h4 className="font-bold text-white text-sm flex items-center gap-2">
+                          <FolderPlus className="w-4 h-4 text-amber-400" /> Shaxsiy Loyihalarni Boshqarish (Projects CMS)
+                        </h4>
+                        <p className="text-[11px] text-neutral-400 font-sans mt-0.5">
+                          Ushbu bo'lim orqali yaratgan loyihalaringiz nomi, tavsifi, rasmi hamda havola (link)larini bir necha soniyada qo'shishingiz va tahrirlashingiz mumkin.
+                        </p>
+                      </div>
+                      {editingProjectId && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditingProjectId(null);
+                            setProjTitle("");
+                            setProjCategory("Full-Stack / AI");
+                            setProjDesc("");
+                            setProjImageUrl("");
+                            setProjDemoUrl("");
+                            setProjGithubUrl("");
+                            setProjTech("React, TypeScript, Node.js");
+                          }}
+                          className="px-3 py-1.5 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 rounded-xl text-xs font-bold cursor-pointer"
+                        >
+                          + Yangi loyiha qo'shish rejimiga o'tish
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Project Creator / Editor Box */}
+                    <div className="bg-black p-5 rounded-2xl border border-amber-500/30 space-y-4">
+                      <h5 className="font-bold text-amber-400 text-xs uppercase flex items-center gap-2">
+                        <Edit3 className="w-4 h-4 text-amber-400" />
+                        {editingProjectId ? "Loyihani Tahrirlash" : "Yangi Loyiha Qo'shish Forma Formati"}
+                      </h5>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="space-y-1.5">
+                          <label className="text-neutral-400 font-bold uppercase">Loyiha Nomi (Sarlavha): *</label>
+                          <input
+                            type="text"
+                            placeholder="Masalan: AI Chat Assistant, Online Edu Platform..."
+                            value={projTitle}
+                            onChange={(e) => setProjTitle(e.target.value)}
+                            className="w-full bg-neutral-900 border border-neutral-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-amber-500"
+                          />
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <label className="text-neutral-400 font-bold uppercase">Kategoriya:</label>
+                          <input
+                            type="text"
+                            placeholder="Full-Stack / AI, Game Dev, Mobile App, Web Design..."
+                            value={projCategory}
+                            onChange={(e) => setProjCategory(e.target.value)}
+                            className="w-full bg-neutral-900 border border-neutral-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-amber-500"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label className="text-neutral-400 font-bold uppercase">Loyiha Haqida Qisqa Tavsif:</label>
+                        <textarea
+                          rows={3}
+                          placeholder="Loyiha nima vazifa bajaradi, nima uchun foydali va qanday imkoniyatlarga ega..."
+                          value={projDesc}
+                          onChange={(e) => setProjDesc(e.target.value)}
+                          className="w-full bg-neutral-900 border border-neutral-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-amber-500 font-sans"
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="space-y-1.5">
+                          <label className="text-neutral-400 font-bold uppercase">Veb-sayt / Demo Linki (Demo URL):</label>
+                          <input
+                            type="text"
+                            placeholder="https://myproject.com yoki #"
+                            value={projDemoUrl}
+                            onChange={(e) => setProjDemoUrl(e.target.value)}
+                            className="w-full bg-neutral-900 border border-neutral-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-amber-500"
+                          />
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <label className="text-neutral-400 font-bold uppercase">GitHub / Manba Kodingiz Linki:</label>
+                          <input
+                            type="text"
+                            placeholder="https://github.com/username/repository"
+                            value={projGithubUrl}
+                            onChange={(e) => setProjGithubUrl(e.target.value)}
+                            className="w-full bg-neutral-900 border border-neutral-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-amber-500"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label className="text-neutral-400 font-bold uppercase">Texnologiyalar (Vergul bilan ajrating):</label>
+                        <input
+                          type="text"
+                          placeholder="React, TypeScript, Node.js, Express, Tailwind CSS"
+                          value={projTech}
+                          onChange={(e) => setProjTech(e.target.value)}
+                          className="w-full bg-neutral-900 border border-neutral-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-amber-500"
+                        />
+                      </div>
+
+                      {/* Image URL & Preset Selection */}
+                      <div className="space-y-2 pt-2 border-t border-neutral-800">
+                        <label className="text-neutral-400 font-bold uppercase flex items-center gap-2">
+                          <Globe className="w-4 h-4 text-sky-400" /> Loyiha Rasmi (Image URL yoki tayyor rasmlardan birini tanlang):
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="https://images.unsplash.com/... yoki tayyor rasmlarga bosing"
+                          value={projImageUrl}
+                          onChange={(e) => setProjImageUrl(e.target.value)}
+                          className="w-full bg-neutral-900 border border-neutral-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-amber-500"
+                        />
+
+                        {/* Presets */}
+                        <div className="flex flex-wrap gap-2 pt-1">
+                          <span className="text-[10px] text-neutral-500 font-sans">Tayyor rasmlar:</span>
+                          {[
+                            { name: "🤖 AI Mesh", url: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1000&auto=format&fit=crop" },
+                            { name: "🎮 Cyber Gaming", url: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=1000&auto=format&fit=crop" },
+                            { name: "💻 Dashboard", url: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=1000&auto=format&fit=crop" },
+                            { name: "📱 Mobile App", url: "https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?q=80&w=1000&auto=format&fit=crop" },
+                            { name: "🛍️ E-Commerce", url: "https://images.unsplash.com/photo-1556742049-0a67568d0d9f?q=80&w=1000&auto=format&fit=crop" },
+                            { name: "⚡ Coding Code", url: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?q=80&w=1000&auto=format&fit=crop" }
+                          ].map((p, i) => (
+                            <button
+                              key={i}
+                              type="button"
+                              onClick={() => setProjImageUrl(p.url)}
+                              className="text-[10px] bg-neutral-900 hover:bg-neutral-800 text-amber-300 px-2.5 py-1 rounded-lg border border-neutral-800 cursor-pointer"
+                            >
+                              {p.name}
+                            </button>
+                          ))}
+                        </div>
+
+                        {/* Image Preview Box */}
+                        {projImageUrl && (
+                          <div className="relative h-32 w-full max-w-sm rounded-xl overflow-hidden border border-neutral-800 mt-2">
+                            <img src={projImageUrl} alt="Preview" className="w-full h-full object-cover" />
+                            <span className="absolute bottom-1 left-2 bg-black/80 text-amber-300 text-[9px] px-2 py-0.5 rounded font-mono font-bold">
+                              Rasm Ko'rinishi
+                            </span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Add/Save Project Action Button */}
+                      <button
+                        type="button"
+                        onClick={handleSaveProject}
+                        disabled={!projTitle.trim()}
+                        className="w-full py-3 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 disabled:opacity-40 text-black font-extrabold rounded-xl transition-all cursor-pointer shadow-lg shadow-amber-500/20 text-xs font-mono flex items-center justify-center gap-2"
+                      >
+                        <FolderPlus className="w-4 h-4 text-black" />
+                        {editingProjectId ? "Loyihani Yangilash (Saqlash)" : "Yangi Loyihani Portfolioga Qo'shish"}
+                      </button>
+                    </div>
+
+                    {/* EXISTING PROJECTS LIST */}
+                    <div className="space-y-3 pt-4 border-t border-neutral-800">
+                      <div className="flex justify-between items-center">
+                        <h5 className="font-bold text-white text-xs uppercase flex items-center gap-2">
+                          <Layers className="w-4 h-4 text-emerald-400" /> Hozirgi Qo'shilgan Loyihalarim ({(formData.customProjects || []).length} ta)
+                        </h5>
+                      </div>
+
+                      {(formData.customProjects || []).length === 0 ? (
+                        <div className="p-8 text-center text-neutral-500 bg-neutral-900/50 rounded-2xl border border-neutral-800">
+                          Hali hech qanday loyiha qo'shilmagan. Yuqoridagi formadan foydalanib birinchi loyihangizni qo'shing!
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {(formData.customProjects || []).map((proj) => (
+                            <div
+                              key={proj.id}
+                              className="bg-neutral-900 border border-neutral-800 rounded-2xl p-4 flex flex-col justify-between space-y-3 hover:border-neutral-700 transition-colors"
+                            >
+                              <div className="flex items-start justify-between gap-3">
+                                <div className="space-y-1">
+                                  <span className="text-[9px] font-mono font-bold uppercase bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded-full">
+                                    {proj.category}
+                                  </span>
+                                  <h6 className="font-bold text-white text-sm mt-1">{proj.title}</h6>
+                                  <p className="text-[11px] text-neutral-400 font-sans line-clamp-2">{proj.description}</p>
+                                </div>
+                                {proj.imageUrl && (
+                                  <img
+                                    src={proj.imageUrl}
+                                    alt={proj.title}
+                                    className="w-16 h-16 rounded-xl object-cover shrink-0 border border-neutral-800"
+                                  />
+                                )}
+                              </div>
+
+                              <div className="flex flex-wrap gap-1">
+                                {proj.tech.map((t, i) => (
+                                  <span key={i} className="text-[9px] bg-black text-neutral-400 px-2 py-0.5 rounded border border-neutral-800 font-mono">
+                                    #{t}
+                                  </span>
+                                ))}
+                              </div>
+
+                              <div className="flex items-center justify-between pt-2 border-t border-neutral-800">
+                                <span className="text-[10px] text-neutral-500 font-mono">ID: {proj.id}</span>
+                                <div className="flex items-center gap-2">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleEditProject(proj)}
+                                    className="px-2.5 py-1 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded-lg font-bold text-[10px] flex items-center gap-1 cursor-pointer"
+                                  >
+                                    <Edit3 className="w-3 h-3" /> Tahrirlash
+                                  </button>
+
+                                  {confirmDeleteId === proj.id ? (
+                                    <div className="flex items-center gap-1 bg-red-950/80 p-1 rounded-lg border border-red-500/50">
+                                      <span className="text-[9px] text-red-200 font-bold px-1">O'chirilsinmi?</span>
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          handleDeleteProject(proj.id);
+                                          setConfirmDeleteId(null);
+                                        }}
+                                        className="px-2 py-0.5 bg-red-600 hover:bg-red-500 text-white rounded font-extrabold text-[9px] cursor-pointer shadow"
+                                      >
+                                        Ha
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => setConfirmDeleteId(null)}
+                                        className="px-2 py-0.5 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 rounded font-bold text-[9px] cursor-pointer"
+                                      >
+                                        Yo'q
+                                      </button>
+                                    </div>
+                                  ) : (
+                                    <button
+                                      type="button"
+                                      onClick={() => setConfirmDeleteId(proj.id)}
+                                      className="px-2.5 py-1 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 rounded-lg font-bold text-[10px] flex items-center gap-1 cursor-pointer transition-colors"
+                                    >
+                                      <Trash2 className="w-3 h-3" /> O'chirish
+                                    </button>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
 
@@ -770,82 +1176,190 @@ export default function AdminPanelModal({
                   </div>
                 )}
 
-                {/* TAB 3: PROJECTS CMS */}
-                {activeTab === "projects" && (
-                  <div className="space-y-6 font-mono text-xs">
-                    <div className="p-4 bg-neutral-900 border border-neutral-800 rounded-2xl space-y-4">
-                      <h4 className="font-bold text-amber-400 flex items-center gap-2">
-                        <FolderPlus className="w-4 h-4" /> Yangi Loyiha Qo'shish
-                      </h4>
+                {/* TAB: CONTACTS & SOCIAL LINKS */}
+                {activeTab === "contacts" && (
+                  <div className="space-y-4 font-mono text-xs">
+                    <p className="text-neutral-400 font-sans">
+                      Saytdagi barcha ijtimoiy tarmoqlar, aloqa kanallari va bog'lanish ma'lumotlarini boshqaring:
+                    </p>
 
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <label className="text-neutral-400 font-bold uppercase flex items-center gap-1.5">
+                          <Send className="w-3.5 h-3.5 text-sky-400" /> Telegram Username / Link:
+                        </label>
                         <input
                           type="text"
-                          placeholder="Loyiha Nomi..."
-                          value={newProject.title || ""}
-                          onChange={(e) => setNewProject({ ...newProject, title: e.target.value })}
-                          className="bg-black border border-neutral-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500"
-                        />
-                        <input
-                          type="text"
-                          placeholder="Kategoriya (masalan: Full-Stack / AI)..."
-                          value={newProject.category || ""}
-                          onChange={(e) => setNewProject({ ...newProject, category: e.target.value })}
-                          className="bg-black border border-neutral-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500"
+                          value={formData.telegram || ""}
+                          onChange={(e) => setFormData({ ...formData, telegram: e.target.value })}
+                          placeholder="@akramovanvar"
+                          className="w-full bg-neutral-900 border border-neutral-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-amber-500 font-mono"
                         />
                       </div>
 
-                      <textarea
-                        rows={2}
-                        placeholder="Loyiha haqida tavsif..."
-                        value={newProject.description || ""}
-                        onChange={(e) => setNewProject({ ...newProject, description: e.target.value })}
-                        className="w-full bg-black border border-neutral-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500 font-sans"
-                      />
+                      <div className="space-y-1.5">
+                        <label className="text-neutral-400 font-bold uppercase flex items-center gap-1.5">
+                          <Github className="w-3.5 h-3.5 text-purple-400" /> GitHub Profil Linki:
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.github || ""}
+                          onChange={(e) => setFormData({ ...formData, github: e.target.value })}
+                          placeholder="https://github.com/akramovanvar"
+                          className="w-full bg-neutral-900 border border-neutral-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-amber-500 font-mono"
+                        />
+                      </div>
 
-                      <button
-                        type="button"
-                        onClick={handleAddProject}
-                        className="px-4 py-2 bg-amber-500 text-black font-bold rounded-xl hover:bg-amber-400 transition-colors flex items-center gap-1.5 cursor-pointer"
-                      >
-                        <FolderPlus className="w-4 h-4" /> Ro'yxatga Qo'shish
-                      </button>
+                      <div className="space-y-1.5">
+                        <label className="text-neutral-400 font-bold uppercase flex items-center gap-1.5">
+                          <Globe className="w-3.5 h-3.5 text-pink-400" /> Instagram Linki:
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.instagram || ""}
+                          onChange={(e) => setFormData({ ...formData, instagram: e.target.value })}
+                          placeholder="https://instagram.com/akramovanvar"
+                          className="w-full bg-neutral-900 border border-neutral-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-amber-500 font-mono"
+                        />
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label className="text-neutral-400 font-bold uppercase flex items-center gap-1.5">
+                          <Phone className="w-3.5 h-3.5 text-emerald-400" /> Telefon Raqam:
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.phone || ""}
+                          onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                          placeholder="+998 90 123 45 67"
+                          className="w-full bg-neutral-900 border border-neutral-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-amber-500 font-mono"
+                        />
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label className="text-neutral-400 font-bold uppercase flex items-center gap-1.5">
+                          <Mail className="w-3.5 h-3.5 text-amber-400" /> Rasmiy Email:
+                        </label>
+                        <input
+                          type="email"
+                          value={formData.email || ""}
+                          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                          placeholder="yasikouz152@gmail.com"
+                          className="w-full bg-neutral-900 border border-neutral-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-amber-500 font-mono"
+                        />
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label className="text-neutral-400 font-bold uppercase flex items-center gap-1.5">
+                          <MapPin className="w-3.5 h-3.5 text-red-400" /> Joylashuv / Manzil:
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.location || ""}
+                          onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                          placeholder="O'zbekiston, Surxondaryo, Denov"
+                          className="w-full bg-neutral-900 border border-neutral-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-amber-500 font-mono"
+                        />
+                      </div>
                     </div>
+                  </div>
+                )}
 
-                    {/* Project List */}
-                    <div className="space-y-3">
-                      <h4 className="font-bold text-white uppercase tracking-wider">
-                        Mavjud Loyihalar Ro'yxati ({(formData.customProjects || []).length}):
-                      </h4>
+                {/* TAB: SKILLS & TECH STACK */}
+                {activeTab === "skills" && (
+                  <div className="space-y-4 font-mono text-xs">
+                    <p className="text-neutral-400 font-sans">
+                      Portfolioda ko'rinadigan texnologiyalar va ko'nikmalar ro'yxatini tahrirlang (vergul bilan ajratilgan):
+                    </p>
 
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        {(formData.customProjects || []).map((project) => (
-                          <div key={project.id} className="p-4 bg-neutral-900 border border-neutral-800 rounded-2xl flex items-start justify-between gap-3">
-                            <div className="space-y-1">
-                              <span className="text-[10px] bg-amber-500/20 text-amber-300 font-bold px-2 py-0.5 rounded-full">
-                                {project.category}
-                              </span>
-                              <h5 className="font-bold text-white text-sm">{project.title}</h5>
-                              <p className="text-neutral-400 text-[11px] font-sans leading-relaxed">{project.description}</p>
-                              <div className="flex flex-wrap gap-1 pt-1">
-                                {project.tech.map((t, idx) => (
-                                  <span key={idx} className="text-[9px] bg-black text-neutral-400 px-1.5 py-0.5 rounded border border-neutral-800">
-                                    {t}
-                                  </span>
-                                ))}
-                              </div>
-                            </div>
+                    <div className="space-y-4">
+                      <div className="p-4 bg-neutral-900 border border-neutral-800 rounded-2xl space-y-2">
+                        <label className="font-bold text-amber-400 uppercase flex items-center gap-2">
+                          <Code className="w-4 h-4 text-amber-400" /> Frontend Texnologiyalari:
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.skillsFrontend || ""}
+                          onChange={(e) => setFormData({ ...formData, skillsFrontend: e.target.value })}
+                          placeholder="React.js, TypeScript, Tailwind CSS, Next.js..."
+                          className="w-full bg-black border border-neutral-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-amber-500 font-mono"
+                        />
+                      </div>
 
-                            <button
-                              type="button"
-                              onClick={() => handleDeleteProject(project.id)}
-                              className="p-2 text-neutral-500 hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-colors cursor-pointer"
-                              title="O'chirish"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
-                        ))}
+                      <div className="p-4 bg-neutral-900 border border-neutral-800 rounded-2xl space-y-2">
+                        <label className="font-bold text-emerald-400 uppercase flex items-center gap-2">
+                          <Layers className="w-4 h-4 text-emerald-400" /> Backend Texnologiyalari:
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.skillsBackend || ""}
+                          onChange={(e) => setFormData({ ...formData, skillsBackend: e.target.value })}
+                          placeholder="Node.js, Express.js, REST API, Python, PostgreSQL..."
+                          className="w-full bg-black border border-neutral-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-amber-500 font-mono"
+                        />
+                      </div>
+
+                      <div className="p-4 bg-neutral-900 border border-neutral-800 rounded-2xl space-y-2">
+                        <label className="font-bold text-purple-400 uppercase flex items-center gap-2">
+                          <Sparkles className="w-4 h-4 text-purple-400" /> Asboblar & Cloud AI:
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.skillsTools || ""}
+                          onChange={(e) => setFormData({ ...formData, skillsTools: e.target.value })}
+                          placeholder="Git, Vite, Docker, VS Code, Gemini AI SDK..."
+                          className="w-full bg-black border border-neutral-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-amber-500 font-mono"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* TAB: SITE TEXT, FOOTER & AUTO-REPLY */}
+                {activeTab === "siteText" && (
+                  <div className="space-y-4 font-mono text-xs">
+                    <p className="text-neutral-400 font-sans">
+                      Saytdagi shior (quote), footer mualliflik matni va avto-javob xabarini sozlashingiz mumkin:
+                    </p>
+
+                    <div className="space-y-4">
+                      <div className="space-y-1.5">
+                        <label className="text-amber-400 font-bold uppercase flex items-center gap-2">
+                          <FileText className="w-4 h-4 text-amber-400" /> Shior / Motto (Custom Quote):
+                        </label>
+                        <textarea
+                          rows={2}
+                          value={formData.customQuote || ""}
+                          onChange={(e) => setFormData({ ...formData, customQuote: e.target.value })}
+                          placeholder="Kod yozish - murakkab g'oyalarni haqiqatga va qulay yechimlarga aylantirish san'atidir."
+                          className="w-full bg-neutral-900 border border-neutral-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-amber-500 font-sans"
+                        />
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label className="text-amber-400 font-bold uppercase flex items-center gap-2">
+                          <ShieldCheck className="w-4 h-4 text-emerald-400" /> Footer Mualliflik Matni:
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.footerText || ""}
+                          onChange={(e) => setFormData({ ...formData, footerText: e.target.value })}
+                          placeholder="© 2026 Akramov Anvar. Barcha huquqlar himoyalangan."
+                          className="w-full bg-neutral-900 border border-neutral-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-amber-500 font-sans"
+                        />
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label className="text-amber-400 font-bold uppercase flex items-center gap-2">
+                          <Send className="w-4 h-4 text-sky-400" /> Murojaat Yuborilgandagi Avto-Tasdiq Matni:
+                        </label>
+                        <textarea
+                          rows={2}
+                          value={formData.autoReplyText || ""}
+                          onChange={(e) => setFormData({ ...formData, autoReplyText: e.target.value })}
+                          placeholder="Assalomu alaykum! Murojaatingiz uchun rahmat. Tez orada siz bilan bog'lanaman."
+                          className="w-full bg-neutral-900 border border-neutral-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-amber-500 font-sans"
+                        />
                       </div>
                     </div>
                   </div>
@@ -930,21 +1444,91 @@ export default function AdminPanelModal({
                   </div>
                 )}
 
-                {/* TAB 5: AI KNOWLEDGE */}
+                {/* TAB 5: AI KNOWLEDGE & LIVE PLAYGROUND */}
                 {activeTab === "ai" && (
-                  <div className="space-y-3 font-mono text-xs">
-                    <label className="text-amber-400 font-bold uppercase flex items-center gap-2">
-                      <Sparkles className="w-4 h-4 text-purple-400" /> AI Assistent Bilimlar Bazasi:
-                    </label>
-                    <p className="text-neutral-400 font-sans">
-                      Saytdagi Gemini AI va qisqa javob generatori quyidagi bilimlar bazasidan foydalanib javob qaytaradi:
-                    </p>
-                    <textarea
-                      rows={6}
-                      value={formData.aiCustomKnowledge}
-                      onChange={(e) => setFormData({ ...formData, aiCustomKnowledge: e.target.value })}
-                      className="w-full bg-neutral-900 border border-neutral-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-amber-500 font-sans leading-relaxed"
-                    />
+                  <div className="space-y-6 font-mono text-xs">
+                    <div className="space-y-2">
+                      <label className="text-amber-400 font-bold uppercase flex items-center gap-2">
+                        <Sparkles className="w-4 h-4 text-purple-400" /> AI Assistent Bilimlar Bazasi (System Context):
+                      </label>
+                      <p className="text-neutral-400 font-sans">
+                        Saytdagi Gemini 2.5 AI va qisqa javob generatori ushbu kontekst asosida muloqot qiladi:
+                      </p>
+                      <textarea
+                        rows={5}
+                        value={formData.aiCustomKnowledge}
+                        onChange={(e) => setFormData({ ...formData, aiCustomKnowledge: e.target.value })}
+                        className="w-full bg-neutral-900 border border-neutral-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-amber-500 font-sans leading-relaxed"
+                      />
+                    </div>
+
+                    {/* LIVE AI PLAYGROUND / TEST BENCH */}
+                    <div className="p-4 bg-black border border-neutral-800 rounded-2xl space-y-4">
+                      <div className="flex items-center justify-between border-b border-neutral-800 pb-2">
+                        <h4 className="font-bold text-white text-xs uppercase flex items-center gap-2">
+                          <Bot className="w-4 h-4 text-purple-400 animate-pulse" /> Jonli AI Sinov Xonasi (Live Test Bench)
+                        </h4>
+                        <span className="text-[10px] text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded-full font-bold border border-purple-500/20">
+                          Gemini 2.5 Flash Active
+                        </span>
+                      </div>
+
+                      <div className="space-y-2">
+                        <div className="flex flex-wrap gap-1.5">
+                          <span className="text-[10px] text-neutral-400">Tezkor promptlar:</span>
+                          <button
+                            type="button"
+                            onClick={() => setAiTestPrompt("Anvar kim va u qanday proyektlar qiladi?")}
+                            className="text-[10px] bg-neutral-900 hover:bg-neutral-800 text-amber-300 px-2 py-0.5 rounded border border-neutral-800 cursor-pointer"
+                          >
+                            "Anvar kim?"
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setAiTestPrompt("Frontend va Full-stack bo'yicha maslahat ber")}
+                            className="text-[10px] bg-neutral-900 hover:bg-neutral-800 text-sky-300 px-2 py-0.5 rounded border border-neutral-800 cursor-pointer"
+                          >
+                            "Full-Stack maslahat"
+                          </button>
+                        </div>
+
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            placeholder="AIdan nimadir so'rab sinab ko'ring..."
+                            value={aiTestPrompt}
+                            onChange={(e) => setAiTestPrompt(e.target.value)}
+                            onKeyDown={(e) => e.key === "Enter" && handleRunAiTest()}
+                            className="flex-1 bg-neutral-900 border border-neutral-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-amber-500 font-sans"
+                          />
+                          <button
+                            type="button"
+                            onClick={handleRunAiTest}
+                            disabled={aiTestLoading}
+                            className="px-4 py-2.5 bg-purple-600 hover:bg-purple-500 disabled:opacity-50 text-white font-bold rounded-xl transition-all flex items-center gap-1.5 cursor-pointer shadow-lg shadow-purple-600/20"
+                          >
+                            <Play className="w-3.5 h-3.5 fill-current" /> Sinash
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* AI Response Preview */}
+                      {(aiTestLoading || aiTestResponse) && (
+                        <div className="p-3.5 bg-neutral-950 border border-neutral-900 rounded-xl space-y-2 font-sans text-xs">
+                          <div className="flex items-center justify-between text-[10px] text-neutral-500 font-mono border-b border-neutral-900 pb-1">
+                            <span>AIning Javobi:</span>
+                            {aiTestLoading ? (
+                              <span className="text-purple-400 animate-pulse">Generatsiya qilinmoqda...</span>
+                            ) : (
+                              <span className="text-emerald-400 font-bold">200 OK (0.2s)</span>
+                            )}
+                          </div>
+                          <p className="text-neutral-200 leading-relaxed whitespace-pre-wrap">
+                            {aiTestResponse || "Generatsiya..."}
+                          </p>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
 
@@ -1017,17 +1601,9 @@ export default function AdminPanelModal({
                     <button
                       type="button"
                       onClick={handleReset}
-                      className="px-4 py-2.5 bg-neutral-900 hover:bg-neutral-800 text-neutral-300 font-bold rounded-xl transition-colors flex items-center gap-1.5 cursor-pointer"
+                      className="px-4 py-2.5 bg-neutral-900 hover:bg-neutral-800 text-neutral-300 font-bold rounded-xl transition-colors flex items-center gap-1.5 cursor-pointer border border-neutral-800"
                     >
                       <RotateCcw className="w-4 h-4 text-neutral-400" /> Dastlabki holat
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={handleExportJSON}
-                      className="px-4 py-2.5 bg-neutral-900 hover:bg-neutral-800 text-neutral-300 font-bold rounded-xl transition-colors flex items-center gap-1.5 cursor-pointer"
-                    >
-                      <Download className="w-4 h-4 text-emerald-400" /> JSON Eksport
                     </button>
                   </div>
 
@@ -1037,7 +1613,7 @@ export default function AdminPanelModal({
                     type="submit"
                     className="w-full sm:w-auto px-8 py-3 bg-gradient-to-r from-amber-500 to-amber-600 text-black uppercase font-extrabold tracking-wider rounded-xl hover:from-amber-400 hover:to-amber-500 transition-all shadow-xl shadow-amber-500/20 cursor-pointer flex items-center justify-center gap-2"
                   >
-                    <Save className="w-4 h-4 text-black" /> O'zgarishlarni Saqlash
+                    <Save className="w-4 h-4 text-black" /> O'zgarishlarni Saqlash (100% Sync)
                   </motion.button>
                 </div>
 

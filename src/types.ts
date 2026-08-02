@@ -85,6 +85,15 @@ export interface SiteConfig {
   // AI Knowledge
   aiCustomKnowledge: string;
 
+  // Social & Contact details
+  phone?: string;
+  customQuote?: string;
+  footerText?: string;
+  skillsFrontend?: string;
+  skillsBackend?: string;
+  skillsTools?: string;
+  autoReplyText?: string;
+
   // Game Config
   gameMultiplier?: number;
   gameInitialLives?: number;
