@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Play, RotateCcw, Volume2, VolumeX, Trophy, Grid } from "lucide-react";
+import { getGameHighScore, saveGameHighScore } from "../lib/highScores";
 
 interface TetrisProps {
   className?: string;
@@ -35,8 +36,12 @@ export default function TetrisGame({ className = "" }: TetrisProps) {
   const [score, setScore] = useState(0);
   const [linesCleared, setLinesCleared] = useState(0);
   const [level, setLevel] = useState(1);
-  const [highScore, setHighScore] = useState(0);
+  const [highScore, setHighScore] = useState(() => getGameHighScore("tetris"));
   const [soundEnabled, setSoundEnabled] = useState(true);
+
+  useEffect(() => {
+    setHighScore(getGameHighScore("tetris"));
+  }, []);
 
   const engineRef = useRef({
     grid: Array.from({ length: ROWS }, () => Array(COLS).fill(0)),
@@ -79,6 +84,7 @@ export default function TetrisGame({ className = "" }: TetrisProps) {
 
     if (checkCollision(piece.shape, piece.x, piece.y)) {
       setGameState("gameover");
+      saveGameHighScore("tetris", engineRef.current.score);
       playBeep(180);
       return false;
     }
@@ -139,7 +145,12 @@ export default function TetrisGame({ className = "" }: TetrisProps) {
       setScore(engine.score);
       setLinesCleared(engine.lines);
       setLevel(engine.level);
-      if (engine.score > highScore) setHighScore(engine.score);
+      if (engine.score > highScore) {
+        setHighScore(engine.score);
+        saveGameHighScore("tetris", engine.score);
+      } else {
+        saveGameHighScore("tetris", engine.score);
+      }
       playBeep(700);
     } else {
       playBeep(350);

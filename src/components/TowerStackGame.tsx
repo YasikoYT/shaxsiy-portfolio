@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Play, RotateCcw, Layers, Award, Sparkles } from "lucide-react";
+import { getGameHighScore, saveGameHighScore } from "../lib/highScores";
 
 interface Block {
   x: number;
@@ -12,9 +13,11 @@ export default function TowerStackGame({ className = "" }: { className?: string 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [gameState, setGameState] = useState<"idle" | "playing" | "gameover">("idle");
   const [stackHeight, setStackHeight] = useState(0);
-  const [highScore, setHighScore] = useState(() => {
-    return parseInt(localStorage.getItem("tower_stack_highscore") || "0", 10);
-  });
+  const [highScore, setHighScore] = useState(() => getGameHighScore("towerstack"));
+
+  useEffect(() => {
+    setHighScore(getGameHighScore("towerstack"));
+  }, []);
 
   const gameStateRef = useRef(gameState);
   gameStateRef.current = gameState;
@@ -43,13 +46,7 @@ export default function TowerStackGame({ className = "" }: { className?: string 
     if (absDiff >= engine.currentWidth) {
       // Missed completely -> Game Over
       setGameState("gameover");
-      setStackHeight((finalScore) => {
-        if (finalScore > highScore) {
-          setHighScore(finalScore);
-          localStorage.setItem("tower_stack_highscore", finalScore.toString());
-        }
-        return finalScore;
-      });
+      saveGameHighScore("towerstack", engine.score);
       return;
     }
 
@@ -80,6 +77,8 @@ export default function TowerStackGame({ className = "" }: { className?: string 
     engine.blocks.push(newBlock);
     engine.score++;
     setStackHeight(engine.score);
+    saveGameHighScore("towerstack", engine.score);
+    if (engine.score > highScore) setHighScore(engine.score);
 
     // Reset slider
     engine.currentX = 0;

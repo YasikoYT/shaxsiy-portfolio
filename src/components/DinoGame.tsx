@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { getGameHighScore, saveGameHighScore } from "../lib/highScores";
 
 interface DinoGameProps {
   className?: string;
@@ -11,13 +12,7 @@ export default function DinoGame({ className = "" }: DinoGameProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isGameOver, setIsGameOver] = useState(false);
   const [score, setScore] = useState(0);
-  const [highScore, setHighScore] = useState(() => {
-    try {
-      return parseInt(localStorage.getItem("dino_high_score") || "0", 10);
-    } catch {
-      return 0;
-    }
-  });
+  const [highScore, setHighScore] = useState(() => getGameHighScore("dino"));
 
   // Keep game loop state in refs to avoid React re-render lags
   const stateRef = useRef({
@@ -112,11 +107,9 @@ export default function DinoGame({ className = "" }: DinoGameProps) {
     playBeep(100, 0.3); // Game over beep
     
     // Save high score
+    saveGameHighScore("dino", s.score);
     if (s.score > highScore) {
       setHighScore(s.score);
-      try {
-        localStorage.setItem("dino_high_score", s.score.toString());
-      } catch {}
     }
   };
 

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Play, RotateCcw, Zap, Flag, Trophy } from "lucide-react";
+import { getGameHighScore, saveGameHighScore } from "../lib/highScores";
 
 const WORDS = [
   "kod", "dastur", "algoritm", "mantiq", "server", "baza", "funksiya", "ozgaruvchi", "vebsayt", "brauzer",
@@ -57,6 +58,7 @@ export default function TypingSpeedRacerGame({ className = "" }: { className?: s
       const elapsedMinutes = (Date.now() - startTimeRef.current) / 60000;
       const currentWpm = Math.round(newTyped / (elapsedMinutes || 0.01));
       setWpm(currentWpm);
+      saveGameHighScore("typingracer", currentWpm);
 
       const newPos = playerPos + 10;
       setPlayerPos(newPos);
@@ -65,6 +67,7 @@ export default function TypingSpeedRacerGame({ className = "" }: { className?: s
 
       if (newPos >= 100) {
         setGameState("gameover");
+        saveGameHighScore("typingracer", currentWpm);
       }
     }
   };

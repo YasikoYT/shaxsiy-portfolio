@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Play, RotateCcw, Volume2, VolumeX, Trophy, Shield } from "lucide-react";
+import { getGameHighScore, saveGameHighScore } from "../lib/highScores";
 
 interface BrickBreakerProps {
   className?: string;
@@ -9,8 +10,12 @@ export default function BrickBreakerGame({ className = "" }: BrickBreakerProps) 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [gameState, setGameState] = useState<"menu" | "playing" | "gameover" | "victory">("menu");
   const [score, setScore] = useState(0);
-  const [highScore, setHighScore] = useState(0);
+  const [highScore, setHighScore] = useState(() => getGameHighScore("brick"));
   const [soundEnabled, setSoundEnabled] = useState(true);
+
+  useEffect(() => {
+    setHighScore(getGameHighScore("brick"));
+  }, []);
 
   const engineRef = useRef({
     paddleX: 120,
@@ -142,6 +147,7 @@ export default function BrickBreakerGame({ className = "" }: BrickBreakerProps) 
       // Bottom Fall Check
       if (engine.ballY + engine.ballRadius >= canvas.height) {
         setGameState("gameover");
+        saveGameHighScore("brick", engine.score);
         playBeep(180);
         return;
       }
@@ -162,6 +168,7 @@ export default function BrickBreakerGame({ className = "" }: BrickBreakerProps) 
           engine.ballVy *= -1;
           engine.score += 20;
           setScore(engine.score);
+          saveGameHighScore("brick", engine.score);
           if (engine.score > highScore) setHighScore(engine.score);
           playBeep(750);
         }
@@ -169,6 +176,7 @@ export default function BrickBreakerGame({ className = "" }: BrickBreakerProps) 
 
       if (remaining === 0) {
         setGameState("victory");
+        saveGameHighScore("brick", engine.score);
         playBeep(900);
         return;
       }

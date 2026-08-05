@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { motion } from "motion/react";
 import { Play, RotateCcw, Keyboard, Award, CheckCircle2 } from "lucide-react";
+import { getGameHighScore, saveGameHighScore } from "../lib/highScores";
 
 const SNIPPETS = [
   "const developer = { name: 'Anvar Akramov', role: 'Full-Stack Specialist', status: 'Online' };",
@@ -18,9 +19,11 @@ export default function SpeedTypingGame({ className = "" }: { className?: string
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [wpm, setWpm] = useState(0);
   const [accuracy, setAccuracy] = useState(100);
-  const [highWpm, setHighWpm] = useState(() => {
-    return parseInt(localStorage.getItem("speed_typing_high_wpm") || "0", 10);
-  });
+  const [highWpm, setHighWpm] = useState(() => getGameHighScore("speedtyping"));
+
+  useEffect(() => {
+    setHighWpm(getGameHighScore("speedtyping"));
+  }, []);
 
   const inputRef = useRef<HTMLInputElement>(null);
   const targetSnippet = SNIPPETS[snippetIndex];
@@ -79,10 +82,9 @@ export default function SpeedTypingGame({ className = "" }: { className?: string
     const secs = Math.max(1, Math.floor((Date.now() - (startTime || Date.now())) / 1000));
     const finalWpm = Math.round((finalVal.length / 5 / secs) * 60);
     setWpm(finalWpm);
-
+    saveGameHighScore("speedtyping", finalWpm);
     if (finalWpm > highWpm) {
       setHighWpm(finalWpm);
-      localStorage.setItem("speed_typing_high_wpm", finalWpm.toString());
     }
   };
 

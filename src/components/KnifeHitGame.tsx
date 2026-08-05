@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Play, RotateCcw, Target, Award, Zap } from "lucide-react";
+import { getGameHighScore, saveGameHighScore } from "../lib/highScores";
 
 interface StuckKnife {
   angle: number; // angle on log
@@ -16,9 +17,11 @@ export default function KnifeHitGame({ className = "" }: { className?: string })
   const [knivesLeft, setKnivesLeft] = useState(7);
   const [score, setScore] = useState(0);
   const [stage, setStage] = useState(1);
-  const [highScore, setHighScore] = useState(() => {
-    return parseInt(localStorage.getItem("knife_hit_highscore") || "0", 10);
-  });
+  const [highScore, setHighScore] = useState(() => getGameHighScore("knifehit"));
+
+  useEffect(() => {
+    setHighScore(getGameHighScore("knifehit"));
+  }, []);
 
   const gameStateRef = useRef(gameState);
   gameStateRef.current = gameState;
@@ -141,13 +144,7 @@ export default function KnifeHitGame({ className = "" }: { className?: string })
             // Game Over
             running = false;
             setGameState("gameover");
-            setScore((finalScore) => {
-              if (finalScore > highScore) {
-                setHighScore(finalScore);
-                localStorage.setItem("knife_hit_highscore", finalScore.toString());
-              }
-              return finalScore;
-            });
+            saveGameHighScore("knifehit", engine.score);
             return;
           }
 
@@ -156,6 +153,8 @@ export default function KnifeHitGame({ className = "" }: { className?: string })
           engine.flyingKnife = null;
           engine.score += 10;
           setScore(engine.score);
+          saveGameHighScore("knifehit", engine.score);
+          if (engine.score > highScore) setHighScore(engine.score);
 
           // Stage completion check
           if (engine.knivesLeft === 0) {

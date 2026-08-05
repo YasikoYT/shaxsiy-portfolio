@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Play, RotateCcw, Lightbulb, Check, Sparkles, HelpCircle } from "lucide-react";
+import { getGameHighScore, saveGameHighScore } from "../lib/highScores";
 
 const WORDS = [
   { word: "REACT", hint: "Mashhur Frontend UI kutubxonasi" },
@@ -26,9 +27,11 @@ export default function WordScrambleGame({ className = "" }: { className?: strin
   const [showHint, setShowHint] = useState(false);
   const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null);
   const [gameState, setGameState] = useState<"idle" | "playing" | "gameover">("idle");
-  const [highScore, setHighScore] = useState(() => {
-    return parseInt(localStorage.getItem("word_scramble_highscore") || "0", 10);
-  });
+  const [highScore, setHighScore] = useState(() => getGameHighScore("wordscramble"));
+
+  useEffect(() => {
+    setHighScore(getGameHighScore("wordscramble"));
+  }, []);
   const [timeLeft, setTimeLeft] = useState(45);
 
   const scrambleWord = (word: string) => {
@@ -65,20 +68,14 @@ export default function WordScrambleGame({ className = "" }: { className?: strin
         if (prev <= 1) {
           clearInterval(timer);
           setGameState("gameover");
-          setScore((s) => {
-            if (s > highScore) {
-              setHighScore(s);
-              localStorage.setItem("word_scramble_highscore", s.toString());
-            }
-            return s;
-          });
+          saveGameHighScore("wordscramble", score);
           return 0;
         }
         return prev - 1;
       });
     }, 1000);
     return () => clearInterval(timer);
-  }, [gameState, highScore]);
+  }, [gameState, score]);
 
   const handleCheckWord = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -86,7 +83,12 @@ export default function WordScrambleGame({ className = "" }: { className?: strin
 
     if (userGuess.trim().toUpperCase() === currentWordObj.word) {
       const addedScore = 10 + streak * 5 + (showHint ? 0 : 5);
-      setScore((s) => s + addedScore);
+      setScore((s) => {
+        const next = s + addedScore;
+        saveGameHighScore("wordscramble", next);
+        if (next > highScore) setHighScore(next);
+        return next;
+      });
       setStreak((st) => st + 1);
       setFeedbackMessage(`To'g'ri! +${addedScore} ochko 🎉`);
       setTimeout(() => {

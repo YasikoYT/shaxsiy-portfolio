@@ -1,12 +1,18 @@
 import React, { useState, useEffect } from "react";
 import { Play, RotateCcw, Brain, CheckCircle, Zap } from "lucide-react";
+import { getGameHighScore, saveGameHighScore } from "../lib/highScores";
 
 export default function PatternMemoryGame({ className = "" }: { className?: string }) {
   const [gameState, setGameState] = useState<"idle" | "showing" | "user_turn" | "gameover">("idle");
   const [level, setLevel] = useState(1);
+  const [highScore, setHighScore] = useState(() => getGameHighScore("patternmemory"));
   const [pattern, setPattern] = useState<number[]>([]);
   const [userPattern, setUserPattern] = useState<number[]>([]);
   const [activeCell, setActiveCell] = useState<number | null>(null);
+
+  useEffect(() => {
+    setHighScore(getGameHighScore("patternmemory"));
+  }, []);
 
   const startGame = () => {
     setLevel(1);
@@ -53,11 +59,14 @@ export default function PatternMemoryGame({ className = "" }: { className?: stri
     // Check correctness
     if (updatedUser[stepIndex] !== pattern[stepIndex]) {
       setGameState("gameover");
+      saveGameHighScore("patternmemory", level);
       return;
     }
 
     // Completed level sequence!
     if (updatedUser.length === pattern.length) {
+      saveGameHighScore("patternmemory", level);
+      if (level > highScore) setHighScore(level);
       setTimeout(() => {
         const nextLevel = level + 1;
         setLevel(nextLevel);

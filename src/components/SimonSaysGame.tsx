@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { motion } from "motion/react";
 import { Play, RotateCcw, Brain, Zap, ShieldCheck } from "lucide-react";
+import { getGameHighScore, saveGameHighScore } from "../lib/highScores";
 
 const COLORS = [
   { id: 0, name: "Green", bg: "bg-emerald-500", activeBg: "bg-emerald-300 shadow-emerald-400/80", border: "border-emerald-400" },
@@ -15,9 +16,11 @@ export default function SimonSaysGame({ className = "" }: { className?: string }
   const [activePad, setActivePad] = useState<number | null>(null);
   const [isPlayingSequence, setIsPlayingSequence] = useState(false);
   const [gameState, setGameState] = useState<"idle" | "playing" | "gameover">("idle");
-  const [highScore, setHighScore] = useState(() => {
-    return parseInt(localStorage.getItem("simon_says_highscore") || "0", 10);
-  });
+  const [highScore, setHighScore] = useState(() => getGameHighScore("simonsays"));
+
+  useEffect(() => {
+    setHighScore(getGameHighScore("simonsays"));
+  }, []);
   const [statusMessage, setStatusMessage] = useState("Ranglar ketma-ketligini eslab qoling!");
 
   const playPadSound = (index: number) => {
@@ -82,15 +85,14 @@ export default function SimonSaysGame({ className = "" }: { className?: string }
       // Correct step
       if (userStep + 1 === sequence.length) {
         // Round completed!
+        const score = sequence.length;
+        saveGameHighScore("simonsays", score);
+        if (score > highScore) setHighScore(score);
+
         const nextSequence = [...sequence, Math.floor(Math.random() * 4)];
         setSequence(nextSequence);
         setUserStep(0);
         setStatusMessage("Barakalla! Keyingi bosqich...");
-
-        if (nextSequence.length - 1 > highScore) {
-          setHighScore(nextSequence.length - 1);
-          localStorage.setItem("simon_says_highscore", (nextSequence.length - 1).toString());
-        }
 
         setTimeout(() => {
           playSequence(nextSequence);
@@ -101,6 +103,7 @@ export default function SimonSaysGame({ className = "" }: { className?: string }
     } else {
       // Wrong step
       setGameState("gameover");
+      saveGameHighScore("simonsays", Math.max(0, sequence.length - 1));
       setStatusMessage("Xato rang bosildi! O'yin tugadi.");
     }
   };

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Play, RotateCcw, Volume2, VolumeX, Trophy, Zap } from "lucide-react";
+import { getGameHighScore, saveGameHighScore } from "../lib/highScores";
 
 interface FlappyProps {
   className?: string;
@@ -9,8 +10,12 @@ export default function FlappyBirdGame({ className = "" }: FlappyProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [gameState, setGameState] = useState<"menu" | "playing" | "gameover">("menu");
   const [score, setScore] = useState(0);
-  const [highScore, setHighScore] = useState(0);
+  const [highScore, setHighScore] = useState(() => getGameHighScore("flappy"));
   const [soundEnabled, setSoundEnabled] = useState(true);
+
+  useEffect(() => {
+    setHighScore(getGameHighScore("flappy"));
+  }, []);
 
   const engineRef = useRef({
     birdY: 140,
@@ -149,6 +154,7 @@ export default function FlappyBirdGame({ className = "" }: FlappyProps) {
           setScore((s) => {
             const next = s + 1;
             if (next > highScore) setHighScore(next);
+            saveGameHighScore("flappy", next);
             return next;
           });
           playBeep(750);

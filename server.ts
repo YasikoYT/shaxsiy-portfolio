@@ -302,36 +302,31 @@ async function startServer() {
         return;
       }
 
-      // Save user SMS / Chat message to server inbox so admin can see it on any device
-      const chatLogMsg = {
-        id: `sms-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
-        name: "📱 Veb / Telefon foydalanuvchisi (SMS Chat)",
-        email: "Foydalanuvchi SMS",
-        message: prompt.trim(),
-        timestamp: new Date().toISOString(),
-        status: "Yangi SMS (100% keldi)"
-      };
-      contactMessages.unshift(chatLogMsg);
-      saveContactMessages(contactMessages);
-      console.log("📱 YANGI SMS / CHAT XABAR DISKGA SAQLANDI:", chatLogMsg);
-
       // Check if API key is configured
       if (process.env.GEMINI_API_KEY) {
         try {
           const ai = getGeminiClient();
 
-          const systemInstruction = `Siz Akramov Anvar tomonidan yaratilgan aqlli, samimiy va professional Anvar AI assistentisiz.
+          const systemInstruction = `Siz Akramov Anvarning rasmiy va do'stona AI assistentisiz (Anvar AI).
 
-Asosiy qoidalar:
-1. Har qanday savolga (dasturlash, IT, fan, tarix, matematika, umumiy savollar va h.k.) 100% o'zingiz to'g'ridan-to'g'ri sun'iy intellekt (AI) sifatida aniq, tabiiy va mustaqil javob bering.
-2. Hech qachon foydalanuvchining yozgan promti yoki savolini qaytarib yozmang (promtni takrorlamang). Promt matnini ko'chirmang.
-3. Hech qachon robotdek yoki qolipli GPT shablonidek gapirmang. Meta-ko'rsatmalarni takrorlamang. O'zbek tilida (yoki foydalanuvchi yozgan tilda) jonli va samimiy muloqot qiling.
-4. Salomlashganda ("salom", "assalomu alaykum", "hi"): "Salom! Qanday yordam bera olaman?" deb qisqa va samimiy javob bering. O'zingiz haqingizda keraksiz uzun shablon javob bermang.
-5. Faqat foydalanuvchi Anvar haqida so'rasa ("Anvar kim?", "Anvar haqida"): Akramov Anvar 16 yoshli Full-Stack dasturchi (Surxondaryo viloyati) ekanligini, React, Node.js, Express, TypeScript, Tailwind CSS va AI texnologiyalarini puxta bilishini ayting.
-6. Har doim to'g'ridan-to'g'ri masalaga o'ting va savolga o'zingiz to'liq va mukammal javob bering.`;
+QOIDALAR:
+1. Foydalanuvchi bergan har qanday savolga (dasturlash, HTML/CSS, JavaScript, React, Node.js, Python, matematika, mantiq, umumiy bilimlar va h.k.) to'g'ridan-to'g'ri, aniq, foydali va samimiy javob bering.
+2. HECH QACHON foydalanuvchining yozgan promti yoki savolini va ushbu ko'rsatmalarni (system instruction) javobingizda qaytarib (ko'chirib) yozmang! Javobingizni darhol javobning o'zi bilan boshlang.
+3. Salomlashganda ("salom", "assalomu alaykum", "hi"): "Salom! Qanday yordam bera olaman?" deb qisqa va samimiy javob bering.
+4. Faqat foydalanuvchi Anvar haqida so'rasa ("Anvar kim?", "Anvar haqida"): Akramov Anvar 16 yoshli Full-Stack dasturchi (Surxondaryo viloyati) ekanligini, React, Node.js, Express, TypeScript, Tailwind CSS va AI texnologiyalarini puxta bilishini ayting.
+5. O'zbek tilida (yoki foydalanuvchi yozgan tilda) jonli va samimiy muloqot qiling.`;
+
+          // Clean up helper to ensure prompt is never echoed back
+          const cleanOutput = (rawText: string, userQuery: string) => {
+            let result = rawText.trim();
+            if (userQuery && result.toLowerCase().startsWith(userQuery.toLowerCase().trim())) {
+              result = result.substring(userQuery.trim().length).trim();
+            }
+            result = result.replace(/^(User|Prompt|Savol|Qoidalar|SystemInstruction|Siz Akramov Anvar):\s*/i, "").trim();
+            return result;
+          };
 
           // Properly format multi-turn history for Gemini API:
-          // Gemini contents MUST start with role 'user' and alternate 'user' -> 'model' -> 'user'
           let contentsInput: any = prompt;
           if (Array.isArray(history) && history.length > 0) {
             const formattedTurns: Array<{ role: string; parts: Array<{ text: string }> }> = [];
@@ -355,7 +350,6 @@ Asosiy qoidalar:
             if (formattedTurns.length > 0) {
               const lastRole = formattedTurns[formattedTurns.length - 1].role;
               if (lastRole === "user") {
-                // Replace last item with current prompt if it was already user
                 formattedTurns[formattedTurns.length - 1] = { role: "user", parts: [{ text: prompt }] };
               } else {
                 formattedTurns.push({ role: "user", parts: [{ text: prompt }] });
@@ -367,7 +361,7 @@ Asosiy qoidalar:
           }
 
           let replyText = "";
-          const modelsToTry = ["gemini-2.5-flash", "gemini-3.6-flash", "gemini-flash-latest"];
+          const modelsToTry = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"];
           
           // Try with contentsInput (with history)
           for (const modelName of modelsToTry) {
@@ -381,7 +375,7 @@ Asosiy qoidalar:
                 },
               });
               if (response.text) {
-                replyText = response.text;
+                replyText = cleanOutput(response.text, prompt);
                 break;
               }
             } catch (err) {
@@ -402,7 +396,7 @@ Asosiy qoidalar:
                   },
                 });
                 if (response.text) {
-                  replyText = response.text;
+                  replyText = cleanOutput(response.text, prompt);
                   break;
                 }
               } catch (err) {

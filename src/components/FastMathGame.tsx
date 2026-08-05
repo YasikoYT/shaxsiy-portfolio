@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Play, RotateCcw, Volume2, VolumeX, Trophy, Zap, Check, X } from "lucide-react";
+import { getGameHighScore, saveGameHighScore } from "../lib/highScores";
 
 interface FastMathProps {
   className?: string;
@@ -15,9 +16,13 @@ export default function FastMathGame({ className = "" }: FastMathProps) {
   const [question, setQuestion] = useState<Question | null>(null);
   const [score, setScore] = useState(0);
   const [timeLeft, setTimeLeft] = useState(15);
-  const [highScore, setHighScore] = useState(0);
+  const [highScore, setHighScore] = useState(() => getGameHighScore("fastmath"));
   const [gameState, setGameState] = useState<"menu" | "playing" | "gameover">("menu");
   const [soundEnabled, setSoundEnabled] = useState(true);
+
+  useEffect(() => {
+    setHighScore(getGameHighScore("fastmath"));
+  }, []);
 
   const playBeep = (freq = 500) => {
     if (!soundEnabled) return;
@@ -85,12 +90,14 @@ export default function FastMathGame({ className = "" }: FastMathProps) {
     if (selected === question.answer) {
       const nextScore = score + 10;
       setScore(nextScore);
+      saveGameHighScore("fastmath", nextScore);
       if (nextScore > highScore) setHighScore(nextScore);
       setTimeLeft((t) => Math.min(20, t + 2)); // Bonus time!
       playBeep(750);
       setQuestion(generateQuestion());
     } else {
       setGameState("gameover");
+      saveGameHighScore("fastmath", score);
       playBeep(200);
     }
   };
@@ -102,6 +109,7 @@ export default function FastMathGame({ className = "" }: FastMathProps) {
       setTimeLeft((t) => {
         if (t <= 1) {
           setGameState("gameover");
+          saveGameHighScore("fastmath", score);
           playBeep(200);
           return 0;
         }
@@ -110,7 +118,7 @@ export default function FastMathGame({ className = "" }: FastMathProps) {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [gameState]);
+  }, [gameState, score]);
 
   return (
     <div className={`bg-slate-950 rounded-3xl border border-slate-800 p-5 text-white shadow-2xl flex flex-col justify-between ${className}`}>

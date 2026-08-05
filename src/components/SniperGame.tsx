@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Play, RotateCcw, Volume2, VolumeX, Trophy, Target, Crosshair } from "lucide-react";
+import { getGameHighScore, saveGameHighScore } from "../lib/highScores";
 
 interface SniperProps {
   className?: string;
@@ -19,8 +20,12 @@ export default function SniperGame({ className = "" }: SniperProps) {
   const [gameState, setGameState] = useState<"menu" | "playing" | "gameover">("menu");
   const [score, setScore] = useState(0);
   const [timeLeft, setTimeLeft] = useState(30);
-  const [highScore, setHighScore] = useState(0);
+  const [highScore, setHighScore] = useState(() => getGameHighScore("sniper"));
   const [soundEnabled, setSoundEnabled] = useState(true);
+
+  useEffect(() => {
+    setHighScore(getGameHighScore("sniper"));
+  }, []);
 
   const engineRef = useRef({
     targets: [] as TargetObj[],
@@ -92,6 +97,7 @@ export default function SniperGame({ className = "" }: SniperProps) {
         hit = true;
         engine.score += t.points;
         setScore(engine.score);
+        saveGameHighScore("sniper", engine.score);
         if (engine.score > highScore) setHighScore(engine.score);
         playBeep(880, "triangle");
 
@@ -105,6 +111,7 @@ export default function SniperGame({ className = "" }: SniperProps) {
     if (!hit) {
       engine.score = Math.max(0, engine.score - 10);
       setScore(engine.score);
+      saveGameHighScore("sniper", engine.score);
     }
   };
 
@@ -118,6 +125,7 @@ export default function SniperGame({ className = "" }: SniperProps) {
 
       if (engine.timeLeft <= 0) {
         setGameState("gameover");
+        saveGameHighScore("sniper", engine.score);
         playBeep(300);
       }
     }, 1000);

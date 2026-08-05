@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Play, RotateCcw, Volume2, VolumeX, Trophy, Disc } from "lucide-react";
+import { getGameHighScore, saveGameHighScore } from "../lib/highScores";
 
 interface ColorRushProps {
   className?: string;
@@ -11,8 +12,12 @@ export default function ColorRushGame({ className = "" }: ColorRushProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [gameState, setGameState] = useState<"menu" | "playing" | "gameover">("menu");
   const [score, setScore] = useState(0);
-  const [highScore, setHighScore] = useState(0);
+  const [highScore, setHighScore] = useState(() => getGameHighScore("colorrush"));
   const [soundEnabled, setSoundEnabled] = useState(true);
+
+  useEffect(() => {
+    setHighScore(getGameHighScore("colorrush"));
+  }, []);
 
   const engineRef = useRef({
     ballY: 180,
@@ -111,6 +116,7 @@ export default function ColorRushGame({ className = "" }: ColorRushProps) {
       // Screen Boundary Check
       if (engine.ballY > canvas.height + 10 || engine.ballY < -20) {
         setGameState("gameover");
+        saveGameHighScore("colorrush", engine.score);
         playBeep(200);
         return;
       }
@@ -121,6 +127,7 @@ export default function ColorRushGame({ className = "" }: ColorRushProps) {
         // Successful pass
         engine.score += 10;
         setScore(engine.score);
+        saveGameHighScore("colorrush", engine.score);
         if (engine.score > highScore) setHighScore(engine.score);
         playBeep(880);
 

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Play, RotateCcw, Volume2, VolumeX, Trophy, Bot, User } from "lucide-react";
+import { getGameHighScore, saveGameHighScore } from "../lib/highScores";
 
 interface PingPongProps {
   className?: string;
@@ -10,7 +11,12 @@ export default function PingPongGame({ className = "" }: PingPongProps) {
   const [gameState, setGameState] = useState<"menu" | "playing" | "gameover">("menu");
   const [playerScore, setPlayerScore] = useState(0);
   const [aiScore, setAiScore] = useState(0);
+  const [highScore, setHighScore] = useState(() => getGameHighScore("pingpong"));
   const [soundEnabled, setSoundEnabled] = useState(true);
+
+  useEffect(() => {
+    setHighScore(getGameHighScore("pingpong"));
+  }, []);
 
   const engineRef = useRef({
     playerY: 120,
@@ -143,6 +149,8 @@ export default function PingPongGame({ className = "" }: PingPongProps) {
         // Player Point
         setPlayerScore((prev) => {
           const next = prev + 1;
+          saveGameHighScore("pingpong", next);
+          if (next > highScore) setHighScore(next);
           if (next >= 7) setGameState("gameover");
           return next;
         });

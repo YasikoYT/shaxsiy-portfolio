@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Play, RotateCcw, Volume2, VolumeX, Trophy, Bot, User, Cpu } from "lucide-react";
+import { getGameHighScore, saveGameHighScore } from "../lib/highScores";
 
 interface TicTacToeProps {
   className?: string;
@@ -13,8 +14,13 @@ export default function TicTacToeGame({ className = "" }: TicTacToeProps) {
   const [winner, setWinner] = useState<string | null>(null);
   const [playerWins, setPlayerWins] = useState(0);
   const [aiWins, setAiWins] = useState(0);
+  const [highScore, setHighScore] = useState(() => getGameHighScore("tictactoe"));
   const [gameState, setGameState] = useState<"menu" | "playing" | "gameover">("menu");
   const [soundEnabled, setSoundEnabled] = useState(true);
+
+  useEffect(() => {
+    setHighScore(getGameHighScore("tictactoe"));
+  }, []);
 
   const playBeep = (freq = 500) => {
     if (!soundEnabled) return;
@@ -121,7 +127,14 @@ export default function TicTacToeGame({ className = "" }: TicTacToeProps) {
     if (win) {
       setWinner(win);
       setGameState("gameover");
-      if (win === "X") setPlayerWins((w) => w + 1);
+      if (win === "X") {
+        setPlayerWins((w) => {
+          const nextWins = w + 1;
+          saveGameHighScore("tictactoe", nextWins);
+          if (nextWins > highScore) setHighScore(nextWins);
+          return nextWins;
+        });
+      }
       playBeep(win === "X" ? 880 : 300);
     } else {
       setIsPlayerTurn(false);

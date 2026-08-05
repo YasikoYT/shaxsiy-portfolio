@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Play, RotateCcw, Volume2, VolumeX, Trophy, Bomb, Flag } from "lucide-react";
+import { getGameHighScore, saveGameHighScore } from "../lib/highScores";
 
 interface MinesweeperProps {
   className?: string;
@@ -23,6 +24,12 @@ export default function MinesweeperGame({ className = "" }: MinesweeperProps) {
   const [gameState, setGameState] = useState<"menu" | "playing" | "gameover" | "victory">("menu");
   const [flagsCount, setFlagsCount] = useState(MINES_COUNT);
   const [soundEnabled, setSoundEnabled] = useState(true);
+  const [startTime, setStartTime] = useState(0);
+  const [highScore, setHighScore] = useState(() => getGameHighScore("minesweeper"));
+
+  useEffect(() => {
+    setHighScore(getGameHighScore("minesweeper"));
+  }, []);
 
   const playBeep = (freq = 500) => {
     if (!soundEnabled) return;
@@ -92,6 +99,7 @@ export default function MinesweeperGame({ className = "" }: MinesweeperProps) {
 
     setGrid(board);
     setFlagsCount(MINES_COUNT);
+    setStartTime(Date.now());
     setGameState("playing");
   };
 
@@ -143,7 +151,10 @@ export default function MinesweeperGame({ className = "" }: MinesweeperProps) {
     );
 
     if (unrevealedSafe === 0) {
+      const finalSec = Math.max(1, Math.floor((Date.now() - startTime) / 1000));
       setGameState("victory");
+      saveGameHighScore("minesweeper", finalSec);
+      if (highScore === 0 || finalSec < highScore) setHighScore(finalSec);
       playBeep(880);
     }
   };

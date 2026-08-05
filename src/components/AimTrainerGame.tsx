@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Play, RotateCcw, Target, Zap, Clock } from "lucide-react";
+import { getGameHighScore, saveGameHighScore } from "../lib/highScores";
 
 interface TargetItem {
   id: number;
@@ -12,10 +13,15 @@ interface TargetItem {
 export default function AimTrainerGame({ className = "" }: { className?: string }) {
   const [gameState, setGameState] = useState<"idle" | "playing" | "gameover">("idle");
   const [score, setScore] = useState(0);
+  const [highScore, setHighScore] = useState(() => getGameHighScore("aimtrainer"));
   const [targetsHit, setTargetsHit] = useState(0);
   const [reactionTimes, setReactionTimes] = useState<number[]>([]);
   const [targets, setTargets] = useState<TargetItem[]>([]);
   const [timeLeft, setTimeLeft] = useState(30);
+
+  useEffect(() => {
+    setHighScore(getGameHighScore("aimtrainer"));
+  }, []);
 
   const startGame = () => {
     setScore(0);
@@ -42,7 +48,12 @@ export default function AimTrainerGame({ className = "" }: { className?: string 
     const reaction = Date.now() - target.spawnTime;
     setReactionTimes((prev) => [...prev, reaction]);
     setTargetsHit((prev) => prev + 1);
-    setScore((prev) => prev + Math.max(10, 1000 - reaction));
+    setScore((prev) => {
+      const next = prev + Math.max(10, 1000 - reaction);
+      saveGameHighScore("aimtrainer", next);
+      if (next > highScore) setHighScore(next);
+      return next;
+    });
     spawnTarget();
   };
 
@@ -53,6 +64,7 @@ export default function AimTrainerGame({ className = "" }: { className?: string 
       setTimeLeft((prev) => {
         if (prev <= 1) {
           setGameState("gameover");
+          saveGameHighScore("aimtrainer", score);
           clearInterval(timer);
           return 0;
         }
@@ -61,7 +73,7 @@ export default function AimTrainerGame({ className = "" }: { className?: string 
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [gameState]);
+  }, [gameState, score]);
 
   const avgReaction =
     reactionTimes.length > 0

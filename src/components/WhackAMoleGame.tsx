@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Play, RotateCcw, Award, Zap, AlertTriangle, Crosshair } from "lucide-react";
+import { getGameHighScore, saveGameHighScore } from "../lib/highScores";
 
 interface Mole {
   id: number;
@@ -12,9 +13,11 @@ interface Mole {
 export default function WhackAMoleGame({ className = "" }: { className?: string }) {
   const [gameState, setGameState] = useState<"idle" | "playing" | "gameover">("idle");
   const [score, setScore] = useState(0);
-  const [highScore, setHighScore] = useState(() => {
-    return parseInt(localStorage.getItem("whack_mole_highscore") || "0", 10);
-  });
+  const [highScore, setHighScore] = useState(() => getGameHighScore("whackamole"));
+
+  useEffect(() => {
+    setHighScore(getGameHighScore("whackamole"));
+  }, []);
   const [timeLeft, setTimeLeft] = useState(30);
   const [moles, setMoles] = useState<Mole[]>(
     Array.from({ length: 9 }, (_, i) => ({ id: i, type: "normal", active: false }))
@@ -107,13 +110,8 @@ export default function WhackAMoleGame({ className = "" }: { className?: string 
 
   const endGame = () => {
     setGameState("gameover");
-    setScore((currentScore) => {
-      if (currentScore > highScore) {
-        setHighScore(currentScore);
-        localStorage.setItem("whack_mole_highscore", currentScore.toString());
-      }
-      return currentScore;
-    });
+    saveGameHighScore("whackamole", score);
+    if (score > highScore) setHighScore(score);
   };
 
   const whackMole = (index: number) => {
@@ -128,16 +126,27 @@ export default function WhackAMoleGame({ className = "" }: { className?: string 
     // Hide hit mole immediately
     setMoles((prev) => prev.map((m, i) => (i === index ? { ...m, active: false } : m)));
 
+    let added = 0;
     if (targetMole.type === "bomb") {
       setScore((s) => Math.max(0, s - 20));
       setCombo(0);
     } else if (targetMole.type === "golden") {
-      const added = 30 + combo * 5;
-      setScore((s) => s + added);
+      added = 30 + combo * 5;
+      setScore((s) => {
+        const next = s + added;
+        saveGameHighScore("whackamole", next);
+        if (next > highScore) setHighScore(next);
+        return next;
+      });
       setCombo((c) => c + 1);
     } else {
-      const added = 10 + combo * 2;
-      setScore((s) => s + added);
+      added = 10 + combo * 2;
+      setScore((s) => {
+        const next = s + added;
+        saveGameHighScore("whackamole", next);
+        if (next > highScore) setHighScore(next);
+        return next;
+      });
       setCombo((c) => c + 1);
     }
   };

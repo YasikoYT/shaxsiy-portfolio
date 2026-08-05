@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Play, RotateCcw, Layers, Award } from "lucide-react";
+import { getGameHighScore, saveGameHighScore } from "../lib/highScores";
 
 interface Floor {
   y: number;
@@ -11,9 +12,11 @@ export default function HelixJumpGame({ className = "" }: { className?: string }
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [gameState, setGameState] = useState<"idle" | "playing" | "gameover">("idle");
   const [score, setScore] = useState(0);
-  const [highScore, setHighScore] = useState(() => {
-    return parseInt(localStorage.getItem("helix_jump_highscore") || "0", 10);
-  });
+  const [highScore, setHighScore] = useState(() => getGameHighScore("helixjump"));
+
+  useEffect(() => {
+    setHighScore(getGameHighScore("helixjump"));
+  }, []);
 
   const gameStateRef = useRef(gameState);
   gameStateRef.current = gameState;
@@ -97,6 +100,8 @@ export default function HelixJumpGame({ className = "" }: { className?: string }
             // Passed through floor!
             engine.score += 20;
             setScore(engine.score);
+            saveGameHighScore("helixjump", engine.score);
+            if (engine.score > highScore) setHighScore(engine.score);
           } else {
             // Bounce!
             engine.ballVy = bounceVelocity;
@@ -108,13 +113,7 @@ export default function HelixJumpGame({ className = "" }: { className?: string }
       // Check Out of Bounds or Fall
       if (engine.ballY > 1600) {
         setGameState("gameover");
-        setScore((finalScore) => {
-          if (finalScore > highScore) {
-            setHighScore(finalScore);
-            localStorage.setItem("helix_jump_highscore", finalScore.toString());
-          }
-          return finalScore;
-        });
+        saveGameHighScore("helixjump", engine.score);
         return;
       }
 

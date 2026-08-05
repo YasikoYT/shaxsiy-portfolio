@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Play, RotateCcw, Target, Award, Wind } from "lucide-react";
+import { getGameHighScore, saveGameHighScore } from "../lib/highScores";
 
 interface Arrow {
   x: number;
@@ -18,9 +19,11 @@ export default function ArcheryShooterGame({ className = "" }: { className?: str
   const [power, setPower] = useState(50);
   const [angle, setAngle] = useState(0); // in degrees (-30 to +30)
   const [wind, setWind] = useState(0); // wind force
-  const [highScore, setHighScore] = useState(() => {
-    return parseInt(localStorage.getItem("archery_high_score") || "0", 10);
-  });
+  const [highScore, setHighScore] = useState(() => getGameHighScore("archery"));
+
+  useEffect(() => {
+    setHighScore(getGameHighScore("archery"));
+  }, []);
 
   const gameStateRef = useRef(gameState);
   gameStateRef.current = gameState;
@@ -149,6 +152,8 @@ export default function ArcheryShooterGame({ className = "" }: { className?: str
 
               engine.score += points;
               setScore(engine.score);
+              saveGameHighScore("archery", engine.score);
+              if (engine.score > highScore) setHighScore(engine.score);
             } else {
               // Missed target
               engine.arrow = null;
@@ -163,13 +168,7 @@ export default function ArcheryShooterGame({ className = "" }: { className?: str
               setTimeout(() => {
                 running = false;
                 setGameState("gameover");
-                setScore((finalScore) => {
-                  if (finalScore > highScore) {
-                    setHighScore(finalScore);
-                    localStorage.setItem("archery_high_score", finalScore.toString());
-                  }
-                  return finalScore;
-                });
+                saveGameHighScore("archery", engine.score);
               }, 600);
             } else {
               setTimeout(() => {

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Play, RotateCcw, Volume2, VolumeX, Trophy, Code2, Cpu, Terminal, Database, ShieldCheck, Globe, CpuIcon, Layers } from "lucide-react";
+import { getGameHighScore, saveGameHighScore } from "../lib/highScores";
 
 interface MemoryProps {
   className?: string;
@@ -31,6 +32,11 @@ export default function MemoryMatchGame({ className = "" }: MemoryProps) {
   const [matchesCount, setMatchesCount] = useState(0);
   const [gameState, setGameState] = useState<"menu" | "playing" | "victory">("menu");
   const [soundEnabled, setSoundEnabled] = useState(true);
+  const [highScore, setHighScore] = useState(() => getGameHighScore("memory"));
+
+  useEffect(() => {
+    setHighScore(getGameHighScore("memory"));
+  }, []);
 
   const playBeep = (freq = 500) => {
     if (!soundEnabled) return;
@@ -105,6 +111,8 @@ export default function MemoryMatchGame({ className = "" }: MemoryProps) {
             const nextM = m + 1;
             if (nextM === TECH_CARDS.length) {
               setGameState("victory");
+              saveGameHighScore("memory", moves + 1);
+              if (highScore === 0 || moves + 1 < highScore) setHighScore(moves + 1);
               playBeep(880);
             } else {
               playBeep(650);

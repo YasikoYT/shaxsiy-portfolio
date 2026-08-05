@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Play, RotateCcw, Volume2, VolumeX, Trophy, Sparkles } from "lucide-react";
+import { getGameHighScore, saveGameHighScore } from "../lib/highScores";
 
 interface Tile2048Props {
   className?: string;
@@ -8,9 +9,13 @@ interface Tile2048Props {
 export default function Tile2048Game({ className = "" }: Tile2048Props) {
   const [board, setBoard] = useState<number[][]>([]);
   const [score, setScore] = useState(0);
-  const [highScore, setHighScore] = useState(0);
+  const [highScore, setHighScore] = useState(() => getGameHighScore("tile2048"));
   const [gameState, setGameState] = useState<"menu" | "playing" | "gameover">("menu");
   const [soundEnabled, setSoundEnabled] = useState(true);
+
+  useEffect(() => {
+    setHighScore(getGameHighScore("tile2048"));
+  }, []);
 
   const playBeep = (freq = 500) => {
     if (!soundEnabled) return;
@@ -114,6 +119,7 @@ export default function Tile2048Game({ className = "" }: Tile2048Props) {
       setScore((s) => {
         const next = s + gain;
         if (next > highScore) setHighScore(next);
+        saveGameHighScore("tile2048", next);
         return next;
       });
       playBeep(400 + gain);
@@ -121,6 +127,7 @@ export default function Tile2048Game({ className = "" }: Tile2048Props) {
       // Check Game Over
       if (!canMove(spawnedBoard)) {
         setGameState("gameover");
+        saveGameHighScore("tile2048", score + gain);
         playBeep(200);
       }
     }

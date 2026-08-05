@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "motion/react";
 import { Play, RotateCcw, Bot, User, Award, Shield } from "lucide-react";
+import { getGameHighScore, saveGameHighScore } from "../lib/highScores";
 
 type Cell = 0 | 1 | 2; // 0: empty, 1: player (red), 2: AI (yellow)
 
@@ -11,6 +12,11 @@ export default function ConnectFourGame({ className = "" }: { className?: string
   const [currentPlayer, setCurrentPlayer] = useState<1 | 2>(1); // 1 = Human, 2 = AI
   const [winner, setWinner] = useState<0 | 1 | 2 | 3>(0); // 0 = playing, 1 = Human, 2 = AI, 3 = Draw
   const [stats, setStats] = useState({ humanWins: 0, aiWins: 0 });
+  const [highScore, setHighScore] = useState(() => getGameHighScore("connectfour"));
+
+  useEffect(() => {
+    setHighScore(getGameHighScore("connectfour"));
+  }, []);
 
   const checkWinner = (grid: Cell[][]): 0 | 1 | 2 | 3 => {
     // Horizontal
@@ -128,7 +134,14 @@ export default function ConnectFourGame({ className = "" }: { className?: string
 
     if (win !== 0) {
       setWinner(win);
-      if (win === 1) setStats((s) => ({ ...s, humanWins: s.humanWins + 1 }));
+      if (win === 1) {
+        setStats((s) => {
+          const nextWins = s.humanWins + 1;
+          saveGameHighScore("connectfour", nextWins);
+          if (nextWins > highScore) setHighScore(nextWins);
+          return { ...s, humanWins: nextWins };
+        });
+      }
       if (win === 2) setStats((s) => ({ ...s, aiWins: s.aiWins + 1 }));
     } else {
       const nextP = player === 1 ? 2 : 1;

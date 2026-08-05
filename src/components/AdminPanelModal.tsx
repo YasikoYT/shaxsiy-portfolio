@@ -105,7 +105,7 @@ export default function AdminPanelModal({
   // Config editor state
   const [formData, setFormData] = useState<SiteConfig>(siteConfig);
   const [saveSuccess, setSaveSuccess] = useState(false);
-  const [activeTab, setActiveTab] = useState<"inbox" | "projects" | "profile" | "banner" | "stats" | "contacts" | "skills" | "siteText" | "goals" | "ai" | "game" | "security">("inbox");
+  const [activeTab, setActiveTab] = useState<"projects" | "profile" | "banner" | "stats" | "contacts" | "skills" | "siteText" | "goals" | "ai" | "game" | "security">("projects");
   const [inboxMessages, setInboxMessages] = useState<Array<{ id: string; name: string; email: string; message: string; timestamp: string; status: string }>>([]);
   const [inboxLoading, setInboxLoading] = useState(false);
 
@@ -277,10 +277,12 @@ export default function AdminPanelModal({
     }
   }, [isLoggedIn, isOpen, fetchInboxMessages]);
 
-  // Keep local formData in sync when prop changes
+  // Keep local formData in sync when modal opens
   React.useEffect(() => {
-    setFormData(siteConfig);
-  }, [siteConfig]);
+    if (isOpen) {
+      setFormData(siteConfig);
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -454,22 +456,6 @@ export default function AdminPanelModal({
 
                 {/* Sub Navigation Sidebar/Tabs */}
                 <div className="flex flex-wrap items-center gap-2 border-b border-neutral-800 pb-4 font-mono text-xs">
-                  <button
-                    type="button"
-                    onClick={() => setActiveTab("inbox")}
-                    className={`px-4 py-2.5 rounded-xl transition-all cursor-pointer font-bold flex items-center gap-2 relative ${
-                      activeTab === "inbox" 
-                        ? "bg-amber-500 text-black shadow-lg shadow-amber-500/20" 
-                        : "bg-neutral-900 text-neutral-300 hover:bg-neutral-800 hover:text-white"
-                    }`}
-                  >
-                    <Mail className="w-4 h-4" /> Kelgan Murojaatlar / SMS
-                    {inboxMessages.length > 0 && (
-                      <span className="bg-emerald-500 text-black text-[10px] font-bold px-1.5 py-0.5 rounded-full">
-                        {inboxMessages.length}
-                      </span>
-                    )}
-                  </button>
 
                   <button
                     type="button"

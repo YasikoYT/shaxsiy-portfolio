@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Play, RotateCcw, Volume2, VolumeX, Rocket, Trophy, Flame } from "lucide-react";
+import { getGameHighScore, saveGameHighScore } from "../lib/highScores";
 
 interface SpaceShooterProps {
   className?: string;
@@ -10,7 +11,7 @@ export default function SpaceShooter({ className = "" }: SpaceShooterProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isGameOver, setIsGameOver] = useState(false);
   const [score, setScore] = useState(0);
-  const [highScore, setHighScore] = useState(0);
+  const [highScore, setHighScore] = useState(() => getGameHighScore("spaceshooter"));
   const [soundEnabled, setSoundEnabled] = useState(true);
 
   const gameStateRef = useRef({
@@ -53,8 +54,7 @@ export default function SpaceShooter({ className = "" }: SpaceShooterProps) {
 
   useEffect(() => {
     // Load high score
-    const saved = localStorage.getItem("spaceshooter_highscore");
-    if (saved) setHighScore(parseInt(saved, 10));
+    setHighScore(getGameHighScore("spaceshooter"));
 
     // Initialize stars
     const stars = [];
@@ -208,9 +208,9 @@ export default function SpaceShooter({ className = "" }: SpaceShooterProps) {
                 playSound(150, "sawtooth", 0.15);
                 state.score += enemy.maxHp * 10;
                 setScore(state.score);
+                saveGameHighScore("spaceshooter", state.score);
                 if (state.score > highScore) {
                   setHighScore(state.score);
-                  localStorage.setItem("spaceshooter_highscore", state.score.toString());
                 }
                 state.enemies.splice(i, 1);
                 break;
@@ -224,6 +224,7 @@ export default function SpaceShooter({ className = "" }: SpaceShooterProps) {
             addParticles(state.playerX, state.playerY, "#ef4444", 25);
             playSound(100, "sawtooth", 0.3);
             state.isGameOver = true;
+            saveGameHighScore("spaceshooter", state.score);
             setIsGameOver(true);
             setIsPlaying(false);
           }

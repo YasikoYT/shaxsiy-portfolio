@@ -1,11 +1,17 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Play, RotateCcw, Layers, Award } from "lucide-react";
+import { getGameHighScore, saveGameHighScore } from "../lib/highScores";
 
 export default function NumberMergeChainGame({ className = "" }: { className?: string }) {
   const [gameState, setGameState] = useState<"idle" | "playing" | "gameover">("idle");
   const [columns, setColumns] = useState<number[][]>([[], [], [], []]);
   const [nextValue, setNextValue] = useState<number>(2);
   const [score, setScore] = useState(0);
+  const [highScore, setHighScore] = useState(() => getGameHighScore("numbermerge"));
+
+  useEffect(() => {
+    setHighScore(getGameHighScore("numbermerge"));
+  }, []);
 
   const VALUES = [2, 4, 8, 16, 32];
 
@@ -26,6 +32,7 @@ export default function NumberMergeChainGame({ className = "" }: { className?: s
 
     // Merge check from top to bottom
     let merged = true;
+    let gainedScore = 0;
     while (merged && col.length >= 2) {
       const top = col[col.length - 1];
       const second = col[col.length - 2];
@@ -33,10 +40,19 @@ export default function NumberMergeChainGame({ className = "" }: { className?: s
       if (top === second) {
         col.pop();
         col[col.length - 1] = top * 2;
-        setScore((s) => s + top * 2);
+        gainedScore += top * 2;
       } else {
         merged = false;
       }
+    }
+
+    if (gainedScore > 0) {
+      setScore((s) => {
+        const next = s + gainedScore;
+        saveGameHighScore("numbermerge", next);
+        if (next > highScore) setHighScore(next);
+        return next;
+      });
     }
 
     const newCols = [...columns];
@@ -46,6 +62,7 @@ export default function NumberMergeChainGame({ className = "" }: { className?: s
     // Check game over
     if (newCols.every((c) => c.length >= 6)) {
       setGameState("gameover");
+      saveGameHighScore("numbermerge", score + gainedScore);
       return;
     }
 

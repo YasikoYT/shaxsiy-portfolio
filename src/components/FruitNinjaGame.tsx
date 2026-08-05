@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Play, RotateCcw, Zap, Flame, Award } from "lucide-react";
+import { getGameHighScore, saveGameHighScore } from "../lib/highScores";
 
 interface Fruit {
   id: number;
@@ -27,9 +28,11 @@ export default function FruitNinjaGame({ className = "" }: { className?: string 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [gameState, setGameState] = useState<"idle" | "playing" | "gameover">("idle");
   const [score, setScore] = useState(0);
-  const [highScore, setHighScore] = useState(() => {
-    return parseInt(localStorage.getItem("fruit_ninja_highscore") || "0", 10);
-  });
+  const [highScore, setHighScore] = useState(() => getGameHighScore("fruitninja"));
+
+  useEffect(() => {
+    setHighScore(getGameHighScore("fruitninja"));
+  }, []);
 
   const gameEngineRef = useRef({
     fruits: [] as Fruit[],
@@ -73,16 +76,13 @@ export default function FruitNinjaGame({ className = "" }: { className?: string 
           if (fruit.type === "bomb") {
             // Game over
             setGameState("gameover");
-            setScore((finalScore) => {
-              if (finalScore > highScore) {
-                setHighScore(finalScore);
-                localStorage.setItem("fruit_ninja_highscore", finalScore.toString());
-              }
-              return finalScore;
-            });
+            saveGameHighScore("fruitninja", engine.score);
+            if (engine.score > highScore) setHighScore(engine.score);
           } else {
             engine.score += 10;
             setScore(engine.score);
+            saveGameHighScore("fruitninja", engine.score);
+            if (engine.score > highScore) setHighScore(engine.score);
 
             // Spawn juice particles
             for (let i = 0; i < 12; i++) {

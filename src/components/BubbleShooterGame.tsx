@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Play, RotateCcw, CircleDot, Award, Zap } from "lucide-react";
+import { getGameHighScore, saveGameHighScore } from "../lib/highScores";
 
 interface Bubble {
   r: number;
@@ -15,9 +16,11 @@ export default function BubbleShooterGame({ className = "" }: { className?: stri
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [gameState, setGameState] = useState<"idle" | "playing" | "gameover">("idle");
   const [score, setScore] = useState(0);
-  const [highScore, setHighScore] = useState(() => {
-    return parseInt(localStorage.getItem("bubble_shooter_highscore") || "0", 10);
-  });
+  const [highScore, setHighScore] = useState(() => getGameHighScore("bubbleshooter"));
+
+  useEffect(() => {
+    setHighScore(getGameHighScore("bubbleshooter"));
+  }, []);
 
   const gameStateRef = useRef(gameState);
   gameStateRef.current = gameState;
@@ -240,12 +243,16 @@ export default function BubbleShooterGame({ className = "" }: { className?: stri
             const pts = matches.length * 30 + droppedCount * 50;
             engine.score += pts;
             setScore(engine.score);
+            saveGameHighScore("bubbleshooter", engine.score);
+            if (engine.score > highScore) setHighScore(engine.score);
 
             // Check if grid is completely cleared
             const isEmpty = engine.grid.every((row) => row.every((cell) => cell === null));
             if (isEmpty) {
               engine.score += 500; // Clearing bonus
               setScore(engine.score);
+              saveGameHighScore("bubbleshooter", engine.score);
+              if (engine.score > highScore) setHighScore(engine.score);
               // Respawn new wave
               for (let row = 0; row < 5; row++) {
                 for (let col = 0; col < 8; col++) {
@@ -257,6 +264,8 @@ export default function BubbleShooterGame({ className = "" }: { className?: stri
             // Just single shot score if less than 3
             engine.score += 10;
             setScore(engine.score);
+            saveGameHighScore("bubbleshooter", engine.score);
+            if (engine.score > highScore) setHighScore(engine.score);
           }
         }
 
@@ -265,13 +274,7 @@ export default function BubbleShooterGame({ className = "" }: { className?: stri
         // Check loss condition
         if (engine.grid[8].some((cell) => cell !== null)) {
           setGameState("gameover");
-          setScore((finalScore) => {
-            if (finalScore > highScore) {
-              setHighScore(finalScore);
-              localStorage.setItem("bubble_shooter_highscore", finalScore.toString());
-            }
-            return finalScore;
-          });
+          saveGameHighScore("bubbleshooter", engine.score);
         }
       }
 

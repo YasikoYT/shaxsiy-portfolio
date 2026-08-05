@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Play, RotateCcw, Volume2, VolumeX, Trophy, Sparkles } from "lucide-react";
+import { getGameHighScore, saveGameHighScore } from "../lib/highScores";
 
 interface SnakeProps {
   className?: string;
@@ -9,8 +10,12 @@ export default function SnakeGame({ className = "" }: SnakeProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [gameState, setGameState] = useState<"menu" | "playing" | "gameover">("menu");
   const [score, setScore] = useState(0);
-  const [highScore, setHighScore] = useState(0);
+  const [highScore, setHighScore] = useState(() => getGameHighScore("snake"));
   const [soundEnabled, setSoundEnabled] = useState(true);
+
+  useEffect(() => {
+    setHighScore(getGameHighScore("snake"));
+  }, []);
 
   const gridCount = 20;
 
@@ -125,6 +130,7 @@ export default function SnakeGame({ className = "" }: SnakeProps) {
       // Wall Collision Check
       if (head.x < 0 || head.x >= gridCount || head.y < 0 || head.y >= gridCount) {
         setGameState("gameover");
+        saveGameHighScore("snake", engine.score);
         playBeep(150, "sawtooth");
         return;
       }
@@ -133,6 +139,7 @@ export default function SnakeGame({ className = "" }: SnakeProps) {
       for (let i = 0; i < engine.snake.length; i++) {
         if (engine.snake[i].x === head.x && engine.snake[i].y === head.y) {
           setGameState("gameover");
+          saveGameHighScore("snake", engine.score);
           playBeep(150, "sawtooth");
           return;
         }
@@ -144,13 +151,23 @@ export default function SnakeGame({ className = "" }: SnakeProps) {
       if (head.x === engine.food.x && head.y === engine.food.y) {
         engine.score += 10;
         setScore(engine.score);
-        if (engine.score > highScore) setHighScore(engine.score);
+        if (engine.score > highScore) {
+          setHighScore(engine.score);
+          saveGameHighScore("snake", engine.score);
+        } else {
+          saveGameHighScore("snake", engine.score);
+        }
         playBeep(600, "sine");
         spawnFood();
       } else if (engine.goldenFood.active && head.x === engine.goldenFood.x && head.y === engine.goldenFood.y) {
         engine.score += 30;
         setScore(engine.score);
-        if (engine.score > highScore) setHighScore(engine.score);
+        if (engine.score > highScore) {
+          setHighScore(engine.score);
+          saveGameHighScore("snake", engine.score);
+        } else {
+          saveGameHighScore("snake", engine.score);
+        }
         engine.goldenFood.active = false;
         playBeep(880, "triangle");
       } else {

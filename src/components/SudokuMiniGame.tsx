@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Play, RotateCcw, Grid, CheckCircle, HelpCircle } from "lucide-react";
+import { getGameHighScore, saveGameHighScore } from "../lib/highScores";
 
 // 4x4 Mini Sudoku puzzle initial state & solution
 const PUZZLES = [
@@ -39,6 +40,12 @@ export default function SudokuMiniGame({ className = "" }: { className?: string 
   const [board, setBoard] = useState<number[][]>([]);
   const [selectedCell, setSelectedCell] = useState<[number, number] | null>(null);
   const [errors, setErrors] = useState<boolean[][]>([]);
+  const [startTime, setStartTime] = useState(0);
+  const [highScore, setHighScore] = useState(() => getGameHighScore("sudoku"));
+
+  useEffect(() => {
+    setHighScore(getGameHighScore("sudoku"));
+  }, []);
 
   const startGame = () => {
     const idx = Math.floor(Math.random() * PUZZLES.length);
@@ -47,6 +54,7 @@ export default function SudokuMiniGame({ className = "" }: { className?: string 
     setBoard(initialBoard);
     setSelectedCell(null);
     setErrors(Array(4).fill(0).map(() => Array(4).fill(false)));
+    setStartTime(Date.now());
     setGameState("playing");
   };
 
@@ -75,7 +83,10 @@ export default function SudokuMiniGame({ className = "" }: { className?: string 
     }
 
     if (solved) {
+      const finalSec = Math.max(1, Math.floor((Date.now() - startTime) / 1000));
       setGameState("victory");
+      saveGameHighScore("sudoku", finalSec);
+      if (highScore === 0 || finalSec < highScore) setHighScore(finalSec);
     }
   };
 

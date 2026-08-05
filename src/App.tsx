@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { 
   motion, 
   AnimatePresence 
@@ -76,6 +76,8 @@ import PatternMemoryGame from "./components/PatternMemoryGame";
 import ProjectsShowcase from "./components/ProjectsShowcase";
 import DoodleJumpGame from "./components/DoodleJumpGame";
 import NumberMergeChainGame from "./components/NumberMergeChainGame";
+import GamesLeaderboard from "./components/GamesLeaderboard";
+import Confetti from "./components/Confetti";
 import AdminPanelModal, { DEFAULT_SITE_CONFIG } from "./components/AdminPanelModal";
 
 // Hero Typewriter Component (Cycles smoothly with eye-catching neon gradient glass HUD & dynamic icons)
@@ -326,8 +328,8 @@ export default function App() {
     };
 
     fetchGlobalConfig();
-    // Auto-sync every 8 seconds for all devices
-    const timer = setInterval(fetchGlobalConfig, 8000);
+    // Real-time auto-sync every 3 seconds for all devices & visitors
+    const timer = setInterval(fetchGlobalConfig, 3000);
     return () => clearInterval(timer);
   }, []);
 
@@ -366,11 +368,20 @@ export default function App() {
     }
 
     try {
-      await fetch("/api/config/save", {
+      const res = await fetch("/api/config/save", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ config: newConfig })
       });
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.config) {
+          setSiteConfig(data.config);
+          try {
+            localStorage.setItem("anvar_site_config_v4", JSON.stringify(data.config));
+          } catch (e) {}
+        }
+      }
     } catch (err) {
       console.error("Failed to sync config to server", err);
     }
@@ -490,10 +501,46 @@ export default function App() {
     {
       id: "init-1",
       sender: "gemini",
-      text: "Assalomu alaykum! Men Akramov Anvarning sun'iy intellekt assistentiman (Gemini 2.5 AI). Men sizga dasturlash, HTML/CSS, JavaScript, React, Python, IT tarixi hamda Anvarning 15 yoshida erishgan tajribasi haqida istalgan vaqtda tezkor va aniq javob beraman. Nima haqida suhbatlashamiz?",
+      text: "Assalomu alaykum! Men Akramov Anvarning sun'iy intellekt assistentiman (Gemini 2.5 AI). Men sizga dasturlash, HTML/CSS, JavaScript, React, Python, IT tarixi hamda Anvarning 16 yoshida erishgan tajribasi haqida istalgan vaqtda tezkor va aniq javob beraman. Nima haqida suhbatlashamiz?",
       timestamp: new Date()
     }
   ]);
+
+  // Group consecutive messages from the same sender into compact blocks with time indicators
+  const groupedChatHistory = useMemo(() => {
+    const groups: Array<{
+      groupId: string;
+      sender: "user" | "gemini";
+      messages: Message[];
+      firstTime: string;
+      lastTime: string;
+      timeString: string;
+    }> = [];
+
+    chatHistory.forEach((msg) => {
+      const formattedTime = new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const lastGroup = groups[groups.length - 1];
+
+      if (lastGroup && lastGroup.sender === msg.sender) {
+        lastGroup.messages.push(msg);
+        lastGroup.lastTime = formattedTime;
+        lastGroup.timeString = lastGroup.firstTime === formattedTime 
+          ? formattedTime 
+          : `${lastGroup.firstTime} - ${formattedTime}`;
+      } else {
+        groups.push({
+          groupId: `group-${msg.id}`,
+          sender: msg.sender,
+          messages: [msg],
+          firstTime: formattedTime,
+          lastTime: formattedTime,
+          timeString: formattedTime,
+        });
+      }
+    });
+
+    return groups;
+  }, [chatHistory]);
 
   const chatMessagesContainerRef = useRef<HTMLDivElement>(null);
 
@@ -667,7 +714,7 @@ export default function App() {
     }
   };
 
-  // Contact Form Submission handler (100% Guaranteed Delivery across all devices)
+  // Contact Form Submission handler (Direct routing to Telegram & Gmail)
   const handleContactSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formName.trim() || !formMessage.trim()) return;
@@ -675,40 +722,16 @@ export default function App() {
     setFormSending(true);
 
     const contactInfo = formEmail.trim() || "Kiritilmagan";
+    const tgHandle = (siteConfig.telegram || "@mineestaxx").replace("@", "");
+    const textMsg = `Assalomu alaykum Anvar! Men portfoliodan yozmoqdaman.\nIsmim: ${formName.trim()}\nKontakt: ${contactInfo}\n\nXabar: ${formMessage.trim()}`;
+    const tgUrl = `https://t.me/${tgHandle}?text=${encodeURIComponent(textMsg)}`;
 
-    const newMsg = {
-      id: `msg-${Date.now()}`,
-      name: formName.trim(),
-      email: contactInfo,
-      message: formMessage.trim(),
-      timestamp: new Date().toISOString(),
-      status: "Yangi (SMS yetkazildi)"
-    };
-
-    // Save to localStorage immediately
     try {
-      const existing = JSON.parse(localStorage.getItem("anvar_inbox_messages") || "[]");
-      existing.unshift(newMsg);
-      localStorage.setItem("anvar_inbox_messages", JSON.stringify(existing));
+      window.open(tgUrl, "_blank");
     } catch (e) {}
 
-    // Post to Server API for server-side persistence in data/inbox_bundle.json
-    try {
-      await fetch("/api/contact/send", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: formName.trim(),
-          email: contactInfo,
-          message: formMessage.trim()
-        })
-      });
-    } catch (err) {
-      console.warn("Contact endpoint save error, local backup preserved:", err);
-    } finally {
-      setFormSending(false);
-      setFormSubmitted(true);
-    }
+    setFormSending(false);
+    setFormSubmitted(true);
   };
 
   return (
@@ -1444,6 +1467,20 @@ export default function App() {
                   </motion.div>
                 </AnimatePresence>
               </div>
+
+              {/* High Scores Leaderboard Table */}
+              <div className="pt-6">
+                <GamesLeaderboard
+                  isDarkMode={isDarkMode}
+                  onSelectGame={(gameId) => {
+                    setActiveGameTab(gameId);
+                    const el = document.getElementById("games");
+                    if (el) {
+                      el.scrollIntoView({ behavior: "smooth", block: "start" });
+                    }
+                  }}
+                />
+              </div>
             </motion.section>
 
             {/* SECTION 4: INTERACTIVE 24/7 AI ASSISTANT SECTION */}
@@ -1512,65 +1549,96 @@ export default function App() {
                   {/* Chat messages container */}
                   <div ref={chatMessagesContainerRef} className="flex-grow p-5 sm:p-6 overflow-y-auto space-y-4 max-h-[420px]">
                     <AnimatePresence initial={false}>
-                      {chatHistory.map((msg) => (
+                      {groupedChatHistory.map((group) => (
                         <motion.div
-                          key={msg.id}
+                          key={group.groupId}
                           initial={{ opacity: 0, y: 10, scale: 0.98 }}
                           animate={{ opacity: 1, y: 0, scale: 1 }}
-                          className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"}`}
+                          className={`flex ${group.sender === "user" ? "justify-end" : "justify-start"}`}
                         >
                           <div
                             className={`max-w-[88%] sm:max-w-[82%] rounded-2xl px-4 py-3 text-xs md:text-sm leading-relaxed relative group ${
-                              msg.sender === "user"
+                              group.sender === "user"
                                 ? (isDarkMode ? "bg-amber-400 text-black font-semibold rounded-tr-none" : "bg-black text-white rounded-tr-none")
                                 : (isDarkMode 
                                     ? "bg-[#1a1d29] text-neutral-100 rounded-tl-none border border-neutral-800" 
                                     : "bg-[#f1f3f5] text-neutral-800 rounded-tl-none border border-[#e5e5ea]")
                             }`}
                           >
-                            {msg.sender === "gemini" && (
+                            {/* Header for Gemini Assistant */}
+                            {group.sender === "gemini" && (
                               <div className="flex items-center justify-between gap-1.5 mb-2 border-b border-black/10 dark:border-white/10 pb-1.5 text-[10px] font-mono uppercase font-bold text-amber-500">
-                                <span className="flex items-center gap-1">
+                                <span className="flex items-center gap-1.5">
                                   <Cpu className="w-3.5 h-3.5" /> GEMINI AI 24/7
+                                  {group.messages.length > 1 && (
+                                    <span className="bg-amber-500/20 text-amber-500 text-[9px] px-1.5 py-0.5 rounded-full border border-amber-500/30">
+                                      {group.messages.length} ta xabar
+                                    </span>
+                                  )}
                                 </span>
-                                
-                                {/* Controls: Voice TTS + Copy */}
-                                <div className="flex items-center gap-2">
-                                  <button
-                                    onClick={() => handleSpeakMessage(msg.id, msg.text)}
-                                    className={`p-1 rounded hover:bg-black/10 dark:hover:bg-white/10 transition-colors cursor-pointer ${
-                                      speakingMsgId === msg.id ? "text-amber-400 animate-pulse" : "text-neutral-400"
-                                    }`}
-                                    title="Ovozli eshitish"
-                                  >
-                                    <Volume2 className="w-3.5 h-3.5" />
-                                  </button>
-                                  <button
-                                    onClick={() => handleCopyMessage(msg.id, msg.text)}
-                                    className="p-1 rounded hover:bg-black/10 dark:hover:bg-white/10 text-neutral-400 hover:text-amber-400 transition-colors cursor-pointer"
-                                    title="Nusxalash"
-                                  >
-                                    {copiedMsgId === msg.id ? (
-                                      <Check className="w-3.5 h-3.5 text-emerald-400" />
-                                    ) : (
-                                      <Copy className="w-3.5 h-3.5" />
-                                    )}
-                                  </button>
-                                </div>
+                                <span className="text-[9px] font-mono text-neutral-400 font-normal">
+                                  {group.timeString}
+                                </span>
                               </div>
                             )}
-                            
-                            <div className="whitespace-pre-line font-normal">
-                              {msg.text}
+
+                            {/* Grouped Messages List */}
+                            <div className="space-y-2.5">
+                              {group.messages.map((msg, idx) => (
+                                <div key={msg.id} className={idx > 0 ? "pt-2 border-t border-black/10 dark:border-white/10" : ""}>
+                                  <div className="whitespace-pre-line font-normal">
+                                    {msg.text}
+                                  </div>
+
+                                  {/* Actions for Gemini messages (TTS & Copy) */}
+                                  {group.sender === "gemini" && (
+                                    <div className="flex items-center justify-between mt-1 pt-0.5 text-[10px] font-mono text-neutral-400">
+                                      {group.messages.length > 1 && (
+                                        <span className="text-[9px] opacity-75">
+                                          {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                        </span>
+                                      )}
+                                      <div className="flex items-center gap-1 ml-auto">
+                                        <button
+                                          onClick={() => handleSpeakMessage(msg.id, msg.text)}
+                                          className={`p-1 rounded hover:bg-black/10 dark:hover:bg-white/10 transition-colors cursor-pointer ${
+                                            speakingMsgId === msg.id ? "text-amber-400 animate-pulse" : "text-neutral-400"
+                                          }`}
+                                          title="Ovozli eshitish"
+                                        >
+                                          <Volume2 className="w-3.5 h-3.5" />
+                                        </button>
+                                        <button
+                                          onClick={() => handleCopyMessage(msg.id, msg.text)}
+                                          className="p-1 rounded hover:bg-black/10 dark:hover:bg-white/10 text-neutral-400 hover:text-amber-400 transition-colors cursor-pointer"
+                                          title="Nusxalash"
+                                        >
+                                          {copiedMsgId === msg.id ? (
+                                            <Check className="w-3.5 h-3.5 text-emerald-400" />
+                                          ) : (
+                                            <Copy className="w-3.5 h-3.5" />
+                                          )}
+                                        </button>
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              ))}
                             </div>
-                            
-                            <div className={`text-[9px] font-mono mt-1.5 text-right ${
-                              msg.sender === "user" 
-                                ? (isDarkMode ? "text-black/60" : "text-white/60") 
-                                : "text-neutral-400"
-                            }`}>
-                              {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                            </div>
+
+                            {/* Footer time indicator for User messages */}
+                            {group.sender === "user" && (
+                              <div className={`text-[9px] font-mono mt-1.5 text-right flex items-center justify-end gap-1.5 ${
+                                isDarkMode ? "text-black/60" : "text-white/60"
+                              }`}>
+                                {group.messages.length > 1 && (
+                                  <span className="text-[8.5px] opacity-80 font-sans font-normal">
+                                    ({group.messages.length} ta xabar)
+                                  </span>
+                                )}
+                                <span>{group.timeString}</span>
+                              </div>
+                            )}
                           </div>
                         </motion.div>
                       ))}
@@ -1766,7 +1834,7 @@ export default function App() {
                   <p className={`text-xs sm:text-sm leading-relaxed font-sans ${
                     isDarkMode ? 'text-slate-300' : 'text-neutral-600'
                   }`}>
-                    15 yosh - bu katta yo'lning boshlanishi. Men yaqin kelajakda quyidagi muhim loyihalarni ishga tushirishni va ta'lim tizimini rivojlantirishni maqsad qilganman.
+                    16 yosh - bu katta yo'lning boshlanishi. Men yaqin kelajakda quyidagi muhim loyihalarni ishga tushirishni va ta'lim tizimini rivojlantirishni maqsad qilganman.
                   </p>
                   <div className={`h-0.5 w-12 mt-2 ${isDarkMode ? 'bg-amber-400' : 'bg-black'}`} />
                 </div>
@@ -1939,15 +2007,15 @@ export default function App() {
                         <Check className="w-8 h-8" />
                       </div>
                       <h3 className={`font-serif text-2xl font-light ${isDarkMode ? 'text-white' : 'text-black'}`}>
-                        SMS va Murojaat 100% yetkazildi!
+                        Xabaringiz Tayyorlandi!
                       </h3>
-                      <div className="p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl max-w-md mx-auto text-xs font-mono text-emerald-400 space-y-1">
+                      <div className="p-4 bg-sky-500/10 border border-sky-500/30 rounded-2xl max-w-md mx-auto text-xs font-mono text-sky-400 space-y-1">
                         <div className="font-bold flex items-center justify-center gap-1.5">
-                          <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                          Server va Admin Panel Jurnali Tasdiqlandi
+                          <CheckCircle2 className="w-4 h-4 text-sky-400" />
+                          Telegram va Gmail Orqali Yuborish
                         </div>
                         <p className="text-[11px] text-neutral-300 font-sans">
-                          Xabaringiz barcha qurilmalar va server bazasiga 100% muvaffaqiyatli saqlandi va Anvarga yetkazildi.
+                          Murojaatingiz bevosita Telegram (@mineestaxx) hamda Gmail ({siteConfig.email}) ga yo'naltirildi.
                         </p>
                       </div>
                       
@@ -1958,13 +2026,13 @@ export default function App() {
                           rel="noreferrer"
                           className="inline-flex items-center gap-2 px-6 py-3.5 bg-sky-500 text-white text-xs font-mono font-bold uppercase rounded-xl hover:bg-sky-400 transition-colors shadow-lg"
                         >
-                          <Send className="w-4 h-4 text-white" /> Telegram Orqali Yuborish
+                          <Send className="w-4 h-4 text-white" /> Telegram Orqali Yuborish (@mineestaxx)
                         </a>
                         <a
                           href={`mailto:${siteConfig.email}?subject=Portfolio%20Murojaat%20(${encodeURIComponent(formName)})&body=${encodeURIComponent(`Ism: ${formName}\nKontakt: ${formEmail}\n\nXabar:\n${formMessage}`)}`}
                           className="inline-flex items-center gap-2 px-6 py-3.5 bg-amber-500 text-black text-xs font-mono font-bold uppercase rounded-xl hover:bg-amber-400 transition-colors shadow-lg"
                         >
-                          <Mail className="w-4 h-4 text-black" /> Email Orqali Yuborish
+                          <Mail className="w-4 h-4 text-black" /> Gmail Orqali Yuborish ({siteConfig.email})
                         </a>
                         <button
                           type="button"
@@ -2116,6 +2184,9 @@ export default function App() {
               </div>
             </div>
           </footer>
+
+          {/* Global High Score Confetti & New Record Celebration */}
+          <Confetti />
 
           {/* Admin Panel Modal Overlay */}
           <AdminPanelModal

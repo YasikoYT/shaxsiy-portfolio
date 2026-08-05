@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Play, RotateCcw, Rocket, ShieldAlert } from "lucide-react";
+import { getGameHighScore, saveGameHighScore } from "../lib/highScores";
 
 interface Invader {
   x: number;
@@ -18,9 +19,11 @@ export default function SpaceInvadersGame({ className = "" }: { className?: stri
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [gameState, setGameState] = useState<"idle" | "playing" | "gameover" | "victory">("idle");
   const [score, setScore] = useState(0);
-  const [highScore, setHighScore] = useState(() => {
-    return parseInt(localStorage.getItem("space_invaders_highscore") || "0", 10);
-  });
+  const [highScore, setHighScore] = useState(() => getGameHighScore("spaceinvaders"));
+
+  useEffect(() => {
+    setHighScore(getGameHighScore("spaceinvaders"));
+  }, []);
 
   const gameStateRef = useRef(gameState);
   gameStateRef.current = gameState;
@@ -171,6 +174,8 @@ export default function SpaceInvadersGame({ className = "" }: { className?: stri
               engine.bullets.splice(i, 1);
               engine.score += 50;
               setScore(engine.score);
+              saveGameHighScore("spaceinvaders", engine.score);
+              if (engine.score > highScore) setHighScore(engine.score);
               break;
             }
           }
@@ -178,13 +183,7 @@ export default function SpaceInvadersGame({ className = "" }: { className?: stri
           // Enemy bullet hitting player
           if (Math.abs(b.x - engine.playerX) < 18 && Math.abs(b.y - (height - 25)) < 12) {
             setGameState("gameover");
-            setScore((finalScore) => {
-              if (finalScore > highScore) {
-                setHighScore(finalScore);
-                localStorage.setItem("space_invaders_highscore", finalScore.toString());
-              }
-              return finalScore;
-            });
+            saveGameHighScore("spaceinvaders", engine.score);
             return;
           }
         }

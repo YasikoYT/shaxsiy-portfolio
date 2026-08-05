@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Play, RotateCcw, ArrowUp, Award } from "lucide-react";
+import { getGameHighScore, saveGameHighScore } from "../lib/highScores";
 
 interface Platform {
   x: number;
@@ -12,9 +13,11 @@ export default function DoodleJumpGame({ className = "" }: { className?: string 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [gameState, setGameState] = useState<"idle" | "playing" | "gameover">("idle");
   const [score, setScore] = useState(0);
-  const [highScore, setHighScore] = useState(() => {
-    return parseInt(localStorage.getItem("doodle_jump_highscore") || "0", 10);
-  });
+  const [highScore, setHighScore] = useState(() => getGameHighScore("doodlejump"));
+
+  useEffect(() => {
+    setHighScore(getGameHighScore("doodlejump"));
+  }, []);
 
   const gameStateRef = useRef(gameState);
   gameStateRef.current = gameState;
@@ -106,6 +109,8 @@ export default function DoodleJumpGame({ className = "" }: { className?: string 
         engine.playerY = height / 2;
         engine.score += Math.round(diff);
         setScore(engine.score);
+        saveGameHighScore("doodlejump", engine.score);
+        if (engine.score > highScore) setHighScore(engine.score);
 
         engine.platforms.forEach((p) => {
           p.y += diff;
@@ -119,13 +124,7 @@ export default function DoodleJumpGame({ className = "" }: { className?: string 
       // Game Over (fall to bottom)
       if (engine.playerY > height + 20) {
         setGameState("gameover");
-        setScore((finalScore) => {
-          if (finalScore > highScore) {
-            setHighScore(finalScore);
-            localStorage.setItem("doodle_jump_highscore", finalScore.toString());
-          }
-          return finalScore;
-        });
+        saveGameHighScore("doodlejump", engine.score);
         return;
       }
 

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Play, RotateCcw, Zap, Rocket, Star } from "lucide-react";
+import { getGameHighScore, saveGameHighScore } from "../lib/highScores";
 
 interface Obstacle {
   x: number;
@@ -19,9 +20,11 @@ export default function GravityRunnerGame({ className = "" }: { className?: stri
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [gameState, setGameState] = useState<"idle" | "playing" | "gameover">("idle");
   const [score, setScore] = useState(0);
-  const [highScore, setHighScore] = useState(() => {
-    return parseInt(localStorage.getItem("gravity_runner_highscore") || "0", 10);
-  });
+  const [highScore, setHighScore] = useState(() => getGameHighScore("gravityrunner"));
+
+  useEffect(() => {
+    setHighScore(getGameHighScore("gravityrunner"));
+  }, []);
 
   const gameStateRef = useRef(gameState);
   gameStateRef.current = gameState;
@@ -175,13 +178,7 @@ export default function GravityRunnerGame({ className = "" }: { className?: stri
           // Game Over
           running = false;
           setGameState("gameover");
-          setScore((finalScore) => {
-            if (finalScore > highScore) {
-              setHighScore(finalScore);
-              localStorage.setItem("gravity_runner_highscore", finalScore.toString());
-            }
-            return finalScore;
-          });
+          saveGameHighScore("gravityrunner", engine.score);
           return;
         }
       }

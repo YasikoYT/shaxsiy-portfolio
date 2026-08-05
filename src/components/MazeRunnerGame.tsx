@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Play, RotateCcw, Compass, Award, Flag } from "lucide-react";
+import { getGameHighScore, saveGameHighScore } from "../lib/highScores";
 
 // 7x7 Grid Maze (0 = path, 1 = wall, 2 = exit)
 const MAZE = [
@@ -16,10 +17,17 @@ export default function MazeRunnerGame({ className = "" }: { className?: string 
   const [gameState, setGameState] = useState<"idle" | "playing" | "victory">("idle");
   const [playerPos, setPlayerPos] = useState<[number, number]>([0, 0]);
   const [moves, setMoves] = useState(0);
+  const [startTime, setStartTime] = useState(0);
+  const [highScore, setHighScore] = useState(() => getGameHighScore("mazerunner"));
+
+  useEffect(() => {
+    setHighScore(getGameHighScore("mazerunner"));
+  }, []);
 
   const startGame = () => {
     setPlayerPos([0, 0]);
     setMoves(0);
+    setStartTime(Date.now());
     setGameState("playing");
   };
 
@@ -35,7 +43,10 @@ export default function MazeRunnerGame({ className = "" }: { className?: string 
         setMoves((m) => m + 1);
 
         if (MAZE[nr][nc] === 2) {
+          const finalTime = Math.max(1, Math.floor((Date.now() - startTime) / 1000));
           setGameState("victory");
+          saveGameHighScore("mazerunner", finalTime);
+          if (highScore === 0 || finalTime < highScore) setHighScore(finalTime);
         }
       }
     }
