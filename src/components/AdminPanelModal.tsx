@@ -40,7 +40,7 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
   name: "Akramov Anvar",
   firstName: "Anvar",
   lastName: "Akramov",
-  age: "16 yosh",
+  age: "15 yosh",
   location: "O'zbekiston, Surxondaryo",
   email: "yasikouz152@gmail.com",
   phone: "+998 90 123 45 67",
@@ -48,7 +48,7 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
   github: "https://github.com/akramovanvar",
   instagram: "https://instagram.com/akramovanvar",
   badgeText: "<yosh dasturchining portfoliosi>",
-  bio: "Mening ismim Akramov Anvar. Men 16 yoshdaman va dasturlash bilan astoydil shug'ullanib kelayotgan professional yosh full-stack dasturchiman. Tengdoshlarimga murakkab algoritmlar va zamonaviy texnologiyalarni sodda, tushunarli tilda o'rgatish orqali IT sohasiga birinchi qadamlarini qo'yishda yordam bermoqdaman.",
+  bio: "Mening ismim Akramov Anvar. Men 15 yoshdaman va dasturlash bilan astoydil shug'ullanib kelayotgan professional yosh full-stack dasturchiman. Tengdoshlarimga murakkab algoritmlar va zamonaviy texnologiyalarni sodda, tushunarli tilda o'rgatish orqali IT sohasiga birinchi qadamlarini qo'yishda yordam bermoqdaman.",
   customQuote: "Kod yozish - murakkab g'oyalarni haqiqatga va qulay yechimlarga aylantirish san'atidir.",
   footerText: "© 2026 Akramov Anvar. Barcha huquqlar himoyalangan. Full-Stack & AI Portfolio.",
   skillsFrontend: "React.js, TypeScript, Tailwind CSS, Next.js, HTML5/CSS3, Redux Toolkit",
@@ -57,7 +57,7 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
   autoReplyText: "Assalomu alaykum! Murojaatingiz uchun rahmat. Tez orada siz bilan bog'lanaman.",
   adminUsername: "admin",
   adminPassword: "admin123",
-  stat1Value: "16",
+  stat1Value: "15",
   stat1Label: "Yoshim",
   stat2Value: "1+ Yil",
   stat2Label: "Tajribam",
@@ -71,7 +71,7 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
   goal3Desc: "O'zbekistonda yoshlar orasida eng faol va do'stona IT o'quv hamjamiyatini shakllantirish va tengdoshlarga yordam berish.",
   goal4Title: "Xalqaro IT Sertifikatsiyalar",
   goal4Desc: "Full-Stack va zamonaviy veb-arxitektura bo'yicha dunyo miqyosidagi nufuzli IT sertifikatlarini muvaffaqiyatli topshirish.",
-  aiCustomKnowledge: "Akramov Anvar 16 yoshda, Surxondaryo viloyatidan. Professional Full-Stack Dasturchi. U React, Node.js va Sun'iy intellekt integratsiyalarini zo'r biladi.",
+  aiCustomKnowledge: "Akramov Anvar 15 yoshda, Surxondaryo viloyatidan. Professional Full-Stack Dasturchi. U React, Node.js va Sun'iy intellekt integratsiyalarini zo'r biladi.",
   gameMultiplier: 1,
   gameInitialLives: 3,
   gameTitle: "CYBER STRIKE 2077",
@@ -319,6 +319,14 @@ export default function AdminPanelModal({
     }
   };
 
+  const handleCloseModal = () => {
+    if (isLoggedIn) {
+      // Auto-save form data on close so no user edits are lost
+      onSaveConfig(formData);
+    }
+    onClose();
+  };
+
   return (
     <AnimatePresence>
       <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/85 backdrop-blur-2xl overflow-y-auto">
@@ -349,17 +357,30 @@ export default function AdminPanelModal({
 
             <div className="flex items-center gap-2">
               {isLoggedIn && (
-                <button
-                  type="button"
-                  onClick={onLogout}
-                  className="px-3.5 py-2 bg-neutral-900 border border-neutral-700 hover:border-red-500 hover:bg-red-500/10 text-neutral-300 hover:text-red-400 rounded-xl text-xs font-mono font-bold transition-all flex items-center gap-1.5 cursor-pointer"
-                >
-                  <LogOut className="w-4 h-4" /> Chiqish
-                </button>
+                <>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onSaveConfig(formData);
+                      setSaveSuccess(true);
+                      setTimeout(() => setSaveSuccess(false), 2500);
+                    }}
+                    className="px-3.5 py-2 bg-amber-500 text-black hover:bg-amber-400 font-mono text-xs font-extrabold rounded-xl transition-all flex items-center gap-1.5 cursor-pointer shadow-lg shadow-amber-500/20"
+                  >
+                    <Save className="w-4 h-4" /> Saqlash
+                  </button>
+                  <button
+                    type="button"
+                    onClick={onLogout}
+                    className="px-3.5 py-2 bg-neutral-900 border border-neutral-700 hover:border-red-500 hover:bg-red-500/10 text-neutral-300 hover:text-red-400 rounded-xl text-xs font-mono font-bold transition-all flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <LogOut className="w-4 h-4" /> Chiqish
+                  </button>
+                </>
               )}
               <button
                 type="button"
-                onClick={onClose}
+                onClick={handleCloseModal}
                 className="p-2 text-neutral-400 hover:text-white rounded-xl hover:bg-neutral-800 transition-colors cursor-pointer"
               >
                 <X className="w-6 h-6" />

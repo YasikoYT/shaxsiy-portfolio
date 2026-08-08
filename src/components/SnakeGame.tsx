@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Play, RotateCcw, Volume2, VolumeX, Trophy, Sparkles } from "lucide-react";
 import { getGameHighScore, saveGameHighScore } from "../lib/highScores";
+import { GameOverModal } from "./GameOverModal";
 
 interface SnakeProps {
   className?: string;
@@ -257,16 +258,13 @@ export default function SnakeGame({ className = "" }: SnakeProps) {
         )}
 
         {gameState === "gameover" && (
-          <div className="absolute inset-0 bg-slate-950/95 backdrop-blur flex flex-col items-center justify-center p-6 text-center space-y-4">
-            <h4 className="font-serif text-2xl font-bold text-red-500">O'YIN TUGADI!</h4>
-            <p className="text-xs text-slate-300 font-mono">To'plangan Ochko: <span className="text-emerald-400 font-bold">{score}</span></p>
-            <button
-              onClick={startGame}
-              className="px-6 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-black font-mono font-black text-xs uppercase tracking-widest rounded-full flex items-center gap-2 cursor-pointer shadow-lg"
-            >
-              <RotateCcw className="w-4 h-4" /> Qaytadan O'ynash
-            </button>
-          </div>
+          <GameOverModal
+            score={score}
+            highScore={highScore}
+            gameTitle="CYBER SNAKE"
+            unit="ochko"
+            onRestart={startGame}
+          />
         )}
       </div>
 

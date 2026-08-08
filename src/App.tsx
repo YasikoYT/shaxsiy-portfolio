@@ -37,9 +37,13 @@ import {
   Sun,
   Moon,
   Volume2,
+  VolumeX,
   Copy,
-  RotateCcw
+  RotateCcw,
+  Maximize2,
+  Minimize2
 } from "lucide-react";
+import { isSoundEnabled, setSoundEnabled, playClickSound, playTransitionSound, playAIMessageSound } from "./lib/soundEffects";
 import { Message, SiteConfig } from "./types";
 import DinoGame from "./components/DinoGame";
 import SpaceShooter from "./components/SpaceShooter";
@@ -316,10 +320,33 @@ export default function App() {
         if (res.ok) {
           const data = await res.json();
           if (data && data.config) {
-            setSiteConfig(data.config);
-            try {
-              localStorage.setItem("anvar_site_config_v4", JSON.stringify(data.config));
-            } catch (e) {}
+            // Check if local config has user updates that should be merged
+            setSiteConfig((prevConfig) => {
+              const serverConfig = data.config;
+              
+              // If local storage has custom projects that server missing, merge them
+              const mergedProjects = [...(serverConfig.customProjects || [])];
+              if (prevConfig.customProjects && Array.isArray(prevConfig.customProjects)) {
+                prevConfig.customProjects.forEach((p) => {
+                  if (!mergedProjects.some((sp) => sp.id === p.id)) {
+                    mergedProjects.push(p);
+                  }
+                });
+              }
+
+              const mergedConfig = {
+                ...serverConfig,
+                ...prevConfig,
+                ...serverConfig, // server config takes priority when saved
+                customProjects: mergedProjects,
+              };
+
+              try {
+                localStorage.setItem("anvar_site_config_v4", JSON.stringify(mergedConfig));
+              } catch (e) {}
+
+              return mergedConfig;
+            });
           }
         }
       } catch (err) {
@@ -328,8 +355,7 @@ export default function App() {
     };
 
     fetchGlobalConfig();
-    // Real-time auto-sync every 3 seconds for all devices & visitors
-    const timer = setInterval(fetchGlobalConfig, 3000);
+    const timer = setInterval(fetchGlobalConfig, 5000);
     return () => clearInterval(timer);
   }, []);
 
@@ -407,6 +433,31 @@ export default function App() {
   const [activeGameTab, setActiveGameTab] = useState("tetris");
   const [gameCategory, setGameCategory] = useState("all");
   const gameTabsRef = useRef<HTMLDivElement>(null);
+  const gameContainerRef = useRef<HTMLDivElement>(null);
+  const [isGameFullScreen, setIsGameFullScreen] = useState(false);
+
+  useEffect(() => {
+    const handleFSChange = () => {
+      setIsGameFullScreen(!!document.fullscreenElement);
+    };
+    document.addEventListener("fullscreenchange", handleFSChange);
+    return () => document.removeEventListener("fullscreenchange", handleFSChange);
+  }, []);
+
+  const toggleGameFullScreen = (forceState?: boolean) => {
+    const next = forceState !== undefined ? forceState : !isGameFullScreen;
+    setIsGameFullScreen(next);
+
+    if (next) {
+      if (gameContainerRef.current && gameContainerRef.current.requestFullscreen) {
+        gameContainerRef.current.requestFullscreen().catch(() => {});
+      }
+    } else {
+      if (document.fullscreenElement && document.exitFullscreen) {
+        document.exitFullscreen().catch(() => {});
+      }
+    }
+  };
 
   const ALL_GAMES = [
     { id: "tetris", name: "Tetris Matrix", category: "top", badge: "TOP 🎮" },
@@ -419,17 +470,30 @@ export default function App() {
     { id: "snake", name: "Cyber Snake", category: "action", badge: "CLASSIC 🐍" },
     { id: "knifehit", name: "Knife Hit", category: "action", badge: "HIT 🎯" },
     { id: "archery", name: "Archery Master", category: "action", badge: "BOW 🏹" },
-    { id: "space", name: "Space Shooter", category: "action", badge: "ACTION 🚀" },
+    { id: "spaceshooter", name: "Space Shooter", category: "action", badge: "ACTION 🚀" },
     { id: "flappy", name: "Flappy Bird", category: "action", badge: "HARD 🐥" },
     { id: "dino", name: "Dino Runner", category: "action", badge: "RETRO 🦖" },
+    { id: "aimtrainer", name: "Aim Trainer", category: "action", badge: "AIM 🎯" },
+    { id: "colorrush", name: "Color Rush", category: "action", badge: "COLOR 🎨" },
+    { id: "doodlejump", name: "Doodle Jump", category: "action", badge: "JUMP 🦘" },
+    { id: "helixjump", name: "Helix Jump", category: "action", badge: "DROP 🌀" },
+    { id: "towerstack", name: "Tower Stack", category: "action", badge: "STACK 🏢" },
+    { id: "whackamole", name: "Whack-A-Mole", category: "action", badge: "HAMMER 🔨" },
+    { id: "sniper", name: "Sniper 3D", category: "action", badge: "SCOPE 🎯" },
     { id: "mazerunner", name: "Maze Escape", category: "logic", badge: "MAZE 🧭" },
     { id: "patternmemory", name: "Pattern Memory", category: "logic", badge: "BRAIN 🧠" },
     { id: "gravityrunner", name: "Gravity Runner", category: "logic", badge: "RUN 🚀" },
     { id: "speedtyping", name: "Speed Typer", category: "logic", badge: "TYPER ⌨️" },
     { id: "minesweeper", name: "Minesweeper", category: "logic", badge: "LOGIC 💣" },
     { id: "fastmath", name: "Fast Math", category: "logic", badge: "REFLEX ⚡" },
-    { id: "pong", name: "Retro Pong", category: "logic", badge: "DUEL 🏓" },
+    { id: "pingpong", name: "Retro Pong", category: "logic", badge: "DUEL 🏓" },
     { id: "memory", name: "Memory Match", category: "logic", badge: "BRAIN 🧠" },
+    { id: "connectfour", name: "Connect Four", category: "logic", badge: "LOGIC 🔴" },
+    { id: "numbermerge", name: "Number Merge 2048", category: "logic", badge: "2048 🔢" },
+    { id: "sudoku", name: "Sudoku Mini", category: "logic", badge: "LOGIC 🧩" },
+    { id: "simonsays", name: "Simon Says", category: "logic", badge: "MEMORY 🎵" },
+    { id: "wordscramble", name: "Word Scramble", category: "logic", badge: "WORD 📝" },
+    { id: "tile2048", name: "Tile 2048", category: "logic", badge: "2048 🔢" }
   ];
 
   const filteredGames = gameCategory === "all" ? ALL_GAMES : ALL_GAMES.filter(g => g.category === gameCategory);
@@ -459,11 +523,20 @@ export default function App() {
     }
   };
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [soundOn, setSoundOn] = useState(() => isSoundEnabled());
   const [aiMessageInput, setAiMessageInput] = useState("");
   const [aiIsTyping, setAiIsTyping] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [copiedMsgId, setCopiedMsgId] = useState<string | null>(null);
   const [speakingMsgId, setSpeakingMsgId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const handleSoundToggle = (e: CustomEvent<{ enabled: boolean }>) => {
+      setSoundOn(e.detail.enabled);
+    };
+    window.addEventListener("sound_toggle_changed", handleSoundToggle as EventListener);
+    return () => window.removeEventListener("sound_toggle_changed", handleSoundToggle as EventListener);
+  }, []);
 
   // Helper: Copy message text to clipboard
   const handleCopyMessage = (id: string, text: string) => {
@@ -501,7 +574,7 @@ export default function App() {
     {
       id: "init-1",
       sender: "gemini",
-      text: "Assalomu alaykum! Men Akramov Anvarning sun'iy intellekt assistentiman (Gemini 2.5 AI). Men sizga dasturlash, HTML/CSS, JavaScript, React, Python, IT tarixi hamda Anvarning 16 yoshida erishgan tajribasi haqida istalgan vaqtda tezkor va aniq javob beraman. Nima haqida suhbatlashamiz?",
+      text: "Assalomu alaykum! Men Akramov Anvarning sun'iy intellekt assistentiman (Gemini 2.5 AI). Men sizga dasturlash, HTML/CSS, JavaScript, React, Python, IT tarixi hamda Anvarning 15 yoshida erishgan tajribasi haqida istalgan vaqtda tezkor va aniq javob beraman. Nima haqida suhbatlashamiz?",
       timestamp: new Date()
     }
   ]);
@@ -641,7 +714,7 @@ export default function App() {
     if (progress < 30) {
       setLoadingPhase("Akramov Anvar portfolio komponentlari yuklanmoqda...");
     } else if (progress < 65) {
-      setLoadingPhase("16 yoshli Full-Stack dasturchi ma'lumotlari indekslanmoqda...");
+      setLoadingPhase("15 yoshli Full-Stack dasturchi ma'lumotlari indekslanmoqda...");
     } else if (progress < 90) {
       setLoadingPhase("Google Gemini AI va interaktiv arcade tizimi sozlanmoqda...");
     } else {
@@ -663,6 +736,8 @@ export default function App() {
   const handleSendMessage = async (promptText?: string) => {
     const userMsgText = (promptText || aiMessageInput).trim();
     if (!userMsgText) return;
+
+    playClickSound();
 
     const userMsg: Message = {
       id: `user-${Date.now()}`,
@@ -701,6 +776,7 @@ export default function App() {
       };
       
       setChatHistory(prev => [...prev, geminiMsg]);
+      playAIMessageSound();
     } catch (error: any) {
       setAiIsTyping(false);
       const fallbackText = getFallbackResponse(userMsgText, siteConfig);
@@ -711,6 +787,7 @@ export default function App() {
         timestamp: new Date()
       };
       setChatHistory(prev => [...prev, errorMsg]);
+      playAIMessageSound();
     }
   };
 
@@ -769,7 +846,7 @@ export default function App() {
                   SYSTEM ONLINE
                 </span>
                 <span className="hidden sm:inline-block font-mono text-xs text-emerald-400 font-bold bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">
-                  16 YOSH
+                  15 YOSH
                 </span>
               </div>
             </div>
@@ -813,7 +890,7 @@ export default function App() {
                   className="font-mono text-xs sm:text-sm uppercase tracking-widest text-emerald-400 font-bold flex items-center justify-center gap-2"
                 >
                   <Sparkles className="w-3.5 h-3.5 text-amber-400 animate-spin" />
-                  Full-Stack Dasturchi // 16 Yoshda // Surxondaryo
+                  Full-Stack Dasturchi // 15 Yoshda // Surxondaryo
                 </motion.div>
               </div>
 
@@ -949,7 +1026,7 @@ export default function App() {
                   <span className={`font-serif text-base tracking-[0.15em] font-extrabold uppercase leading-none ${isDarkMode ? 'text-white' : 'text-black'}`}>
                     {siteConfig.firstName} {siteConfig.lastName}
                   </span>
-                  <span className={`text-[10px] font-mono mt-1 font-semibold ${isDarkMode ? 'text-neutral-400' : 'text-neutral-500'}`}>Full-Stack Dev // 16 yosh</span>
+                  <span className={`text-[10px] font-mono mt-1 font-semibold ${isDarkMode ? 'text-neutral-400' : 'text-neutral-500'}`}>Full-Stack Dev // 15 yosh</span>
                 </motion.div>
               </div>
 
@@ -969,6 +1046,7 @@ export default function App() {
                     whileTap={{ scale: 0.96 }}
                     id={`nav-link-${item.id}`}
                     onClick={() => {
+                      playTransitionSound();
                       setActiveTab(item.id);
                       smoothScrollTo(item.id);
                     }}
@@ -993,11 +1071,44 @@ export default function App() {
 
               {/* Action buttons - Right Side */}
               <div className="flex items-center gap-2 sm:gap-3">
+                {/* GLOBAL AUDIO SOUND TOGGLE BUTTON */}
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => {
+                    const nextState = !soundOn;
+                    setSoundOn(nextState);
+                    setSoundEnabled(nextState);
+                  }}
+                  id="sound-toggle-btn"
+                  className={`px-3 py-1.5 rounded-full border text-xs font-mono font-bold transition-all cursor-pointer flex items-center gap-1.5 shadow-sm ${
+                    isDarkMode 
+                      ? (soundOn ? 'bg-neutral-800 border-neutral-700 text-emerald-400 hover:bg-neutral-700 hover:border-emerald-500/50' : 'bg-neutral-800 border-neutral-700 text-neutral-500 hover:bg-neutral-700') 
+                      : (soundOn ? 'bg-neutral-100 border-neutral-200 text-emerald-600 hover:bg-neutral-200' : 'bg-neutral-100 border-neutral-200 text-neutral-400 hover:bg-neutral-200')
+                  }`}
+                  title={soundOn ? "Ovoz effektlari yoqilgan (O'chirish)" : "Ovoz effektlari o'chirilgan (Yoqish)"}
+                >
+                  {soundOn ? (
+                    <>
+                      <Volume2 className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
+                      <span className="hidden sm:inline">AUDIO</span>
+                    </>
+                  ) : (
+                    <>
+                      <VolumeX className="w-3.5 h-3.5 text-neutral-500" />
+                      <span className="hidden sm:inline">MUTED</span>
+                    </>
+                  )}
+                </motion.button>
+
                 {/* DARK / LIGHT THEME TOGGLE BUTTON */}
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  onClick={() => setIsDarkMode(!isDarkMode)}
+                  onClick={() => {
+                    playClickSound();
+                    setIsDarkMode(!isDarkMode);
+                  }}
                   id="theme-toggle-btn"
                   className={`px-3 py-1.5 rounded-full border text-xs font-mono font-bold transition-all cursor-pointer flex items-center gap-1.5 shadow-sm ${
                     isDarkMode 
@@ -1093,7 +1204,7 @@ export default function App() {
                   ))}
                   <div className={`pt-3 border-t flex items-center justify-between ${isDarkMode ? 'border-neutral-800' : 'border-neutral-100'}`}>
                     <span className={`text-xs font-mono ${isDarkMode ? 'text-neutral-400' : 'text-neutral-500'}`}>
-                      Akramov Anvar // 16 yosh
+                      Akramov Anvar // 15 yosh
                     </span>
                     <button
                       onClick={() => setIsDarkMode(!isDarkMode)}
@@ -1332,16 +1443,19 @@ export default function App() {
                     ref={gameTabsRef}
                     className="flex items-center gap-2 overflow-x-auto py-1 scrollbar-none flex-grow scroll-smooth no-scrollbar"
                   >
-                    {filteredGames.map((tab) => (
+                    {filteredGames.map((tab, idx) => (
                       <motion.button
                         key={tab.id}
-                        whileHover={{ scale: 1.05, y: -2 }}
+                        initial={{ opacity: 0, y: 15, scale: 0.9 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        transition={{ duration: 0.25, delay: Math.min(idx * 0.03, 0.45) }}
+                        whileHover={{ scale: 1.06, y: -2 }}
                         whileTap={{ scale: 0.95 }}
                         onClick={() => setActiveGameTab(tab.id)}
-                        className={`px-4 py-2.5 rounded-2xl text-xs font-mono font-bold whitespace-nowrap transition-all flex items-center gap-2 cursor-pointer shrink-0 ${
+                        className={`px-4 py-2.5 rounded-2xl text-xs font-mono font-bold whitespace-nowrap transition-all duration-300 flex items-center gap-2 cursor-pointer shrink-0 ${
                           activeGameTab === tab.id
-                            ? "bg-black text-white shadow-lg ring-2 ring-amber-400"
-                            : "bg-white hover:bg-neutral-200 text-neutral-700 border border-neutral-200"
+                            ? "bg-black text-white shadow-lg shadow-amber-500/20 ring-2 ring-amber-400"
+                            : "bg-white hover:bg-amber-500/10 text-neutral-800 hover:text-neutral-900 border border-neutral-200 hover:border-amber-400 hover:ring-2 hover:ring-amber-400/40 hover:shadow-md hover:shadow-amber-500/15"
                         }`}
                       >
                         <span>{tab.name}</span>
@@ -1365,7 +1479,7 @@ export default function App() {
                 </div>
               </div>
 
-              {/* Game Control Bar: Next / Prev Game Selector above the active game */}
+              {/* Game Control Bar: Next / Prev Game Selector & Fullscreen Toggle */}
               {(() => {
                 const currentGameObj = ALL_GAMES.find(g => g.id === activeGameTab);
                 const currentIndex = filteredGames.findIndex(g => g.id === activeGameTab);
@@ -1389,22 +1503,54 @@ export default function App() {
                       </div>
                     </div>
 
-                    <button
-                      onClick={handleNextGame}
-                      className="flex items-center gap-1.5 sm:gap-2 text-xs font-mono font-bold bg-amber-500 text-black hover:bg-amber-400 px-3 sm:px-4 py-2 rounded-xl transition-all cursor-pointer shadow-md active:scale-95"
-                      title="Keyingi o'yinga o'tish"
-                    >
-                      <span>Keyingi<span className="hidden sm:inline"> o'yin</span></span>
-                      <ChevronRight className="w-4 h-4 text-black" />
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => toggleGameFullScreen()}
+                        className="flex items-center gap-1.5 sm:gap-2 text-xs font-mono font-bold bg-amber-500/15 hover:bg-amber-500 hover:text-black text-amber-400 px-3 sm:px-4 py-2 rounded-xl transition-all cursor-pointer border border-amber-500/30 active:scale-95 shadow-sm"
+                        title="O'yinni butun ekranda o'ynash"
+                      >
+                        {isGameFullScreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+                        <span className="hidden sm:inline">{isGameFullScreen ? "Kichiklashtirish" : "Butun ekran"}</span>
+                      </button>
+
+                      <button
+                        onClick={handleNextGame}
+                        className="flex items-center gap-1.5 sm:gap-2 text-xs font-mono font-bold bg-amber-500 text-black hover:bg-amber-400 px-3 sm:px-4 py-2 rounded-xl transition-all cursor-pointer shadow-md active:scale-95"
+                        title="Keyingi o'yinga o'tish"
+                      >
+                        <span>Keyingi<span className="hidden sm:inline"> o'yin</span></span>
+                        <ChevronRight className="w-4 h-4 text-black" />
+                      </button>
+                    </div>
                   </div>
                 );
               })()}
 
-              {/* Active Game Display Area with Ultra Smooth AnimatePresence Transitions */}
-              <div className="w-full relative py-2">
+              {/* Active Game Display Area with Ultra Smooth AnimatePresence Transitions & FullScreen Support */}
+              <div 
+                ref={gameContainerRef}
+                className={
+                  isGameFullScreen 
+                    ? "fixed inset-0 z-[99999] bg-slate-950 p-4 sm:p-8 overflow-y-auto flex flex-col items-center justify-center min-h-screen"
+                    : "w-full relative py-2"
+                }
+              >
                 {/* Ambient Glowing Backdrop */}
-                <div className="absolute inset-0 bg-gradient-to-tr from-amber-500/15 via-purple-500/10 to-cyan-500/15 rounded-3xl blur-3xl pointer-events-none -z-10" />
+                {!isGameFullScreen && (
+                  <div className="absolute inset-0 bg-gradient-to-tr from-amber-500/15 via-purple-500/10 to-cyan-500/15 rounded-3xl blur-3xl pointer-events-none -z-10" />
+                )}
+
+                {/* Floating Exit Fullscreen Button */}
+                {isGameFullScreen && (
+                  <button
+                    onClick={() => toggleGameFullScreen(false)}
+                    className="fixed top-4 right-4 z-[100000] px-4 py-2.5 bg-neutral-900/90 hover:bg-neutral-800 text-amber-400 border border-amber-500/40 rounded-xl text-xs font-mono font-black flex items-center gap-2 shadow-2xl backdrop-blur-md cursor-pointer transition-all active:scale-95"
+                    title="Butun ekrandan chiqish"
+                  >
+                    <Minimize2 className="w-4 h-4" />
+                    <span>Ekrondan chiqish (ESC)</span>
+                  </button>
+                )}
 
                 <AnimatePresence mode="wait">
                   <motion.div
@@ -1428,7 +1574,7 @@ export default function App() {
                       damping: 24,
                       mass: 0.85
                     }}
-                    className="max-w-2xl mx-auto"
+                    className={isGameFullScreen ? "w-full max-w-4xl mx-auto my-auto" : "max-w-2xl mx-auto"}
                   >
                     {activeGameTab === "bubbleshooter" && <BubbleShooterGame className="w-full shadow-2xl" />}
                     {activeGameTab === "spaceinvaders" && <SpaceInvadersGame className="w-full shadow-2xl" />}
@@ -1442,7 +1588,7 @@ export default function App() {
                     {activeGameTab === "numbermerge" && <NumberMergeChainGame className="w-full shadow-2xl" />}
                     {activeGameTab === "tetris" && <TetrisGame className="w-full shadow-2xl" />}
                     {activeGameTab === "whackamole" && <WhackAMoleGame className="w-full shadow-2xl" />}
-                    {activeGameTab === "simon" && <SimonSaysGame className="w-full shadow-2xl" />}
+                    {activeGameTab === "simonsays" && <SimonSaysGame className="w-full shadow-2xl" />}
                     {activeGameTab === "wordscramble" && <WordScrambleGame className="w-full shadow-2xl" />}
                     {activeGameTab === "speedtyping" && <SpeedTypingGame className="w-full shadow-2xl" />}
                     {activeGameTab === "gravityrunner" && <GravityRunnerGame className="w-full shadow-2xl" />}
@@ -1457,12 +1603,12 @@ export default function App() {
                     {activeGameTab === "colorrush" && <ColorRushGame className="w-full shadow-2xl" />}
                     {activeGameTab === "minesweeper" && <MinesweeperGame className="w-full shadow-2xl" />}
                     {activeGameTab === "fastmath" && <FastMathGame className="w-full shadow-2xl" />}
-                    {activeGameTab === "tictactoe" && <TicTacToeGame className="w-full shadow-2xl" />}
+                    {activeGameTab === "tictactoe" && <TicTacToeGame isDarkMode={isDarkMode} className="w-full shadow-2xl" />}
                     {activeGameTab === "snake" && <SnakeGame className="w-full shadow-2xl" />}
                     {activeGameTab === "flappy" && <FlappyBirdGame className="w-full shadow-2xl" />}
-                    {activeGameTab === "pong" && <PingPongGame className="w-full shadow-2xl" />}
+                    {activeGameTab === "pingpong" && <PingPongGame className="w-full shadow-2xl" />}
                     {activeGameTab === "memory" && <MemoryMatchGame className="w-full shadow-2xl" />}
-                    {activeGameTab === "space" && <SpaceShooter className="w-full shadow-2xl" />}
+                    {activeGameTab === "spaceshooter" && <SpaceShooter className="w-full shadow-2xl" />}
                     {activeGameTab === "dino" && <DinoGame className="w-full shadow-2xl bg-white border border-neutral-200" />}
                   </motion.div>
                 </AnimatePresence>
@@ -1472,8 +1618,11 @@ export default function App() {
               <div className="pt-6">
                 <GamesLeaderboard
                   isDarkMode={isDarkMode}
-                  onSelectGame={(gameId) => {
+                  onSelectGame={(gameId, fullScreen) => {
                     setActiveGameTab(gameId);
+                    if (fullScreen) {
+                      toggleGameFullScreen(true);
+                    }
                     const el = document.getElementById("games");
                     if (el) {
                       el.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -1834,7 +1983,7 @@ export default function App() {
                   <p className={`text-xs sm:text-sm leading-relaxed font-sans ${
                     isDarkMode ? 'text-slate-300' : 'text-neutral-600'
                   }`}>
-                    16 yosh - bu katta yo'lning boshlanishi. Men yaqin kelajakda quyidagi muhim loyihalarni ishga tushirishni va ta'lim tizimini rivojlantirishni maqsad qilganman.
+                    15 yosh - bu katta yo'lning boshlanishi. Men yaqin kelajakda quyidagi muhim loyihalarni ishga tushirishni va ta'lim tizimini rivojlantirishni maqsad qilganman.
                   </p>
                   <div className={`h-0.5 w-12 mt-2 ${isDarkMode ? 'bg-amber-400' : 'bg-black'}`} />
                 </div>

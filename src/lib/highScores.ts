@@ -25,7 +25,7 @@ export const ALL_GAMES_METADATA: GameMetadata[] = [
   { id: "snake", name: "Cyber Snake", category: "action", badge: "CLASSIC 🐍", unit: "ochko" },
   { id: "knifehit", name: "Knife Hit", category: "action", badge: "HIT 🎯", unit: "pichoq" },
   { id: "archery", name: "Archery Master", category: "action", badge: "BOW 🏹", unit: "ochko" },
-  { id: "space", name: "Space Shooter", category: "action", badge: "ACTION 🚀", unit: "ochko" },
+  { id: "spaceshooter", name: "Space Shooter", category: "action", badge: "ACTION 🚀", unit: "ochko" },
   { id: "flappy", name: "Flappy Bird", category: "action", badge: "HARD 🐥", unit: "ochko" },
   { id: "dino", name: "Dino Runner", category: "action", badge: "RETRO 🦖", unit: "ochko" },
   { id: "mazerunner", name: "Maze Escape", category: "logic", badge: "MAZE 🧭", unit: "sekund" },
@@ -34,11 +34,11 @@ export const ALL_GAMES_METADATA: GameMetadata[] = [
   { id: "speedtyping", name: "Speed Typer", category: "logic", badge: "TYPER ⌨️", unit: "WPM" },
   { id: "minesweeper", name: "Minesweeper", category: "logic", badge: "LOGIC 💣", unit: "sekund" },
   { id: "fastmath", name: "Fast Math", category: "logic", badge: "REFLEX ⚡", unit: "ochko" },
-  { id: "pong", name: "Retro Pong", category: "logic", badge: "DUEL 🏓", unit: "ochko" },
+  { id: "pingpong", name: "Retro Pong", category: "logic", badge: "DUEL 🏓", unit: "ochko" },
   { id: "memory", name: "Memory Match", category: "logic", badge: "BRAIN 🧠", unit: "yurish" },
   { id: "aimtrainer", name: "Aim Trainer", category: "action", badge: "AIM 🎯", unit: "ochko" },
   { id: "colorrush", name: "Color Rush", category: "action", badge: "COLOR 🎨", unit: "ochko" },
-  { id: "connect4", name: "Connect Four", category: "logic", badge: "LOGIC 🔴", unit: "g'alaba" },
+  { id: "connectfour", name: "Connect Four", category: "logic", badge: "LOGIC 🔴", unit: "g'alaba" },
   { id: "doodlejump", name: "Doodle Jump", category: "action", badge: "JUMP 🦘", unit: "ochko" },
   { id: "helixjump", name: "Helix Jump", category: "action", badge: "DROP 🌀", unit: "ochko" },
   { id: "numbermerge", name: "Number Merge 2048", category: "logic", badge: "2048 🔢", unit: "ochko" },
@@ -60,9 +60,73 @@ export function getHighScoresMap(): Record<string, ScoreRecord> {
   if (typeof window === "undefined") return {};
   try {
     const raw = localStorage.getItem(GAME_HIGH_SCORES_STORAGE_KEY);
+    let map: Record<string, ScoreRecord> = {};
     if (raw) {
-      return JSON.parse(raw);
+      try {
+        map = JSON.parse(raw);
+      } catch (e) {
+        map = {};
+      }
     }
+
+    let changed = false;
+
+    // Scan all legacy and individual keys to ensure no game score is missed or lost
+    ALL_GAMES_METADATA.forEach((game) => {
+      const currentScore = map[game.id]?.score ?? 0;
+      const lowerIsBetter = game.unit === "sekund" || game.unit === "yurish";
+
+      const legacyKeys = [
+        `game_highscore_${game.id}`,
+        `${game.id}_high_score`,
+        `${game.id}_highscore`,
+        `${game.id}_high_wpm`,
+        `anvar_game_${game.id}_score`,
+        game.id === "spaceshooter" ? "spaceshooter_highscore" : "",
+        game.id === "simonsays" ? "simon_says_highscore" : "",
+        game.id === "speedtyping" ? "speed_typing_high_wpm" : "",
+        game.id === "archery" ? "archery_high_score" : "",
+        game.id === "gravityrunner" ? "gravity_runner_highscore" : "",
+        game.id === "knifehit" ? "knife_hit_highscore" : "",
+        game.id === "bubbleshooter" ? "bubble_shooter_highscore" : "",
+        game.id === "wordscramble" ? "word_scramble_highscore" : "",
+      ].filter(Boolean);
+
+      for (const key of legacyKeys) {
+        try {
+          const val = localStorage.getItem(key);
+          if (val) {
+            const num = parseInt(val, 10);
+            if (!isNaN(num) && num > 0) {
+              let isBetter = false;
+              if (currentScore === 0) {
+                isBetter = true;
+              } else if (lowerIsBetter) {
+                if (num < currentScore) isBetter = true;
+              } else {
+                if (num > currentScore) isBetter = true;
+              }
+
+              if (isBetter) {
+                map[game.id] = {
+                  score: num,
+                  updatedAt: map[game.id]?.updatedAt || new Date().toISOString()
+                };
+                changed = true;
+              }
+            }
+          }
+        } catch (e) {}
+      }
+    });
+
+    if (changed) {
+      try {
+        localStorage.setItem(GAME_HIGH_SCORES_STORAGE_KEY, JSON.stringify(map));
+      } catch (e) {}
+    }
+
+    return map;
   } catch (e) {
     console.warn("Error reading high scores from localStorage:", e);
   }
@@ -70,57 +134,61 @@ export function getHighScoresMap(): Record<string, ScoreRecord> {
 }
 
 export function getGameHighScore(gameId: string): number {
+  if (typeof window === "undefined") return 0;
   const map = getHighScoresMap();
   if (map[gameId]?.score !== undefined) {
     return map[gameId].score;
   }
-  // Fallback to direct legacy localStorage key
-  try {
-    const legacy = localStorage.getItem(`game_highscore_${gameId}`) || localStorage.getItem(`${gameId}_high_score`);
-    if (legacy) return parseInt(legacy, 10) || 0;
-  } catch (e) {}
   return 0;
 }
 
 export function saveGameHighScore(gameId: string, newScore: number): boolean {
-  if (typeof window === "undefined" || newScore <= 0) return false;
+  if (typeof window === "undefined") return false;
+  const scoreNum = Number(newScore);
+  if (isNaN(scoreNum) || scoreNum < 0) return false;
+
   try {
     const map = getHighScoresMap();
-    const currentScore = map[gameId]?.score || 0;
+    const currentRecord = map[gameId];
+    const currentScore = currentRecord?.score;
     const gameMeta = ALL_GAMES_METADATA.find((g) => g.id === gameId);
 
-    // Check if lower is better (e.g. seconds or moves)
     const lowerIsBetter = gameMeta?.unit === "sekund" || gameMeta?.unit === "yurish";
 
     let isNewRecord = false;
-    if (lowerIsBetter) {
-      if (currentScore === 0 || newScore < currentScore) {
+    if (currentScore === undefined) {
+      if (scoreNum > 0) isNewRecord = true;
+    } else if (lowerIsBetter) {
+      if (currentScore === 0 || (scoreNum > 0 && scoreNum < currentScore)) {
         isNewRecord = true;
       }
     } else {
-      if (newScore > currentScore) {
+      if (scoreNum > currentScore) {
         isNewRecord = true;
       }
     }
 
     if (isNewRecord) {
       map[gameId] = {
-        score: newScore,
+        score: scoreNum,
         updatedAt: new Date().toISOString()
       };
+
       localStorage.setItem(GAME_HIGH_SCORES_STORAGE_KEY, JSON.stringify(map));
 
-      // Also persist to individual legacy keys for standalone game compatibility
+      // Also persist to individual legacy keys for direct access
       try {
-        localStorage.setItem(`game_highscore_${gameId}`, newScore.toString());
-        localStorage.setItem(`${gameId}_high_score`, newScore.toString());
+        localStorage.setItem(`game_highscore_${gameId}`, scoreNum.toString());
+        localStorage.setItem(`${gameId}_high_score`, scoreNum.toString());
+        localStorage.setItem(`${gameId}_highscore`, scoreNum.toString());
       } catch (e) {}
 
-      window.dispatchEvent(new CustomEvent("highscore_updated", { detail: { gameId, score: newScore } }));
+      window.dispatchEvent(new CustomEvent("highscore_updated", { detail: { gameId, score: scoreNum } }));
+      window.dispatchEvent(new Event("storage"));
       window.dispatchEvent(new CustomEvent("new_record_achieved", { 
         detail: { 
           gameId, 
-          score: newScore, 
+          score: scoreNum, 
           gameName: gameMeta?.name || gameId,
           unit: gameMeta?.unit || "ochko"
         } 
@@ -137,7 +205,16 @@ export function resetAllHighScores(): void {
   if (typeof window === "undefined") return;
   try {
     localStorage.removeItem(GAME_HIGH_SCORES_STORAGE_KEY);
-    window.dispatchEvent(new Event("highscore_updated"));
+    // Remove individual legacy keys as well
+    ALL_GAMES_METADATA.forEach((g) => {
+      try {
+        localStorage.removeItem(`game_highscore_${g.id}`);
+        localStorage.removeItem(`${g.id}_high_score`);
+        localStorage.removeItem(`${g.id}_highscore`);
+        localStorage.removeItem(`${g.id}_high_wpm`);
+      } catch (e) {}
+    });
+    window.dispatchEvent(new CustomEvent("highscore_updated"));
   } catch (e) {
     console.warn("Error resetting high scores:", e);
   }

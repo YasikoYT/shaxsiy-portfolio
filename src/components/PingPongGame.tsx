@@ -149,9 +149,11 @@ export default function PingPongGame({ className = "" }: PingPongProps) {
         // Player Point
         setPlayerScore((prev) => {
           const next = prev + 1;
-          saveGameHighScore("pingpong", next);
-          if (next > highScore) setHighScore(next);
-          if (next >= 7) setGameState("gameover");
+          if (next >= 7) {
+            saveGameHighScore("pingpong", next);
+            if (next > highScore) setHighScore(next);
+            setGameState("gameover");
+          }
           return next;
         });
         playBeep(700);

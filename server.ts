@@ -55,7 +55,7 @@ async function startServer() {
     name: "Akramov Anvar",
     firstName: "Anvar",
     lastName: "Akramov",
-    age: "16 yosh",
+    age: "15 yosh",
     location: "O'zbekiston, Surxondaryo",
     email: "yasikouz152@gmail.com",
     phone: "+998 90 123 45 67",
@@ -63,7 +63,7 @@ async function startServer() {
     github: "https://github.com/akramovanvar",
     instagram: "https://instagram.com/akramovanvar",
     badgeText: "<yosh dasturchining portfoliosi>",
-    bio: "Mening ismim Akramov Anvar. Men 16 yoshdaman va dasturlash bilan astoydil shug'ullanib kelayotgan professional yosh full-stack dasturchiman. Tengdoshlarimga murakkab algoritmlar va zamonaviy texnologiyalarni sodda, tushunarli tilda o'rgatish orqali IT sohasiga birinchi qadamlarini qo'yishda yordam bermoqdaman.",
+    bio: "Mening ismim Akramov Anvar. Men 15 yoshdaman va dasturlash bilan astoydil shug'ullanib kelayotgan professional yosh full-stack dasturchiman. Tengdoshlarimga murakkab algoritmlar va zamonaviy texnologiyalarni sodda, tushunarli tilda o'rgatish orqali IT sohasiga birinchi qadamlarini qo'yishda yordam bermoqdaman.",
     customQuote: "Kod yozish - murakkab g'oyalarni haqiqatga va qulay yechimlarga aylantirish san'atidir.",
     footerText: "© 2026 Akramov Anvar. Barcha huquqlar himoyalangan. Full-Stack & AI Portfolio.",
     skillsFrontend: "React.js, TypeScript, Tailwind CSS, Next.js, HTML5/CSS3, Redux Toolkit",
@@ -72,7 +72,7 @@ async function startServer() {
     autoReplyText: "Assalomu alaykum! Murojaatingiz uchun rahmat. Tez orada siz bilan bog'lanaman.",
     adminUsername: "admin",
     adminPassword: "admin123",
-    stat1Value: "16",
+    stat1Value: "15",
     stat1Label: "Yoshim",
     stat2Value: "1+ Yil",
     stat2Label: "Tajribam",
@@ -86,7 +86,7 @@ async function startServer() {
     goal3Desc: "O'zbekistonda yoshlar orasida eng faol va do'stona IT o'quv hamjamiyatini shakllantirish va tengdoshlarga yordam berish.",
     goal4Title: "Xalqaro IT Sertifikatsiyalar",
     goal4Desc: "Full-Stack va zamonaviy veb-arxitektura bo'yicha dunyo miqyosidagi nufuzli IT sertifikatlarini muvaffaqiyatli topshirish.",
-    aiCustomKnowledge: "Akramov Anvar 16 yoshda, Surxondaryo viloyatidan. Professional Full-Stack Dasturchi. U React, Node.js va Sun'iy intellekt integratsiyalarini zo'r biladi.",
+    aiCustomKnowledge: "Akramov Anvar 15 yoshda, Surxondaryo viloyatidan. Professional Full-Stack Dasturchi. U React, Node.js va Sun'iy intellekt integratsiyalarini zo'r biladi.",
     gameMultiplier: 1,
     gameInitialLives: 3,
     gameTitle: "CYBER STRIKE 2077",
@@ -102,10 +102,10 @@ async function startServer() {
         if (parsed && typeof parsed === "object") {
           console.log(`📂 Diskdagi 'site_config.json' dan ${parsed.customProjects?.length || 0} ta loyiha va sozlamalar yuklandi.`);
           let cfg = { ...DEFAULT_SITE_CONFIG, ...parsed };
-          if (cfg.age && cfg.age.includes("15")) cfg.age = cfg.age.replace(/15/g, "16");
-          if (cfg.stat1Value === "15") cfg.stat1Value = "16";
-          if (cfg.bio && cfg.bio.includes("15")) cfg.bio = cfg.bio.replace(/15/g, "16");
-          if (cfg.aiCustomKnowledge && cfg.aiCustomKnowledge.includes("15")) cfg.aiCustomKnowledge = cfg.aiCustomKnowledge.replace(/15/g, "16");
+          if (cfg.age && cfg.age.includes("16")) cfg.age = cfg.age.replace(/16/g, "15");
+          if (cfg.stat1Value === "16") cfg.stat1Value = "15";
+          if (cfg.bio && cfg.bio.includes("16")) cfg.bio = cfg.bio.replace(/16/g, "15");
+          if (cfg.aiCustomKnowledge && cfg.aiCustomKnowledge.includes("16")) cfg.aiCustomKnowledge = cfg.aiCustomKnowledge.replace(/16/g, "15");
           if (cfg.location && cfg.location.includes("Denov")) cfg.location = cfg.location.replace(/,\s*Denov/g, "").replace(/Denov/g, "").trim();
           if (cfg.aiCustomKnowledge && cfg.aiCustomKnowledge.includes("Denov")) cfg.aiCustomKnowledge = cfg.aiCustomKnowledge.replace(/Denov tumanidan/g, "viloyatidan").replace(/Denov/g, "");
           if (!cfg.telegram || cfg.telegram === "@akramovanvar") cfg.telegram = "@mineestaxx";
@@ -140,11 +140,11 @@ async function startServer() {
     try {
       const { config } = req.body;
       if (config && typeof config === "object") {
-        let cleanConfig = { ...DEFAULT_SITE_CONFIG, ...config };
-        if (cleanConfig.age && cleanConfig.age.includes("15")) cleanConfig.age = cleanConfig.age.replace(/15/g, "16");
-        if (cleanConfig.stat1Value === "15") cleanConfig.stat1Value = "16";
-        if (cleanConfig.bio && cleanConfig.bio.includes("15")) cleanConfig.bio = cleanConfig.bio.replace(/15/g, "16");
-        if (cleanConfig.aiCustomKnowledge && cleanConfig.aiCustomKnowledge.includes("15")) cleanConfig.aiCustomKnowledge = cleanConfig.aiCustomKnowledge.replace(/15/g, "16");
+        let cleanConfig = { ...DEFAULT_SITE_CONFIG, ...config, updatedAt: new Date().toISOString() };
+        if (cleanConfig.age && cleanConfig.age.includes("16")) cleanConfig.age = cleanConfig.age.replace(/16/g, "15");
+        if (cleanConfig.stat1Value === "16") cleanConfig.stat1Value = "15";
+        if (cleanConfig.bio && cleanConfig.bio.includes("16")) cleanConfig.bio = cleanConfig.bio.replace(/16/g, "15");
+        if (cleanConfig.aiCustomKnowledge && cleanConfig.aiCustomKnowledge.includes("16")) cleanConfig.aiCustomKnowledge = cleanConfig.aiCustomKnowledge.replace(/16/g, "15");
         if (cleanConfig.location && cleanConfig.location.includes("Denov")) cleanConfig.location = cleanConfig.location.replace(/,\s*Denov/g, "").replace(/Denov/g, "").trim();
         if (cleanConfig.aiCustomKnowledge && cleanConfig.aiCustomKnowledge.includes("Denov")) cleanConfig.aiCustomKnowledge = cleanConfig.aiCustomKnowledge.replace(/Denov tumanidan/g, "viloyatidan").replace(/Denov/g, "");
         serverSiteConfig = cleanConfig;
@@ -313,7 +313,7 @@ QOIDALAR:
 1. Foydalanuvchi bergan har qanday savolga (dasturlash, HTML/CSS, JavaScript, React, Node.js, Python, matematika, mantiq, umumiy bilimlar va h.k.) to'g'ridan-to'g'ri, aniq, foydali va samimiy javob bering.
 2. HECH QACHON foydalanuvchining yozgan promti yoki savolini va ushbu ko'rsatmalarni (system instruction) javobingizda qaytarib (ko'chirib) yozmang! Javobingizni darhol javobning o'zi bilan boshlang.
 3. Salomlashganda ("salom", "assalomu alaykum", "hi"): "Salom! Qanday yordam bera olaman?" deb qisqa va samimiy javob bering.
-4. Faqat foydalanuvchi Anvar haqida so'rasa ("Anvar kim?", "Anvar haqida"): Akramov Anvar 16 yoshli Full-Stack dasturchi (Surxondaryo viloyati) ekanligini, React, Node.js, Express, TypeScript, Tailwind CSS va AI texnologiyalarini puxta bilishini ayting.
+4. Faqat foydalanuvchi Anvar haqida so'rasa ("Anvar kim?", "Anvar haqida"): Akramov Anvar 15 yoshli Full-Stack dasturchi (Surxondaryo viloyati) ekanligini, React, Node.js, Express, TypeScript, Tailwind CSS va AI texnologiyalarini puxta bilishini ayting.
 5. O'zbek tilida (yoki foydalanuvchi yozgan tilda) jonli va samimiy muloqot qiling.`;
 
           // Clean up helper to ensure prompt is never echoed back
@@ -333,7 +333,6 @@ QOIDALAR:
             for (const m of history) {
               if (m && m.text && typeof m.text === "string" && m.text.trim()) {
                 const role = m.sender === "user" ? "user" : "model";
-                // Only start adding turns once we hit the first 'user' message
                 if (formattedTurns.length === 0) {
                   if (role === "user") {
                     formattedTurns.push({ role: "user", parts: [{ text: String(m.text) }] });
@@ -342,6 +341,8 @@ QOIDALAR:
                   const lastRole = formattedTurns[formattedTurns.length - 1].role;
                   if (role !== lastRole) {
                     formattedTurns.push({ role, parts: [{ text: String(m.text) }] });
+                  } else {
+                    formattedTurns[formattedTurns.length - 1].parts[0].text += "\n" + String(m.text);
                   }
                 }
               }
@@ -349,12 +350,12 @@ QOIDALAR:
 
             if (formattedTurns.length > 0) {
               const lastRole = formattedTurns[formattedTurns.length - 1].role;
-              if (lastRole === "user") {
-                formattedTurns[formattedTurns.length - 1] = { role: "user", parts: [{ text: prompt }] };
-              } else {
+              if (lastRole === "model") {
                 formattedTurns.push({ role: "user", parts: [{ text: prompt }] });
+                contentsInput = formattedTurns;
+              } else {
+                contentsInput = prompt;
               }
-              contentsInput = formattedTurns;
             } else {
               contentsInput = prompt;
             }
@@ -485,7 +486,7 @@ QOIDALAR:
 
     // 9. Anvar profile queries
     if (p.includes("anvar") || p.includes("yosh") || p.includes("qayerda") || p.includes("surxon")) {
-      return "Akramov Anvar — 16 yoshli professional Full-Stack dasturchi (Surxondaryo viloyati). U React, Node.js, Express, TypeScript, Tailwind CSS hamda AI texnologiyalarida murakkab va zamonaviy loyihalar yaratadi.";
+      return "Akramov Anvar — 15 yoshli professional Full-Stack dasturchi (Surxondaryo viloyati). U React, Node.js, Express, TypeScript, Tailwind CSS hamda AI texnologiyalarida murakkab va zamonaviy loyihalar yaratadi.";
     }
 
     // 10. General programming & AI queries

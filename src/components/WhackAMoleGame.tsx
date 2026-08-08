@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Play, RotateCcw, Award, Zap, AlertTriangle, Crosshair } from "lucide-react";
 import { getGameHighScore, saveGameHighScore } from "../lib/highScores";
+import { GameOverModal } from "./GameOverModal";
 
 interface Mole {
   id: number;
@@ -241,19 +242,14 @@ export default function WhackAMoleGame({ className = "" }: { className?: string 
               </button>
             </div>
           ) : (
-            <div className="space-y-4">
-              <h4 className="font-serif text-3xl font-bold text-amber-400">Vaqt Tugadi!</h4>
-              <div className="bg-neutral-900 border border-neutral-800 p-4 rounded-2xl space-y-1">
-                <p className="text-sm text-neutral-400">Yig'ilgan Ochko:</p>
-                <p className="text-4xl font-mono font-bold text-emerald-400">{score}</p>
-                <p className="text-xs text-neutral-500">Eng yuqori natija: {highScore}</p>
-              </div>
-              <button
-                onClick={startGame}
-                className="px-8 py-3 bg-amber-400 text-black font-mono font-bold rounded-2xl hover:bg-amber-300 transition-all flex items-center gap-2 mx-auto shadow-lg cursor-pointer"
-              >
-                <RotateCcw className="w-4 h-4" /> Qayta O'ynash
-              </button>
+            <div className="absolute inset-0">
+              <GameOverModal
+                score={score}
+                highScore={highScore}
+                gameTitle="WHACK-A-MOLE"
+                unit="ochko"
+                onRestart={startGame}
+              />
             </div>
           )}
         </div>

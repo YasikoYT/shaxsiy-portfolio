@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Play, RotateCcw, Volume2, VolumeX, Rocket, Trophy, Flame } from "lucide-react";
 import { getGameHighScore, saveGameHighScore } from "../lib/highScores";
+import { GameOverModal } from "./GameOverModal";
 
 interface SpaceShooterProps {
   className?: string;
@@ -467,6 +468,16 @@ export default function SpaceShooter({ className = "" }: SpaceShooterProps) {
           <Flame className="w-3.5 h-3.5 text-orange-500 animate-pulse" />
           <span>OCHKO: {score}</span>
         </div>
+
+        {isGameOver && (
+          <GameOverModal
+            score={score}
+            highScore={highScore}
+            gameTitle="SPACE SHOOTER"
+            unit="ochko"
+            onRestart={startGame}
+          />
+        )}
       </div>
 
       {/* Footer controls */}

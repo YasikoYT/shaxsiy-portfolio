@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { getGameHighScore, saveGameHighScore } from "../lib/highScores";
+import { GameOverModal } from "./GameOverModal";
 
 interface DinoGameProps {
   className?: string;
@@ -409,6 +410,18 @@ export default function DinoGame({ className = "" }: DinoGameProps) {
           height={280}
           className="w-full aspect-[320/140] block cursor-pointer"
         />
+
+        {isGameOver && (
+          <div onClick={(e) => e.stopPropagation()} className="absolute inset-0">
+            <GameOverModal
+              score={score}
+              highScore={highScore}
+              gameTitle="DINO RUNNER"
+              unit="ochko"
+              onRestart={restartGame}
+            />
+          </div>
+        )}
       </div>
 
       <div className="mt-2.5 flex justify-between items-center">

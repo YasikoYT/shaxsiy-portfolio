@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Play, RotateCcw, Zap, Flame, Award } from "lucide-react";
 import { getGameHighScore, saveGameHighScore } from "../lib/highScores";
+import { GameOverModal } from "./GameOverModal";
 
 interface Fruit {
   id: number;
@@ -277,19 +278,14 @@ export default function FruitNinjaGame({ className = "" }: { className?: string 
               </button>
             </div>
           ) : (
-            <div className="space-y-4">
-              <h4 className="font-serif text-3xl font-bold text-red-400">Bomba Portladi! 💣</h4>
-              <div className="bg-neutral-900 border border-neutral-800 p-4 rounded-2xl space-y-1">
-                <p className="text-sm text-neutral-400">To'plangan Ochko:</p>
-                <p className="text-4xl font-mono font-bold text-emerald-400">{score}</p>
-                <p className="text-xs text-neutral-500">Eng yuqori natija: {highScore}</p>
-              </div>
-              <button
-                onClick={startGame}
-                className="px-8 py-3 bg-amber-400 text-black font-mono font-bold rounded-2xl hover:bg-amber-300 transition-all flex items-center gap-2 mx-auto shadow-lg cursor-pointer"
-              >
-                <RotateCcw className="w-4 h-4" /> Qayta O'ynash
-              </button>
+            <div className="absolute inset-0">
+              <GameOverModal
+                score={score}
+                highScore={highScore}
+                gameTitle="FRUIT NINJA"
+                unit="ochko"
+                onRestart={startGame}
+              />
             </div>
           )}
         </div>

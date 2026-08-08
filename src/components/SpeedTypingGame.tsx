@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { motion } from "motion/react";
 import { Play, RotateCcw, Keyboard, Award, CheckCircle2 } from "lucide-react";
 import { getGameHighScore, saveGameHighScore } from "../lib/highScores";
+import { GameOverModal } from "./GameOverModal";
 
 const SNIPPETS = [
   "const developer = { name: 'Anvar Akramov', role: 'Full-Stack Specialist', status: 'Online' };",
@@ -157,25 +158,14 @@ export default function SpeedTypingGame({ className = "" }: { className?: string
               </button>
             </div>
           ) : (
-            <div className="space-y-4">
-              <h4 className="font-serif text-3xl font-bold text-emerald-400">Tabriklaymiz!</h4>
-              <div className="bg-neutral-900 border border-neutral-800 p-5 rounded-2xl space-y-2 min-w-[240px]">
-                <div>
-                  <p className="text-xs text-neutral-400 uppercase font-mono">Tezlik (WPM):</p>
-                  <p className="text-4xl font-mono font-bold text-emerald-400">{wpm}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-neutral-400 uppercase font-mono">Aniqlik:</p>
-                  <p className="text-2xl font-mono font-bold text-amber-300">{accuracy}%</p>
-                </div>
-                <p className="text-xs text-neutral-500 pt-1">Eng yuqori natija: {highWpm} WPM</p>
-              </div>
-              <button
-                onClick={startGame}
-                className="px-8 py-3 bg-amber-400 text-black font-mono font-bold rounded-2xl hover:bg-amber-300 transition-all flex items-center gap-2 mx-auto shadow-lg cursor-pointer"
-              >
-                <RotateCcw className="w-4 h-4" /> Qayta Sinash
-              </button>
+            <div className="absolute inset-0">
+              <GameOverModal
+                score={wpm}
+                highScore={highWpm}
+                gameTitle="SPEED TYPER"
+                unit="WPM"
+                onRestart={startGame}
+              />
             </div>
           )}
         </div>

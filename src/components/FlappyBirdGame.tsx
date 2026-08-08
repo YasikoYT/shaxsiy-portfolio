@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Play, RotateCcw, Volume2, VolumeX, Trophy, Zap } from "lucide-react";
 import { getGameHighScore, saveGameHighScore } from "../lib/highScores";
+import { GameOverModal } from "./GameOverModal";
 
 interface FlappyProps {
   className?: string;
@@ -246,15 +247,14 @@ export default function FlappyBirdGame({ className = "" }: FlappyProps) {
         )}
 
         {gameState === "gameover" && (
-          <div className="absolute inset-0 bg-slate-950/95 backdrop-blur flex flex-col items-center justify-center p-6 text-center space-y-4">
-            <h4 className="font-serif text-2xl font-bold text-red-500">QULADINIGIZ!</h4>
-            <p className="text-xs text-slate-300 font-mono">To'plangan Ochko: <span className="text-amber-400 font-bold">{score}</span></p>
-            <button
-              onClick={(e) => { e.stopPropagation(); startGame(); }}
-              className="px-6 py-2.5 bg-amber-500 hover:bg-amber-400 text-black font-mono font-black text-xs uppercase tracking-widest rounded-full flex items-center gap-2 cursor-pointer shadow-lg"
-            >
-              <RotateCcw className="w-4 h-4" /> Qaytadan O'ynash
-            </button>
+          <div onClick={(e) => e.stopPropagation()} className="absolute inset-0">
+            <GameOverModal
+              score={score}
+              highScore={highScore}
+              gameTitle="FLAPPY BIRD"
+              unit="ochko"
+              onRestart={startGame}
+            />
           </div>
         )}
       </div>
