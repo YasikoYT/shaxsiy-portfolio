@@ -2,6 +2,7 @@ export interface PlayerAccount {
   id: string;
   username: string;
   email: string;
+  password?: string;
   authMethod: "google" | "email" | "guest";
   avatarEmoji: string;
   avatarUrl?: string;
@@ -18,6 +19,7 @@ const DEFAULT_GUEST_ACCOUNT: PlayerAccount = {
   id: "guest-1",
   username: "Gamer #1",
   email: "gamer1@gmail.com",
+  password: "",
   authMethod: "guest",
   avatarEmoji: "🎮",
   createdAt: new Date().toISOString(),
@@ -46,7 +48,7 @@ export function savePlayerAccount(account: PlayerAccount): void {
     
     // Also save into registered players list
     const players = getRegisteredPlayersList();
-    const idx = players.findIndex((p) => p.id === account.id || p.email === account.email);
+    const idx = players.findIndex((p) => p.id === account.id || (p.email && p.email.toLowerCase() === account.email.toLowerCase()) || p.username.toLowerCase() === account.username.toLowerCase());
     if (idx >= 0) {
       players[idx] = account;
     } else {
@@ -70,12 +72,13 @@ export function getRegisteredPlayersList(): PlayerAccount[] {
   } catch (e) {}
   
   const cur = getCurrentPlayerAccount();
-  return [
+  const defaultList: PlayerAccount[] = [
     cur,
     {
       id: "pro-player-2",
       username: "Jasur Pro",
       email: "jasur.cyber@gmail.com",
+      password: "pass",
       authMethod: "google",
       avatarEmoji: "🔥",
       createdAt: new Date(Date.now() - 86400000 * 5).toISOString(),
@@ -87,6 +90,7 @@ export function getRegisteredPlayersList(): PlayerAccount[] {
       id: "pro-player-3",
       username: "Malika AI",
       email: "malika.gamer@gmail.com",
+      password: "pass",
       authMethod: "google",
       avatarEmoji: "✨",
       createdAt: new Date(Date.now() - 86400000 * 2).toISOString(),
@@ -95,6 +99,75 @@ export function getRegisteredPlayersList(): PlayerAccount[] {
       badge: "Aql-idrok Ustasi 🧠"
     }
   ];
+
+  try {
+    localStorage.setItem(REGISTERED_PLAYERS_KEY, JSON.stringify(defaultList));
+  } catch (e) {}
+
+  return defaultList;
+}
+
+export function isUsernameTaken(username: string, currentAccountId: string): boolean {
+  const clean = username.trim().toLowerCase();
+  if (!clean) return false;
+  const list = getRegisteredPlayersList();
+  return list.some(p => p.id !== currentAccountId && p.username.trim().toLowerCase() === clean);
+}
+
+export function registerPlayerAccount(username: string, email: string, password?: string, avatarEmoji = "👾"): { success: boolean; account?: PlayerAccount; error?: string } {
+  const cleanNick = username.trim();
+  const cleanEmail = email.trim().toLowerCase() || `${cleanNick.toLowerCase().replace(/\s+/g, "")}@gmail.com`;
+
+  if (!cleanNick) {
+    return { success: false, error: "Taxallus (nickname) kiritilishi shart!" };
+  }
+
+  const list = getRegisteredPlayersList();
+  const duplicate = list.find(p => p.username.toLowerCase() === cleanNick.toLowerCase() || p.email.toLowerCase() === cleanEmail.toLowerCase());
+  
+  if (duplicate) {
+    return { success: false, error: `"${cleanNick}" yoki "${cleanEmail}" nomli akaunt allaqachon mavjud! Iltimos, Kirish formasidan foydalaning.` };
+  }
+
+  const newAcc: PlayerAccount = {
+    id: `user-${Date.now()}`,
+    username: cleanNick,
+    email: cleanEmail,
+    password: password || "",
+    authMethod: "email",
+    avatarEmoji: avatarEmoji,
+    createdAt: new Date().toISOString(),
+    level: 1,
+    xp: 100,
+    badge: "Akaunt O'yinchi 🎮"
+  };
+
+  savePlayerAccount(newAcc);
+  return { success: true, account: newAcc };
+}
+
+export function loginWithCredentials(loginIdentifier: string, passwordInput: string): { success: boolean; account?: PlayerAccount; error?: string } {
+  const clean = loginIdentifier.trim().toLowerCase();
+  if (!clean) {
+    return { success: false, error: "Login (username yoki email) kiritilmadi!" };
+  }
+
+  const list = getRegisteredPlayersList();
+  const found = list.find(p => p.username.toLowerCase() === clean || p.email.toLowerCase() === clean);
+
+  if (!found) {
+    return { success: false, error: `"${loginIdentifier}" nomli akaunt topilmadi. Iltimos, Ro'yxatdan o'tish bo'limidan yangi profil yarating!` };
+  }
+
+  // Check password if set on account
+  if (found.password && found.password.trim() !== "") {
+    if (passwordInput.trim() !== found.password.trim()) {
+      return { success: false, error: "Kiritilgan parol noto'g'ri!" };
+    }
+  }
+
+  savePlayerAccount(found);
+  return { success: true, account: found };
 }
 
 export function loginWithGoogleAccount(googleEmail: string, googleName: string): PlayerAccount {

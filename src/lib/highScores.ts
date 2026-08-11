@@ -54,7 +54,11 @@ export const ALL_GAMES_METADATA: GameMetadata[] = [
 export interface ScoreRecord {
   score: number;
   updatedAt: string;
+  holderName?: string;
+  holderAvatar?: string;
 }
+
+import { getCurrentPlayerAccount } from "./playerAccount";
 
 export function getHighScoresMap(): Record<string, ScoreRecord> {
   if (typeof window === "undefined") return {};
@@ -70,10 +74,14 @@ export function getHighScoresMap(): Record<string, ScoreRecord> {
     }
 
     let changed = false;
+    const activePlayer = getCurrentPlayerAccount();
+    const fallbackNick = activePlayer?.username || "Jasur Pro";
+    const fallbackAvatar = activePlayer?.avatarEmoji || "🎮";
 
     // Scan all legacy and individual keys to ensure no game score is missed or lost
     ALL_GAMES_METADATA.forEach((game) => {
-      const currentScore = map[game.id]?.score ?? 0;
+      const currentRecord = map[game.id];
+      const currentScore = currentRecord?.score ?? 0;
       const lowerIsBetter = game.unit === "sekund" || game.unit === "yurish";
 
       const legacyKeys = [
@@ -92,31 +100,48 @@ export function getHighScoresMap(): Record<string, ScoreRecord> {
         game.id === "wordscramble" ? "word_scramble_highscore" : "",
       ].filter(Boolean);
 
+      let foundLegacyScore = 0;
       for (const key of legacyKeys) {
         try {
           const val = localStorage.getItem(key);
           if (val) {
             const num = parseInt(val, 10);
             if (!isNaN(num) && num > 0) {
-              let isBetter = false;
-              if (currentScore === 0) {
-                isBetter = true;
-              } else if (lowerIsBetter) {
-                if (num < currentScore) isBetter = true;
-              } else {
-                if (num > currentScore) isBetter = true;
-              }
-
-              if (isBetter) {
-                map[game.id] = {
-                  score: num,
-                  updatedAt: map[game.id]?.updatedAt || new Date().toISOString()
-                };
-                changed = true;
-              }
+              if (foundLegacyScore === 0) foundLegacyScore = num;
+              else if (lowerIsBetter && num < foundLegacyScore) foundLegacyScore = num;
+              else if (!lowerIsBetter && num > foundLegacyScore) foundLegacyScore = num;
             }
           }
         } catch (e) {}
+      }
+
+      if (foundLegacyScore > 0) {
+        let isBetter = false;
+        if (currentScore === 0) isBetter = true;
+        else if (lowerIsBetter && foundLegacyScore < currentScore) isBetter = true;
+        else if (!lowerIsBetter && foundLegacyScore > currentScore) isBetter = true;
+
+        if (isBetter) {
+          const savedHolder = localStorage.getItem(`game_record_holder_${game.id}`) || fallbackNick;
+          map[game.id] = {
+            score: foundLegacyScore,
+            updatedAt: map[game.id]?.updatedAt || new Date().toISOString(),
+            holderName: savedHolder,
+            holderAvatar: fallbackAvatar
+          };
+          changed = true;
+        }
+      }
+
+      // Ensure holderName exists if record is present
+      if (map[game.id] && !map[game.id].holderName) {
+        const savedHolder = localStorage.getItem(`game_record_holder_${game.id}`) || fallbackNick;
+        map[game.id] = {
+          ...map[game.id],
+          holderName: savedHolder,
+          holderAvatar: map[game.id].holderAvatar || fallbackAvatar
+        };
+        changed = true;
       }
     });
 
@@ -142,7 +167,21 @@ export function getGameHighScore(gameId: string): number {
   return 0;
 }
 
-export function saveGameHighScore(gameId: string, newScore: number): boolean {
+export function getGameRecordHolder(gameId: string): { name: string; avatar: string; score: number } {
+  if (typeof window === "undefined") return { name: "Gamer #1", avatar: "🎮", score: 0 };
+  const map = getHighScoresMap();
+  const rec = map[gameId];
+  if (rec && rec.score > 0) {
+    return {
+      name: rec.holderName || "Jasur Pro",
+      avatar: rec.holderAvatar || "🎮",
+      score: rec.score
+    };
+  }
+  return { name: "Rekord xali yo'q", avatar: "👤", score: 0 };
+}
+
+export function saveGameHighScore(gameId: string, newScore: number, customNickname?: string): boolean {
   if (typeof window === "undefined") return false;
   const scoreNum = Number(newScore);
   if (isNaN(scoreNum) || scoreNum < 0) return false;
@@ -152,6 +191,10 @@ export function saveGameHighScore(gameId: string, newScore: number): boolean {
     const currentRecord = map[gameId];
     const currentScore = currentRecord?.score;
     const gameMeta = ALL_GAMES_METADATA.find((g) => g.id === gameId);
+
+    const activePlayer = getCurrentPlayerAccount();
+    const activeNickname = customNickname || activePlayer?.username || localStorage.getItem("anvar_player_name") || "Gamer #1";
+    const activeAvatar = activePlayer?.avatarEmoji || "🎮";
 
     const lowerIsBetter = gameMeta?.unit === "sekund" || gameMeta?.unit === "yurish";
 
@@ -171,7 +214,9 @@ export function saveGameHighScore(gameId: string, newScore: number): boolean {
     if (isNewRecord) {
       map[gameId] = {
         score: scoreNum,
-        updatedAt: new Date().toISOString()
+        updatedAt: new Date().toISOString(),
+        holderName: activeNickname,
+        holderAvatar: activeAvatar
       };
 
       localStorage.setItem(GAME_HIGH_SCORES_STORAGE_KEY, JSON.stringify(map));
@@ -181,16 +226,18 @@ export function saveGameHighScore(gameId: string, newScore: number): boolean {
         localStorage.setItem(`game_highscore_${gameId}`, scoreNum.toString());
         localStorage.setItem(`${gameId}_high_score`, scoreNum.toString());
         localStorage.setItem(`${gameId}_highscore`, scoreNum.toString());
+        localStorage.setItem(`game_record_holder_${gameId}`, activeNickname);
       } catch (e) {}
 
-      window.dispatchEvent(new CustomEvent("highscore_updated", { detail: { gameId, score: scoreNum } }));
+      window.dispatchEvent(new CustomEvent("highscore_updated", { detail: { gameId, score: scoreNum, holderName: activeNickname } }));
       window.dispatchEvent(new Event("storage"));
       window.dispatchEvent(new CustomEvent("new_record_achieved", { 
         detail: { 
           gameId, 
           score: scoreNum, 
           gameName: gameMeta?.name || gameId,
-          unit: gameMeta?.unit || "ochko"
+          unit: gameMeta?.unit || "ochko",
+          holderName: activeNickname
         } 
       }));
       return true;

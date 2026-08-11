@@ -623,7 +623,7 @@ export default function AdminPanelModal({
                           <Mail className="w-4 h-4 text-amber-400" /> Kelgan SMS va Murojaatlar jurnali
                         </h4>
                         <p className="text-[11px] text-neutral-400 font-sans mt-0.5">
-                          Foydalanuvchilar (telefon yoki kompyuter) tomonidan yuborilgan barcha xabarlar 100% bu yerga keladi va saqlanadi. (Har 4 soniyada avto-yangilanadi)
+                          Foydalanuvchilar tomonidan yuborilgan barcha xabarlar va murojaatlar ro'yxati.
                         </p>
                       </div>
                       <div className="flex items-center gap-2">
