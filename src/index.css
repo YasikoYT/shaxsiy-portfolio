@@ -46,18 +46,25 @@
   background: #aeaeaf;
 }
 
-/* Custom fade & glow effects */
+/* Custom fade & glow effects & performance optimizations */
+.gpu-accelerated {
+  transform: translateZ(0);
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+}
+
 .mask-radial {
   mask-image: radial-gradient(circle, black 50%, transparent 100%);
 }
 
 @keyframes floatGlow {
-  0%, 100% { transform: translateY(0px) scale(1); filter: brightness(1); }
-  50% { transform: translateY(-8px) scale(1.02); filter: brightness(1.15); }
+  0%, 100% { transform: translateY(0px) scale(1); opacity: 0.4; }
+  50% { transform: translateY(-8px) scale(1.05); opacity: 0.6; }
 }
 
 .animate-float-glow {
-  animation: floatGlow 6s ease-in-out infinite;
+  animation: floatGlow 8s ease-in-out infinite;
+  will-change: transform, opacity;
 }
 
 @keyframes pulseGlow {

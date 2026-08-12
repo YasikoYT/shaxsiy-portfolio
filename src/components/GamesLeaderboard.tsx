@@ -211,46 +211,13 @@ export default function GamesLeaderboard({
             className={`px-3.5 py-2 rounded-2xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 text-xs font-mono font-bold transition-all flex items-center gap-1.5 cursor-pointer active:scale-95 ${
               isRefreshing ? "opacity-50 cursor-wait" : ""
             }`}
-            title="Reyting jadvalini qayta yangilash"
+            title="Reyting jadvalini yangilash"
           >
             <RotateCcw className={`w-3.5 h-3.5 text-amber-400 ${isRefreshing ? "animate-spin" : ""}`} /> 
-            <span className="hidden sm:inline">Yangilash</span>
-          </button>
-
-          {/* Reset button */}
-          <button
-            onClick={() => setShowResetConfirm(true)}
-            className="px-3.5 py-2 rounded-2xl bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 text-xs font-mono font-bold transition-colors flex items-center gap-1.5 cursor-pointer"
-            title="Natijalarni nolga tushirish"
-          >
-            <RotateCcw className="w-3.5 h-3.5" /> <span className="hidden md:inline">Tozalash</span>
+            <span>Reytingni Yangilash</span>
           </button>
         </div>
       </div>
-
-      {/* Confirmation Modal for Resetting Scores */}
-      {showResetConfirm && (
-        <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3 text-xs font-mono">
-          <div className="text-red-400 font-bold flex items-center gap-2">
-            <RotateCcw className="w-4 h-4 text-red-400 animate-spin" />
-            Haqiqatdan ham barcha o'yin natijalarini va rekordlarni o'chirib tashlamoqchimisiz?
-          </div>
-          <div className="flex items-center gap-2 shrink-0">
-            <button
-              onClick={handleReset}
-              className="px-3.5 py-1.5 bg-red-500 hover:bg-red-600 text-white font-bold rounded-xl cursor-pointer transition-colors shadow"
-            >
-              Ha, Tozalansin
-            </button>
-            <button
-              onClick={() => setShowResetConfirm(false)}
-              className="px-3.5 py-1.5 bg-neutral-800 text-neutral-300 rounded-xl cursor-pointer hover:bg-neutral-700 transition-colors"
-            >
-              Bekor Qilish
-            </button>
-          </div>
-        </div>
-      )}
 
       {/* TOP 3 PODIUM CARDS SECTION */}
       <div className="space-y-3">
@@ -261,40 +228,88 @@ export default function GamesLeaderboard({
           <span className="text-[10px] font-mono text-neutral-400">Eng yuqori natija ko'rsatgan 3 ta o'yin va rekordchilar</span>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4 items-end">
+          {/* 1ST PLACE (GOLD) - FIRST ON MOBILE, CENTER & ELEVATED ON DESKTOP */}
+          {podium1 && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.35, delay: 0.02 }}
+              className={`order-1 md:order-2 p-4 sm:p-6 rounded-2xl sm:rounded-3xl border-2 relative overflow-hidden transition-all hover:scale-[1.02] shadow-2xl md:-translate-y-2 ${
+                isDarkMode 
+                  ? "bg-gradient-to-b from-amber-950/80 via-[#1e170a] to-[#0f1118] border-amber-500/70 shadow-amber-500/20" 
+                  : "bg-gradient-to-b from-amber-50 via-yellow-100 to-amber-100 border-amber-400 shadow-amber-500/30"
+              }`}
+            >
+              <div className="flex items-center justify-between mb-2 sm:mb-3 relative z-10">
+                <span className="px-3 py-1 bg-gradient-to-r from-amber-500 to-yellow-400 text-black font-mono font-black text-xs rounded-full flex items-center gap-1.5 shadow-md">
+                  <Crown className="w-3.5 h-3.5 fill-black" /> 🥇 1-O'RIN CHAMPION
+                </span>
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-extrabold border border-amber-500/40">
+                  {podium1.badge}
+                </span>
+              </div>
+              <div className="space-y-2 my-2 relative z-10">
+                <h5 className={`font-mono text-base sm:text-xl font-black truncate ${isDarkMode ? "text-amber-300" : "text-amber-950"}`}>
+                  {podium1.name}
+                </h5>
+                <div className="p-2.5 rounded-xl sm:rounded-2xl bg-black/40 border border-amber-500/40 space-y-0.5">
+                  <div className="text-[9px] sm:text-[10px] font-mono text-amber-400/80 uppercase font-bold">Champion Rekord Ball:</div>
+                  <div className="text-lg sm:text-2xl font-mono font-black text-amber-400 flex items-baseline gap-1.5">
+                    <span>{(highScoresMap[podium1.id]?.score || 0).toLocaleString()}</span>
+                    <span className="text-xs font-normal text-amber-300/80">{podium1.unit}</span>
+                  </div>
+                </div>
+                <div className="px-2.5 py-1.5 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-200 text-xs font-mono font-bold flex items-center justify-between">
+                  <span className="text-[10px] text-amber-400/80">Rekordchi niki:</span>
+                  <span className="flex items-center gap-1 truncate font-extrabold text-amber-300">
+                    <span>{highScoresMap[podium1.id]?.holderAvatar || "🎮"}</span>
+                    <span className="truncate">{highScoresMap[podium1.id]?.holderName || "Jasur Pro"}</span>
+                  </span>
+                </div>
+              </div>
+              <button
+                onClick={() => onSelectGame(podium1.id)}
+                className="w-full mt-2 py-2 px-3 sm:py-2.5 sm:px-4 rounded-xl sm:rounded-2xl bg-gradient-to-r from-amber-500 to-yellow-400 text-black font-mono font-black text-xs flex items-center justify-center gap-1.5 cursor-pointer transition-all active:scale-95 shadow-lg shadow-amber-500/30"
+              >
+                <Play className="w-3.5 h-3.5 fill-black" /> O'YINNI O'YNASH
+              </button>
+            </motion.div>
+          )}
+
           {/* 2ND PLACE (SILVER) */}
           {podium2 && (
             <motion.div
-              initial={{ opacity: 0, y: 30, scale: 0.95 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              transition={{ duration: 0.4, delay: 0.1 }}
-              className={`p-5 rounded-3xl border relative overflow-hidden transition-all hover:scale-[1.02] shadow-xl ${
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.35, delay: 0.1 }}
+              className={`order-2 md:order-1 p-4 sm:p-5 rounded-2xl sm:rounded-3xl border relative overflow-hidden transition-all hover:scale-[1.02] shadow-xl ${
                 isDarkMode 
                   ? "bg-gradient-to-b from-slate-900 via-slate-950 to-[#12172a] border-slate-700/60" 
                   : "bg-gradient-to-b from-slate-100 to-slate-200 border-slate-300"
               }`}
             >
-              <div className="flex items-center justify-between mb-3">
-                <span className="px-3 py-1 bg-slate-400/20 text-slate-300 border border-slate-400/40 rounded-full font-mono font-bold text-xs flex items-center gap-1.5">
+              <div className="flex items-center justify-between mb-2 sm:mb-3">
+                <span className="px-2.5 py-1 bg-slate-400/20 text-slate-300 border border-slate-400/40 rounded-full font-mono font-bold text-xs flex items-center gap-1">
                   <Medal className="w-3.5 h-3.5 text-slate-300" /> 🥈 2-O'RIN
                 </span>
-                <span className="text-[10px] font-mono px-2.5 py-0.5 rounded-full bg-slate-500/20 text-slate-300 font-extrabold border border-slate-500/30">
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-slate-500/20 text-slate-300 font-extrabold border border-slate-500/30">
                   {podium2.badge}
                 </span>
               </div>
               <div className="space-y-2 my-2">
-                <h5 className={`font-mono text-lg font-black truncate ${isDarkMode ? "text-white" : "text-slate-900"}`}>
+                <h5 className={`font-mono text-base sm:text-lg font-black truncate ${isDarkMode ? "text-white" : "text-slate-900"}`}>
                   {podium2.name}
                 </h5>
-                <div className="p-2.5 rounded-2xl bg-black/30 border border-slate-700/50 space-y-1">
-                  <div className="text-[10px] font-mono text-slate-400 uppercase font-bold">Rekord Ball:</div>
-                  <div className="text-xl font-mono font-black text-slate-200 flex items-center gap-1.5">
+                <div className="p-2 rounded-xl sm:rounded-2xl bg-black/30 border border-slate-700/50 space-y-0.5">
+                  <div className="text-[9px] sm:text-[10px] font-mono text-slate-400 uppercase font-bold">Rekord Ball:</div>
+                  <div className="text-base sm:text-xl font-mono font-black text-slate-200 flex items-center gap-1.5">
                     <span>{(highScoresMap[podium2.id]?.score || 0).toLocaleString()}</span>
                     <span className="text-xs font-normal text-slate-400">{podium2.unit}</span>
                   </div>
                 </div>
-                <div className="px-2.5 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-mono font-bold flex items-center justify-between">
-                  <span className="text-[10px] text-slate-400">Rekordchi niki:</span>
+                <div className="px-2 py-1 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-mono font-bold flex items-center justify-between">
+                  <span className="text-[10px] text-slate-400">Rekordchi:</span>
                   <span className="flex items-center gap-1 truncate font-extrabold">
                     <span>{highScoresMap[podium2.id]?.holderAvatar || "🎮"}</span>
                     <span className="truncate">{highScoresMap[podium2.id]?.holderName || "Jasur Pro"}</span>
@@ -303,58 +318,9 @@ export default function GamesLeaderboard({
               </div>
               <button
                 onClick={() => onSelectGame(podium2.id)}
-                className="w-full mt-3 py-2 px-3 rounded-xl bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-900 dark:text-slate-100 font-mono font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer transition-all active:scale-95 shadow"
+                className="w-full mt-2 py-2 px-3 rounded-xl bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-900 dark:text-slate-100 font-mono font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer transition-all active:scale-95 shadow"
               >
                 <Play className="w-3.5 h-3.5 fill-current" /> O'ynash
-              </button>
-            </motion.div>
-          )}
-
-          {/* 1ST PLACE (GOLD) - CENTER & ELEVATED */}
-          {podium1 && (
-            <motion.div
-              initial={{ opacity: 0, y: 35, scale: 0.92 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              transition={{ duration: 0.45, delay: 0.02 }}
-              className={`p-6 rounded-3xl border-2 relative overflow-hidden transition-all hover:scale-[1.03] shadow-2xl md:-translate-y-2 ${
-                isDarkMode 
-                  ? "bg-gradient-to-b from-amber-950/80 via-[#1e170a] to-[#0f1118] border-amber-500/70 shadow-amber-500/20" 
-                  : "bg-gradient-to-b from-amber-50 via-yellow-100 to-amber-100 border-amber-400 shadow-amber-500/30"
-              }`}
-            >
-              <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/10 rounded-full blur-2xl pointer-events-none" />
-              <div className="flex items-center justify-between mb-3 relative z-10">
-                <span className="px-3.5 py-1 bg-gradient-to-r from-amber-500 to-yellow-400 text-black font-mono font-black text-xs rounded-full flex items-center gap-1.5 shadow-md">
-                  <Crown className="w-4 h-4 fill-black" /> 🥇 1-O'RIN CHAMPION
-                </span>
-                <span className="text-[10px] font-mono px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-extrabold border border-amber-500/40">
-                  {podium1.badge}
-                </span>
-              </div>
-              <div className="space-y-2.5 my-3 relative z-10">
-                <h5 className={`font-mono text-xl font-black truncate ${isDarkMode ? "text-amber-300" : "text-amber-950"}`}>
-                  {podium1.name}
-                </h5>
-                <div className="p-3 rounded-2xl bg-black/40 border border-amber-500/40 space-y-1">
-                  <div className="text-[10px] font-mono text-amber-400/80 uppercase font-bold">Champion Rekord Ball:</div>
-                  <div className="text-2xl font-mono font-black text-amber-400 flex items-baseline gap-1.5">
-                    <span>{(highScoresMap[podium1.id]?.score || 0).toLocaleString()}</span>
-                    <span className="text-xs font-normal text-amber-300/80">{podium1.unit}</span>
-                  </div>
-                </div>
-                <div className="px-3 py-2 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-200 text-xs font-mono font-bold flex items-center justify-between">
-                  <span className="text-[10px] text-amber-400/80">Rekordchi niki:</span>
-                  <span className="flex items-center gap-1.5 truncate font-extrabold text-amber-300">
-                    <span>{highScoresMap[podium1.id]?.holderAvatar || "🎮"}</span>
-                    <span className="truncate">{highScoresMap[podium1.id]?.holderName || "Jasur Pro"}</span>
-                  </span>
-                </div>
-              </div>
-              <button
-                onClick={() => onSelectGame(podium1.id)}
-                className="w-full mt-2 py-2.5 px-4 rounded-2xl bg-gradient-to-r from-amber-500 to-yellow-400 text-black font-mono font-black text-xs flex items-center justify-center gap-1.5 cursor-pointer transition-all active:scale-95 shadow-lg shadow-amber-500/30"
-              >
-                <Play className="w-4 h-4 fill-black" /> CHAMPION REKORDINI O'RNATISH
               </button>
             </motion.div>
           )}
@@ -362,36 +328,36 @@ export default function GamesLeaderboard({
           {/* 3RD PLACE (BRONZE) */}
           {podium3 && (
             <motion.div
-              initial={{ opacity: 0, y: 30, scale: 0.95 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              transition={{ duration: 0.4, delay: 0.18 }}
-              className={`p-5 rounded-3xl border relative overflow-hidden transition-all hover:scale-[1.02] shadow-xl ${
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.35, delay: 0.15 }}
+              className={`order-3 md:order-3 p-4 sm:p-5 rounded-2xl sm:rounded-3xl border relative overflow-hidden transition-all hover:scale-[1.02] shadow-xl ${
                 isDarkMode 
                   ? "bg-gradient-to-b from-[#24160e] via-[#1a110a] to-[#12131c] border-amber-900/60" 
                   : "bg-gradient-to-b from-orange-50 to-amber-100 border-amber-300"
               }`}
             >
-              <div className="flex items-center justify-between mb-3">
-                <span className="px-3 py-1 bg-amber-800/30 text-amber-400 border border-amber-700/40 rounded-full font-mono font-bold text-xs flex items-center gap-1.5">
+              <div className="flex items-center justify-between mb-2 sm:mb-3">
+                <span className="px-2.5 py-1 bg-amber-800/30 text-amber-400 border border-amber-700/40 rounded-full font-mono font-bold text-xs flex items-center gap-1">
                   <Medal className="w-3.5 h-3.5 text-amber-600" /> 🥉 3-O'RIN
                 </span>
-                <span className="text-[10px] font-mono px-2.5 py-0.5 rounded-full bg-amber-700/20 text-amber-400 font-extrabold border border-amber-700/30">
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-amber-700/20 text-amber-400 font-extrabold border border-amber-700/30">
                   {podium3.badge}
                 </span>
               </div>
               <div className="space-y-2 my-2">
-                <h5 className={`font-mono text-lg font-black truncate ${isDarkMode ? "text-white" : "text-amber-950"}`}>
+                <h5 className={`font-mono text-base sm:text-lg font-black truncate ${isDarkMode ? "text-white" : "text-amber-950"}`}>
                   {podium3.name}
                 </h5>
-                <div className="p-2.5 rounded-2xl bg-black/30 border border-amber-900/50 space-y-1">
-                  <div className="text-[10px] font-mono text-amber-600/80 uppercase font-bold">Rekord Ball:</div>
-                  <div className="text-xl font-mono font-black text-amber-400 flex items-center gap-1.5">
+                <div className="p-2 rounded-xl sm:rounded-2xl bg-black/30 border border-amber-900/50 space-y-0.5">
+                  <div className="text-[9px] sm:text-[10px] font-mono text-amber-600/80 uppercase font-bold">Rekord Ball:</div>
+                  <div className="text-base sm:text-xl font-mono font-black text-amber-400 flex items-center gap-1.5">
                     <span>{(highScoresMap[podium3.id]?.score || 0).toLocaleString()}</span>
                     <span className="text-xs font-normal text-amber-600/80">{podium3.unit}</span>
                   </div>
                 </div>
-                <div className="px-2.5 py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-mono font-bold flex items-center justify-between">
-                  <span className="text-[10px] text-amber-500/70">Rekordchi niki:</span>
+                <div className="px-2 py-1 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-mono font-bold flex items-center justify-between">
+                  <span className="text-[10px] text-amber-500/70">Rekordchi:</span>
                   <span className="flex items-center gap-1 truncate font-extrabold">
                     <span>{highScoresMap[podium3.id]?.holderAvatar || "🎮"}</span>
                     <span className="truncate">{highScoresMap[podium3.id]?.holderName || "Jasur Pro"}</span>
@@ -400,7 +366,7 @@ export default function GamesLeaderboard({
               </div>
               <button
                 onClick={() => onSelectGame(podium3.id)}
-                className="w-full mt-3 py-2 px-3 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 border border-amber-500/30 font-mono font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer transition-all active:scale-95 shadow"
+                className="w-full mt-2 py-2 px-3 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 border border-amber-500/30 font-mono font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer transition-all active:scale-95 shadow"
               >
                 <Play className="w-3.5 h-3.5 fill-current" /> O'ynash
               </button>
@@ -565,7 +531,7 @@ export default function GamesLeaderboard({
 
       {/* GRID CARDS VIEW OR TABLE VIEW */}
       {viewMode === "grid" ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5">
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-5">
           {filteredGames.length === 0 ? (
             <div className="col-span-full p-12 text-center text-neutral-400 font-mono text-xs">
               Aks ettiriladigan o'yinlar topilmadi.
@@ -587,7 +553,7 @@ export default function GamesLeaderboard({
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   transition={{ duration: 0.35, delay: Math.min(index * 0.04, 0.5) }}
                   whileHover={{ y: -6, scale: 1.03 }}
-                  className={`rounded-2xl border p-5 flex flex-col justify-between transition-all duration-300 shadow-lg relative overflow-hidden group cursor-pointer ${
+                  className={`rounded-xl sm:rounded-2xl border p-3 sm:p-5 flex flex-col justify-between transition-all duration-300 shadow-lg relative overflow-hidden group cursor-pointer ${
                     isDarkMode 
                       ? "bg-gradient-to-b from-[#131728] to-[#0c0f1c] border-neutral-800/80 hover:border-amber-400/80 hover:ring-2 hover:ring-amber-500/30 hover:shadow-2xl hover:shadow-amber-500/20" 
                       : "bg-gradient-to-b from-white to-neutral-50 border-neutral-200 hover:border-amber-400 hover:ring-2 hover:ring-amber-400/40 hover:shadow-2xl hover:shadow-amber-500/15"
