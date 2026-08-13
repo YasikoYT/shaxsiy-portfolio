@@ -725,13 +725,13 @@ export default function App() {
   // Loader Animation Counter
   useEffect(() => {
     if (progress < 100) {
-      const duration = 1800;
+      const duration = 1000;
       const interval = 20;
       const step = 100 / (duration / interval);
       
       const timer = setInterval(() => {
         setProgress((prev) => {
-          const next = prev + step + (Math.random() * 2 - 0.5);
+          const next = prev + step + (Math.random() * 3);
           if (next >= 100) {
             clearInterval(timer);
             return 100;
@@ -741,6 +741,12 @@ export default function App() {
       }, interval);
 
       return () => clearInterval(timer);
+    } else {
+      // Auto enter site when loader hits 100%
+      const autoEnterTimer = setTimeout(() => {
+        setLoading(false);
+      }, 250);
+      return () => clearTimeout(autoEnterTimer);
     }
   }, [progress]);
 
@@ -875,14 +881,15 @@ export default function App() {
                   AKRAMOV ANVAR // FULL-STACK AI SYSTEM
                 </span>
               </div>
-              <div className="flex items-center gap-3">
-                <span className="font-mono text-[11px] text-amber-400 bg-amber-400/10 px-3 py-1 rounded-full border border-amber-400/30 flex items-center gap-2 font-bold shadow-[0_0_12px_rgba(245,158,11,0.2)]">
-                  <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
-                  SYSTEM ONLINE
-                </span>
-                <span className="hidden sm:inline-block font-mono text-xs text-emerald-400 font-bold bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">
-                  15 YOSH
-                </span>
+              <div className="flex items-center gap-2 sm:gap-3">
+                <button
+                  type="button"
+                  onClick={() => setLoading(false)}
+                  className="font-mono text-xs text-slate-950 font-black bg-gradient-to-r from-amber-400 to-yellow-300 px-3.5 py-1.5 rounded-full shadow-lg shadow-amber-500/20 active:scale-95 transition-all cursor-pointer flex items-center gap-1.5"
+                >
+                  <Zap className="w-3.5 h-3.5 fill-black" />
+                  <span>SAYTGA KIRISH ⚡</span>
+                </button>
               </div>
             </div>
 
@@ -1446,7 +1453,7 @@ export default function App() {
                 <p className={`text-xs sm:text-sm font-mono max-w-xl mx-auto ${
                   isDarkMode ? "text-slate-400" : "text-slate-600"
                 }`}>
-                  Sevimli o'yiningizni tanlang, reytinglarni zabt eting va do'stlaringiz orasida yetakchi o'yinchi bo'ling!
+                  Sevimli o'yiningizni tanlang, reytinglarni zabt eting va do'stlaringiz orasida yetakchi bo'ling!
                 </p>
                 <div className="h-1 w-24 bg-gradient-to-r from-amber-500 to-yellow-400 mx-auto rounded-full mt-2" />
               </div>
@@ -1456,56 +1463,39 @@ export default function App() {
                 onOpenPlayerAccountModal={() => setShowPlayerAccountModal(true)}
                 onOpenAdminPanel={() => setShowAdminModal(true)}
               >
-                {/* Clear Site Guidance & View Mode Switcher */}
-                <div className={`p-4 sm:p-5 rounded-2xl sm:rounded-3xl border shadow-xl backdrop-blur-md mb-4 ${
-                  isDarkMode ? "bg-amber-500/10 border-amber-500/30 text-white" : "bg-amber-50/90 border-amber-200 text-slate-900"
-                }`}>
-                  <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-                    <div className="space-y-1 text-center md:text-left">
-                      <div className="text-xs font-mono font-black uppercase tracking-wider text-amber-500 flex items-center justify-center md:justify-start gap-1.5">
-                        <Sparkles className="w-4 h-4 text-amber-500" />
-                        <span>SAYTDAN FOYDALANISH YO'RIQNOMASI</span>
-                      </div>
-                      <p className="text-xs sm:text-sm font-sans font-medium text-slate-300 dark:text-slate-200">
-                        1️⃣ O'yinni tanlang ➔ 2️⃣ O'ynang ➔ 3️⃣ To'plagan ballaringiz avtomatik ravishda <strong>Top Reyting</strong> jadvalida aks etadi!
-                      </p>
-                    </div>
+                {/* Clean View Switcher: O'YIN O'YNASH vs TOP REYTING */}
+                <div className="flex items-center justify-center gap-2 p-1.5 bg-black/50 rounded-2xl border border-amber-500/30 max-w-md mx-auto mb-6">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setGamesMainViewMode("catalog");
+                      playClickSound();
+                    }}
+                    className={`flex-1 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-mono font-black transition-all cursor-pointer flex items-center justify-center gap-2 ${
+                      gamesMainViewMode === "catalog"
+                        ? "bg-amber-500 text-slate-950 shadow-md scale-102"
+                        : "text-slate-300 hover:text-white"
+                    }`}
+                  >
+                    <Gamepad2 className="w-4 h-4 shrink-0" />
+                    <span>🎮 O'yin O'ynash</span>
+                  </button>
 
-                    {/* View Switcher: Catalog vs Leaderboard */}
-                    <div className="flex items-center gap-2 p-1.5 bg-black/40 rounded-2xl border border-amber-500/30 shrink-0">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setGamesMainViewMode("catalog");
-                          playClickSound();
-                        }}
-                        className={`px-4 py-2 rounded-xl text-xs font-mono font-black transition-all cursor-pointer flex items-center gap-2 ${
-                          gamesMainViewMode === "catalog"
-                            ? "bg-amber-500 text-slate-950 shadow-md scale-102"
-                            : "text-slate-300 hover:text-white"
-                        }`}
-                      >
-                        <Gamepad2 className="w-4 h-4" />
-                        <span>🎮 O'yinlar Katalogi</span>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setGamesMainViewMode("leaderboard");
-                          playClickSound();
-                        }}
-                        className={`px-4 py-2 rounded-xl text-xs font-mono font-black transition-all cursor-pointer flex items-center gap-2 ${
-                          gamesMainViewMode === "leaderboard"
-                            ? "bg-amber-500 text-slate-950 shadow-md scale-102"
-                            : "text-slate-300 hover:text-white"
-                        }`}
-                      >
-                        <Trophy className="w-4 h-4" />
-                        <span>🏆 Top Reyting</span>
-                      </button>
-                    </div>
-                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setGamesMainViewMode("leaderboard");
+                      playClickSound();
+                    }}
+                    className={`flex-1 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-mono font-black transition-all cursor-pointer flex items-center justify-center gap-2 ${
+                      gamesMainViewMode === "leaderboard"
+                        ? "bg-amber-500 text-slate-950 shadow-md scale-102"
+                        : "text-slate-300 hover:text-white"
+                    }`}
+                  >
+                    <Trophy className="w-4 h-4 shrink-0" />
+                    <span>🏆 Top Reyting</span>
+                  </button>
                 </div>
 
                 {gamesMainViewMode === "leaderboard" ? (
@@ -1515,421 +1505,166 @@ export default function App() {
                       onOpenPlayerAccount={() => setShowPlayerAccountModal(true)}
                       onOpenAdminPanel={() => setShowAdminModal(true)}
                       onToggleFullScreen={() => toggleGameFullScreen(true)}
-                      onSelectGame={(gameId, fullScreen) => {
-                        setActiveGameTab(gameId);
-                        setGamesMainViewMode("catalog");
-                        if (fullScreen) {
-                          toggleGameFullScreen(true);
-                        }
-                        const el = document.getElementById("active-game-viewport");
-                        if (el) {
-                          el.scrollIntoView({ behavior: "smooth", block: "start" });
-                        }
-                      }}
                     />
                   </div>
                 ) : (
-                  <>
-                {/* Search & Category Filter Controls */}
-                <div className={`p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl border shadow-xl backdrop-blur-md space-y-3 sm:space-y-4 ${
-                  isDarkMode ? "bg-slate-950/80 border-slate-800 text-white" : "bg-white/90 border-slate-200 text-slate-900"
-                }`}>
-                  <div className="flex flex-col md:flex-row items-center justify-between gap-3">
-                    {/* Search Input */}
-                    <div className="relative w-full md:w-80">
-                      <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                      <input
-                        type="text"
-                        placeholder="O'yin nomini qidirish..."
-                        value={gameSearchQuery}
-                        onChange={(e) => setGameSearchQuery(e.target.value)}
-                        className={`w-full pl-10 pr-8 py-2 rounded-xl sm:rounded-2xl border text-xs font-mono focus:outline-none focus:ring-2 focus:ring-amber-500/50 transition-all ${
-                          isDarkMode 
-                            ? "bg-slate-900 border-slate-800 text-white placeholder:text-slate-500" 
-                            : "bg-slate-50 border-slate-300 text-slate-900 placeholder:text-slate-400"
-                        }`}
-                      />
-                      {gameSearchQuery && (
-                        <button
-                          type="button"
-                          onClick={() => setGameSearchQuery("")}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-white"
-                        >
-                          <X className="w-3.5 h-3.5" />
-                        </button>
-                      )}
-                    </div>
+                  <div className="space-y-8">
+                    {/* ACTIVE GAME STAGE WITH DROPDOWN SELECTOR */}
+                    {(() => {
+                      const currentGameObj = ALL_GAMES.find(g => g.id === activeGameTab) || ALL_GAMES[0];
+                      const rec = highScoresMap[activeGameTab];
+                      const recScore = rec?.score ?? 0;
+                      const recHolder = rec?.holderName || "Jasur Pro";
+                      const recAvatar = rec?.holderAvatar || "🎮";
+                      const meta = ALL_GAMES_METADATA.find(m => m.id === activeGameTab);
+                      const unit = meta?.unit || "ochko";
 
-                    {/* Category Filters (Horizontal Scroll on Mobile for Cleanliness) */}
-                    <div className="flex items-center gap-1.5 overflow-x-auto w-full md:w-auto pb-1 no-scrollbar shrink-0">
-                      {[
-                        { id: "all", name: "Barchasi", icon: "🎮", count: ALL_GAMES.length },
-                        { id: "top", name: "Top & Mashhur", icon: "🔥", count: ALL_GAMES.filter(g => g.category === "top").length },
-                        { id: "action", name: "Ekshen & Tezlik", icon: "⚡", count: ALL_GAMES.filter(g => g.category === "action").length },
-                        { id: "logic", name: "Mantiq & Zukkolik", icon: "🧠", count: ALL_GAMES.filter(g => g.category === "logic").length },
-                      ].map((cat) => (
-                        <button
-                          key={cat.id}
-                          type="button"
-                          onClick={() => {
-                            setGameCategory(cat.id);
-                            playClickSound();
-                          }}
-                          className={`px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-mono font-bold transition-all cursor-pointer flex items-center gap-1.5 border shrink-0 ${
-                            gameCategory === cat.id
-                              ? "bg-amber-500 text-slate-950 border-amber-400 shadow-md scale-102"
-                              : isDarkMode
-                                ? "bg-slate-900 hover:bg-slate-800 text-slate-300 border-slate-800"
-                                : "bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200"
-                          }`}
-                        >
-                          <span className="whitespace-nowrap">{cat.icon} {cat.name}</span>
-                          <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-extrabold ${
-                            gameCategory === cat.id ? "bg-slate-950 text-amber-400" : "bg-black/10 dark:bg-white/10"
-                          }`}>
-                            {cat.count}
-                          </span>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
+                      return (
+                        <div className="space-y-4">
+                          {/* Control Bar */}
+                          <div className="flex flex-col sm:flex-row items-center justify-between bg-neutral-950 text-white p-3 sm:p-4 rounded-2xl sm:rounded-3xl shadow-2xl border border-amber-500/30 gap-3">
+                            {/* Left: Prev + Dropdown Select + Next */}
+                            <div className="flex items-center gap-2 w-full sm:w-auto">
+                              <button
+                                type="button"
+                                onClick={() => { handlePrevGame(); playClickSound(); }}
+                                className="p-2 sm:px-3 sm:py-2.5 rounded-xl bg-neutral-900 hover:bg-amber-500 hover:text-black border border-neutral-800 text-amber-400 font-mono text-xs font-bold transition-all shrink-0 cursor-pointer shadow-md active:scale-95"
+                                title="Oldingi o'yin"
+                              >
+                                <ChevronLeft className="w-4 h-4" />
+                              </button>
 
-                {/* ACTIVE GAME VIEWPORT (Main Stage) */}
-                <div id="active-game-viewport" className="space-y-4 pt-2">
-                  {/* Game Control Header Bar */}
-                  {(() => {
-                    const currentGameObj = ALL_GAMES.find(g => g.id === activeGameTab);
-                    const currentIndex = filteredGames.findIndex(g => g.id === activeGameTab);
-                    const rec = highScoresMap[activeGameTab];
-                    const recScore = rec?.score ?? 0;
-                    const recHolder = rec?.holderName || "Jasur Pro";
-                    const recAvatar = rec?.holderAvatar || "🎮";
-                    const meta = ALL_GAMES_METADATA.find(m => m.id === activeGameTab);
-                    const unit = meta?.unit || "ochko";
+                              {/* Dropdown Selector */}
+                              <div className="relative flex-1 sm:w-72">
+                                <select
+                                  value={activeGameTab}
+                                  onChange={(e) => {
+                                    setActiveGameTab(e.target.value);
+                                    playClickSound();
+                                  }}
+                                  className="w-full bg-neutral-900 text-amber-300 font-mono font-extrabold text-xs sm:text-sm py-2.5 pl-3 pr-8 rounded-xl border border-amber-500/40 focus:outline-none focus:ring-2 focus:ring-amber-400 cursor-pointer appearance-none truncate shadow-inner"
+                                >
+                                  {ALL_GAMES.map((g) => (
+                                    <option key={g.id} value={g.id} className="bg-neutral-900 text-white font-mono">
+                                      {g.emoji} {g.name} ({g.badge})
+                                    </option>
+                                  ))}
+                                </select>
+                                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2.5 text-amber-400 text-xs">
+                                  ▼
+                                </div>
+                              </div>
 
-                    return (
-                      <div className="flex flex-col md:flex-row items-center justify-between bg-neutral-950 text-white p-3 sm:p-5 rounded-2xl sm:rounded-3xl shadow-2xl border border-amber-500/30 gap-3">
-                        {/* Top row / Left section */}
-                        <div className="flex items-center justify-between w-full md:w-auto gap-2">
-                          <button
-                            type="button"
-                            onClick={() => { handlePrevGame(); playClickSound(); }}
-                            className="flex items-center gap-1.5 text-xs font-mono font-bold bg-neutral-900 hover:bg-amber-500 hover:text-black text-white px-3 py-2 rounded-xl sm:rounded-2xl transition-all cursor-pointer border border-neutral-800 active:scale-95 shadow-md"
-                            title="Oldingi o'yinga o'tish"
-                          >
-                            <ChevronLeft className="w-4 h-4 text-amber-400" />
-                            <span className="text-[11px] sm:text-xs">Oldingi</span>
-                          </button>
-
-                          <div className="flex items-center gap-2 text-center">
-                            <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-xl sm:text-2xl shadow-inner shrink-0">
-                              {currentGameObj?.emoji || "🎮"}
+                              <button
+                                type="button"
+                                onClick={() => { handleNextGame(); playClickSound(); }}
+                                className="p-2 sm:px-3 sm:py-2.5 rounded-xl bg-neutral-900 hover:bg-amber-500 hover:text-black border border-neutral-800 text-amber-400 font-mono text-xs font-bold transition-all shrink-0 cursor-pointer shadow-md active:scale-95"
+                                title="Keyingi o'yin"
+                              >
+                                <ChevronRight className="w-4 h-4" />
+                              </button>
                             </div>
-                            <div className="text-left">
-                              <div className="text-xs sm:text-base font-mono font-black text-amber-400 uppercase tracking-wide flex items-center gap-1.5">
-                                <span className="truncate max-w-[120px] sm:max-w-none">{currentGameObj ? currentGameObj.name : "O'yin"}</span>
-                                <span className="text-[9px] sm:text-[10px] px-2 py-0.2 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 shrink-0">
-                                  {currentGameObj?.badge}
+
+                            {/* Right: Record & Fullscreen Controls */}
+                            <div className="flex items-center justify-between sm:justify-end w-full sm:w-auto gap-3 text-xs font-mono">
+                              <div className="flex items-center gap-1.5 text-amber-400 font-bold bg-amber-500/10 px-3 py-1.5 rounded-xl border border-amber-500/20 truncate">
+                                <Trophy className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                                <span className="truncate">
+                                  Rekord: <strong>{recScore > 0 ? `${recScore.toLocaleString()} ${unit}` : "Yo'q"}</strong> ({recAvatar} {recHolder})
                                 </span>
                               </div>
+
+                              <button
+                                type="button"
+                                onClick={() => toggleGameFullScreen()}
+                                className="px-3 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-mono text-xs font-black flex items-center gap-1.5 transition-all cursor-pointer shrink-0 shadow-lg shadow-amber-500/20 active:scale-95"
+                              >
+                                {isGameFullScreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+                                <span className="hidden sm:inline">{isGameFullScreen ? "Kichiklashtirish" : "Butun ekran"}</span>
+                              </button>
                             </div>
                           </div>
 
-                          <button
-                            type="button"
-                            onClick={() => { handleNextGame(); playClickSound(); }}
-                            className="flex items-center gap-1.5 text-xs font-mono font-bold bg-amber-500 text-black hover:bg-amber-400 px-3 py-2 rounded-xl sm:rounded-2xl transition-all cursor-pointer shadow-lg shadow-amber-500/20 active:scale-95 md:hidden"
-                            title="Keyingi o'yinga o'tish"
+                          {/* Active Game Canvas */}
+                          <div 
+                            ref={gameContainerRef}
+                            className={
+                              isGameFullScreen 
+                                ? "fixed inset-0 z-[99999] bg-slate-950 p-3 sm:p-8 overflow-y-auto flex flex-col items-center justify-center min-h-screen"
+                                : "w-full relative py-1"
+                            }
                           >
-                            <span className="text-[11px]">Keyingi</span>
-                            <ChevronRight className="w-4 h-4 text-black" />
-                          </button>
-                        </div>
+                            {isGameFullScreen && (
+                              <button
+                                type="button"
+                                onClick={() => toggleGameFullScreen(false)}
+                                className="fixed top-4 right-4 z-[100000] px-3.5 py-2 bg-neutral-900/90 hover:bg-neutral-800 text-amber-400 border border-amber-500/40 rounded-xl text-xs font-mono font-black flex items-center gap-2 shadow-2xl backdrop-blur-md cursor-pointer transition-all active:scale-95"
+                              >
+                                <Minimize2 className="w-4 h-4" />
+                                <span>Chiqish (ESC)</span>
+                              </button>
+                            )}
 
-                        {/* Record Banner & Extra Controls */}
-                        <div className="flex items-center justify-between md:justify-end w-full md:w-auto gap-2 pt-2 md:pt-0 border-t border-neutral-800 md:border-none">
-                          <div className="text-[11px] sm:text-xs font-mono text-slate-300 flex items-center gap-2 flex-wrap">
-                            <span className="text-amber-400 font-bold flex items-center gap-1">
-                              <Trophy className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                              Rekord: <strong className="text-white font-extrabold">{recScore > 0 ? `${recScore.toLocaleString()} ${unit}` : "O'rnatilmagan"}</strong>
-                            </span>
-                            <span className="text-slate-600 hidden sm:inline">•</span>
-                            <span className="text-emerald-400 font-bold flex items-center gap-1">
-                              <span>{recAvatar}</span>
-                              <span className="truncate max-w-[100px] sm:max-w-none">{recHolder}</span>
-                            </span>
+                            <AnimatePresence mode="wait">
+                              <motion.div
+                                key={activeGameTab}
+                                initial={{ opacity: 0, y: 15, scale: 0.97 }}
+                                animate={{ opacity: 1, y: 0, scale: 1 }}
+                                exit={{ opacity: 0, y: -15, scale: 0.97 }}
+                                transition={{ duration: 0.25 }}
+                                className={isGameFullScreen ? "w-full max-w-4xl mx-auto my-auto" : "max-w-2xl mx-auto"}
+                              >
+                                {activeGameTab === "bubbleshooter" && <BubbleShooterGame className="w-full shadow-2xl" />}
+                                {activeGameTab === "spaceinvaders" && <SpaceInvadersGame className="w-full shadow-2xl" />}
+                                {activeGameTab === "typingracer" && <TypingSpeedRacerGame className="w-full shadow-2xl" />}
+                                {activeGameTab === "sudoku" && <SudokuMiniGame className="w-full shadow-2xl" />}
+                                {activeGameTab === "helixjump" && <HelixJumpGame className="w-full shadow-2xl" />}
+                                {activeGameTab === "aimtrainer" && <AimTrainerGame className="w-full shadow-2xl" />}
+                                {activeGameTab === "mazerunner" && <MazeRunnerGame className="w-full shadow-2xl" />}
+                                {activeGameTab === "patternmemory" && <PatternMemoryGame className="w-full shadow-2xl" />}
+                                {activeGameTab === "doodlejump" && <DoodleJumpGame className="w-full shadow-2xl" />}
+                                {activeGameTab === "numbermerge" && <NumberMergeChainGame className="w-full shadow-2xl" />}
+                                {activeGameTab === "tetris" && <TetrisGame className="w-full shadow-2xl" />}
+                                {activeGameTab === "whackamole" && <WhackAMoleGame className="w-full shadow-2xl" />}
+                                {activeGameTab === "simonsays" && <SimonSaysGame className="w-full shadow-2xl" />}
+                                {activeGameTab === "wordscramble" && <WordScrambleGame className="w-full shadow-2xl" />}
+                                {activeGameTab === "speedtyping" && <SpeedTypingGame className="w-full shadow-2xl" />}
+                                {activeGameTab === "gravityrunner" && <GravityRunnerGame className="w-full shadow-2xl" />}
+                                {activeGameTab === "connectfour" && <ConnectFourGame className="w-full shadow-2xl" />}
+                                {activeGameTab === "knifehit" && <KnifeHitGame className="w-full shadow-2xl" />}
+                                {activeGameTab === "fruitninja" && <FruitNinjaGame className="w-full shadow-2xl" />}
+                                {activeGameTab === "archery" && <ArcheryShooterGame className="w-full shadow-2xl" />}
+                                {activeGameTab === "towerstack" && <TowerStackGame className="w-full shadow-2xl" />}
+                                {activeGameTab === "tile2048" && <Tile2048Game className="w-full shadow-2xl" />}
+                                {activeGameTab === "brick" && <BrickBreakerGame className="w-full shadow-2xl" />}
+                                {activeGameTab === "sniper" && <SniperGame className="w-full shadow-2xl" />}
+                                {activeGameTab === "colorrush" && <ColorRushGame className="w-full shadow-2xl" />}
+                                {activeGameTab === "minesweeper" && <MinesweeperGame className="w-full shadow-2xl" />}
+                                {activeGameTab === "fastmath" && <FastMathGame className="w-full shadow-2xl" />}
+                                {activeGameTab === "tictactoe" && <TicTacToeGame isDarkMode={isDarkMode} className="w-full shadow-2xl" />}
+                                {activeGameTab === "snake" && <SnakeGame className="w-full shadow-2xl" />}
+                                {activeGameTab === "flappy" && <FlappyBirdGame className="w-full shadow-2xl" />}
+                                {activeGameTab === "pingpong" && <PingPongGame className="w-full shadow-2xl" />}
+                                {activeGameTab === "memory" && <MemoryMatchGame className="w-full shadow-2xl" />}
+                                {activeGameTab === "spaceshooter" && <SpaceShooter className="w-full shadow-2xl" />}
+                                {activeGameTab === "dino" && <DinoGame className="w-full shadow-2xl bg-white border border-neutral-200" />}
+                              </motion.div>
+                            </AnimatePresence>
                           </div>
-
-                          <div className="flex items-center gap-2 shrink-0">
-                            <button
-                              type="button"
-                              onClick={() => toggleGameFullScreen()}
-                              className="flex items-center gap-1.5 text-xs font-mono font-bold bg-amber-500/15 hover:bg-amber-500 hover:text-black text-amber-400 px-3 py-1.5 sm:px-4 sm:py-2.5 rounded-xl sm:rounded-2xl transition-all cursor-pointer border border-amber-500/30 active:scale-95 shadow-md"
-                              title="O'yinni butun ekranda o'ynash"
-                            >
-                              {isGameFullScreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
-                              <span className="hidden sm:inline">{isGameFullScreen ? "Kichiklashtirish" : "Butun ekran"}</span>
-                            </button>
-
-                            <button
-                              type="button"
-                              onClick={() => { handleNextGame(); playClickSound(); }}
-                              className="hidden md:flex items-center gap-2 text-xs font-mono font-bold bg-amber-500 text-black hover:bg-amber-400 px-4 py-2.5 rounded-2xl transition-all cursor-pointer shadow-lg shadow-amber-500/20 active:scale-95"
-                              title="Keyingi o'yinga o'tish"
-                            >
-                              <span>Keyingi o'yin</span>
-                              <ChevronRight className="w-4 h-4 text-black" />
-                            </button>
-                          </div>
                         </div>
-                      </div>
-                    );
-                  })()}
+                      );
+                    })()}
 
-                  {/* Active Game Stage Component */}
-                  <div 
-                    ref={gameContainerRef}
-                    className={
-                      isGameFullScreen 
-                        ? "fixed inset-0 z-[99999] bg-slate-950 p-3 sm:p-8 overflow-y-auto flex flex-col items-center justify-center min-h-screen"
-                        : "w-full relative py-1"
-                    }
-                  >
-                    {!isGameFullScreen && (
-                      <div className="hidden sm:block absolute inset-0 bg-gradient-to-tr from-amber-500/10 via-purple-500/5 to-cyan-500/10 rounded-3xl pointer-events-none -z-10" />
-                    )}
-
-                    {isGameFullScreen && (
-                      <button
-                        type="button"
-                        onClick={() => toggleGameFullScreen(false)}
-                        className="fixed top-4 right-4 z-[100000] px-3.5 py-2 bg-neutral-900/90 hover:bg-neutral-800 text-amber-400 border border-amber-500/40 rounded-xl text-xs font-mono font-black flex items-center gap-2 shadow-2xl backdrop-blur-md cursor-pointer transition-all active:scale-95"
-                        title="Butun ekrandan chiqish"
-                      >
-                        <Minimize2 className="w-4 h-4" />
-                        <span>Chiqish (ESC)</span>
-                      </button>
-                    )}
-
-                    <AnimatePresence mode="wait">
-                      <motion.div
-                        key={activeGameTab}
-                        initial={{ opacity: 0, y: 15, scale: 0.97 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: -15, scale: 0.97 }}
-                        transition={{ duration: 0.25 }}
-                        className={isGameFullScreen ? "w-full max-w-4xl mx-auto my-auto" : "max-w-2xl mx-auto"}
-                      >
-                        {activeGameTab === "bubbleshooter" && <BubbleShooterGame className="w-full shadow-2xl" />}
-                        {activeGameTab === "spaceinvaders" && <SpaceInvadersGame className="w-full shadow-2xl" />}
-                        {activeGameTab === "typingracer" && <TypingSpeedRacerGame className="w-full shadow-2xl" />}
-                        {activeGameTab === "sudoku" && <SudokuMiniGame className="w-full shadow-2xl" />}
-                        {activeGameTab === "helixjump" && <HelixJumpGame className="w-full shadow-2xl" />}
-                        {activeGameTab === "aimtrainer" && <AimTrainerGame className="w-full shadow-2xl" />}
-                        {activeGameTab === "mazerunner" && <MazeRunnerGame className="w-full shadow-2xl" />}
-                        {activeGameTab === "patternmemory" && <PatternMemoryGame className="w-full shadow-2xl" />}
-                        {activeGameTab === "doodlejump" && <DoodleJumpGame className="w-full shadow-2xl" />}
-                        {activeGameTab === "numbermerge" && <NumberMergeChainGame className="w-full shadow-2xl" />}
-                        {activeGameTab === "tetris" && <TetrisGame className="w-full shadow-2xl" />}
-                        {activeGameTab === "whackamole" && <WhackAMoleGame className="w-full shadow-2xl" />}
-                        {activeGameTab === "simonsays" && <SimonSaysGame className="w-full shadow-2xl" />}
-                        {activeGameTab === "wordscramble" && <WordScrambleGame className="w-full shadow-2xl" />}
-                        {activeGameTab === "speedtyping" && <SpeedTypingGame className="w-full shadow-2xl" />}
-                        {activeGameTab === "gravityrunner" && <GravityRunnerGame className="w-full shadow-2xl" />}
-                        {activeGameTab === "connectfour" && <ConnectFourGame className="w-full shadow-2xl" />}
-                        {activeGameTab === "knifehit" && <KnifeHitGame className="w-full shadow-2xl" />}
-                        {activeGameTab === "fruitninja" && <FruitNinjaGame className="w-full shadow-2xl" />}
-                        {activeGameTab === "archery" && <ArcheryShooterGame className="w-full shadow-2xl" />}
-                        {activeGameTab === "towerstack" && <TowerStackGame className="w-full shadow-2xl" />}
-                        {activeGameTab === "tile2048" && <Tile2048Game className="w-full shadow-2xl" />}
-                        {activeGameTab === "brick" && <BrickBreakerGame className="w-full shadow-2xl" />}
-                        {activeGameTab === "sniper" && <SniperGame className="w-full shadow-2xl" />}
-                        {activeGameTab === "colorrush" && <ColorRushGame className="w-full shadow-2xl" />}
-                        {activeGameTab === "minesweeper" && <MinesweeperGame className="w-full shadow-2xl" />}
-                        {activeGameTab === "fastmath" && <FastMathGame className="w-full shadow-2xl" />}
-                        {activeGameTab === "tictactoe" && <TicTacToeGame isDarkMode={isDarkMode} className="w-full shadow-2xl" />}
-                        {activeGameTab === "snake" && <SnakeGame className="w-full shadow-2xl" />}
-                        {activeGameTab === "flappy" && <FlappyBirdGame className="w-full shadow-2xl" />}
-                        {activeGameTab === "pingpong" && <PingPongGame className="w-full shadow-2xl" />}
-                        {activeGameTab === "memory" && <MemoryMatchGame className="w-full shadow-2xl" />}
-                        {activeGameTab === "spaceshooter" && <SpaceShooter className="w-full shadow-2xl" />}
-                        {activeGameTab === "dino" && <DinoGame className="w-full shadow-2xl bg-white border border-neutral-200" />}
-                      </motion.div>
-                    </AnimatePresence>
-                  </div>
-                </div>
-
-                {/* GAME CATALOG GRID */}
-                <div className="space-y-4 pt-6">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3 gap-2">
-                    <div className="flex items-center gap-2">
-                      <Gamepad2 className="w-5 h-5 text-amber-500" />
-                      <h3 className={`font-mono font-bold text-base sm:text-lg ${isDarkMode ? "text-white" : "text-slate-900"}`}>
-                        O'yinlar Kartochkalari va Rekordchilari ({filteredGames.length})
-                      </h3>
-                    </div>
-                    <div className="text-xs font-mono text-amber-500/90 font-semibold flex items-center gap-1">
-                      <Sparkles className="w-3.5 h-3.5" /> O'yinni tanlash uchun kartasiga bosing
+                    {/* TOP LEADERBOARD TABLE */}
+                    <div className="pt-4">
+                      <GamesLeaderboard
+                        isDarkMode={isDarkMode}
+                        onOpenPlayerAccount={() => setShowPlayerAccountModal(true)}
+                        onOpenAdminPanel={() => setShowAdminModal(true)}
+                        onToggleFullScreen={() => toggleGameFullScreen(true)}
+                      />
                     </div>
                   </div>
-
-                  {filteredGames.length === 0 ? (
-                    <div className="text-center py-12 space-y-3">
-                      <div className="text-4xl">🔍</div>
-                      <p className="font-mono text-sm text-slate-400">
-                        "{gameSearchQuery}" so'rovi bo'yicha hech qanday o'yin topilmadi
-                      </p>
-                      <button
-                        type="button"
-                        onClick={() => { setGameSearchQuery(""); setGameCategory("all"); }}
-                        className="px-4 py-2 rounded-xl bg-amber-500 text-slate-950 font-mono font-bold text-xs"
-                      >
-                        Barcha o'yinlarni ko'rsatish
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-5">
-                      {filteredGames.map((game) => {
-                        const isActive = activeGameTab === game.id;
-                        const rec = highScoresMap[game.id];
-                        const recScore = rec?.score ?? 0;
-                        const recHolder = rec?.holderName || "Jasur Pro";
-                        const recAvatar = rec?.holderAvatar || "🎮";
-                        const meta = ALL_GAMES_METADATA.find(m => m.id === game.id);
-                        const unit = meta?.unit || "ochko";
-
-                        return (
-                          <div
-                            key={game.id}
-                            onClick={() => {
-                              setActiveGameTab(game.id);
-                              playClickSound();
-                              const el = document.getElementById("active-game-viewport");
-                              if (el) {
-                                el.scrollIntoView({ behavior: "smooth", block: "start" });
-                              }
-                            }}
-                            className={`group relative rounded-2xl sm:rounded-3xl p-3 sm:p-5 border transition-all duration-200 cursor-pointer overflow-hidden flex flex-col justify-between space-y-2 sm:space-y-4 hover:-translate-y-1 active:scale-95 gpu-accelerated ${
-                              isActive
-                                ? "bg-slate-950 border-amber-400 text-white shadow-xl shadow-amber-500/20 ring-2 ring-amber-400/80"
-                                : isDarkMode
-                                  ? "bg-slate-900/90 border-slate-800 text-white hover:border-amber-500/60 hover:bg-slate-800/95 shadow-md"
-                                  : "bg-white border-slate-200 text-slate-900 hover:border-amber-400 hover:shadow-lg shadow-sm"
-                            }`}
-                          >
-                              {/* Top glowing accent line for active card */}
-                              {isActive && (
-                                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500" />
-                              )}
-
-                              <div className="space-y-2 sm:space-y-3">
-                                {/* Header: Emoji Icon + Category Badge */}
-                                <div className="flex items-center justify-between gap-1.5">
-                                  <div className={`w-9 h-9 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl flex items-center justify-center text-xl sm:text-2xl shadow-inner transition-transform group-hover:scale-105 shrink-0 ${
-                                    isActive
-                                      ? "bg-gradient-to-tr from-amber-500 to-yellow-300 text-black font-black"
-                                      : isDarkMode
-                                        ? "bg-slate-800 border border-slate-700 text-slate-200"
-                                        : "bg-slate-100 border border-slate-200 text-slate-800"
-                                  }`}>
-                                    {game.emoji}
-                                  </div>
-
-                                  <span className={`text-[8px] sm:text-[10px] px-2 py-0.5 sm:px-3 sm:py-1 rounded-full font-mono font-black uppercase tracking-wider shrink-0 ${
-                                    isActive
-                                      ? "bg-amber-400/20 text-amber-300 border border-amber-400/40"
-                                      : "bg-neutral-200 dark:bg-slate-800 text-neutral-700 dark:text-slate-300 border border-neutral-300 dark:border-slate-700"
-                                  }`}>
-                                    {game.badge}
-                                  </span>
-                                </div>
-
-                                {/* Game Title & Description */}
-                                <div>
-                                  <h3 className={`font-mono font-black text-xs sm:text-base leading-snug line-clamp-1 mb-1 transition-colors ${
-                                    isActive ? "text-amber-400" : "group-hover:text-amber-500"
-                                  }`}>
-                                    {game.name}
-                                  </h3>
-                                  <p className={`hidden sm:block text-xs line-clamp-2 leading-relaxed ${
-                                    isActive 
-                                      ? "text-slate-300" 
-                                      : isDarkMode 
-                                        ? "text-slate-400" 
-                                        : "text-slate-600"
-                                  }`}>
-                                    {game.desc}
-                                  </p>
-                                </div>
-
-                                {/* Prominent Record Holder Box */}
-                                <div className={`p-2 sm:p-3 rounded-xl sm:rounded-2xl border text-[10px] sm:text-xs font-mono space-y-1 ${
-                                  isActive
-                                    ? "bg-amber-500/10 border-amber-500/30 text-amber-200"
-                                    : isDarkMode
-                                      ? "bg-slate-950/80 border-slate-800 text-slate-300"
-                                      : "bg-slate-50 border-slate-200/80 text-slate-700"
-                                }`}>
-                                  <div className="flex items-center justify-between font-bold">
-                                    <span className="flex items-center gap-1 text-amber-400 text-[9px] sm:text-[11px]">
-                                      <Trophy className="w-3 h-3 text-amber-400" /> REKORD:
-                                    </span>
-                                    <span className="font-extrabold text-amber-400 text-[10px] sm:text-xs truncate">
-                                      {recScore > 0 ? `${recScore.toLocaleString()} ${unit}` : "Yo'q"}
-                                    </span>
-                                  </div>
-                                  <div className="flex items-center justify-between pt-1 border-t border-slate-200/20 dark:border-slate-800/60 text-[9px] sm:text-[11px]">
-                                    <span className="text-slate-400">Rekordchi:</span>
-                                    <span className="font-bold flex items-center gap-1 text-emerald-400 dark:text-emerald-300">
-                                      <span>{recAvatar}</span>
-                                      <span className="truncate max-w-[70px] sm:max-w-[120px]">{recHolder}</span>
-                                    </span>
-                                  </div>
-                                </div>
-                              </div>
-
-                              {/* Bottom Footer Action */}
-                              <div className="pt-2 sm:pt-3 border-t border-slate-200/20 dark:border-slate-800/80 flex items-center justify-between text-[10px] sm:text-xs font-mono font-bold">
-                                {isActive ? (
-                                  <span className="inline-flex items-center gap-1.5 text-amber-400 font-black">
-                                    <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
-                                    <span>O'ynalmoqda</span>
-                                  </span>
-                                ) : (
-                                  <span className="text-slate-400 group-hover:text-amber-400 transition-colors flex items-center gap-1 font-bold">
-                                    <span>O'ynash</span>
-                                    <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform text-amber-400" />
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                          );
-                        })}
-                    </div>
-                  )}
-                </div>
-
-                {/* High Scores Leaderboard Table */}
-                <div className="pt-6">
-                  <GamesLeaderboard
-                    isDarkMode={isDarkMode}
-                    onOpenPlayerAccount={() => setShowPlayerAccountModal(true)}
-                    onOpenAdminPanel={() => setShowAdminModal(true)}
-                    onToggleFullScreen={() => toggleGameFullScreen(true)}
-                    onSelectGame={(gameId, fullScreen) => {
-                      setActiveGameTab(gameId);
-                      if (fullScreen) {
-                        toggleGameFullScreen(true);
-                      }
-                      const el = document.getElementById("active-game-viewport");
-                      if (el) {
-                        el.scrollIntoView({ behavior: "smooth", block: "start" });
-                      }
-                    }}
-                  />
-                </div>
-                  </>
                 )}
               </GamesAuthGate>
             </motion.section>

@@ -67,7 +67,7 @@ export default function GamesAuthGate({
 
   const [errorMsg, setErrorMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
-  const [isBypassedGuest, setIsBypassedGuest] = useState(false);
+  const [isBypassedGuest, setIsBypassedGuest] = useState(true);
 
   const refreshAccount = () => {
     const cur = getCurrentPlayerAccount();
@@ -573,66 +573,68 @@ export default function GamesAuthGate({
   // Logged-in Header Bar for Games Arena
   return (
     <div className="space-y-6">
-      <div className={`p-4 rounded-2xl border flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl ${
+      <div className={`p-3 sm:p-4 rounded-2xl sm:rounded-3xl border flex flex-col sm:flex-row items-center justify-between gap-3 shadow-xl ${
         isDarkMode 
-          ? "bg-slate-950/80 border-amber-500/30 text-white" 
+          ? "bg-slate-950/90 border-amber-500/30 text-white" 
           : "bg-white border-amber-300 text-neutral-900"
       }`}>
-        <div className="flex items-center gap-3">
-          <div className="w-11 h-11 rounded-2xl bg-amber-500/20 border border-amber-500/40 text-2xl flex items-center justify-center shrink-0">
+        <div className="flex items-center gap-2.5 sm:gap-3 w-full sm:w-auto">
+          <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-amber-500/20 border border-amber-500/40 text-xl sm:text-2xl flex items-center justify-center shrink-0">
             {account.avatarEmoji || "🎮"}
           </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className={`font-mono font-black text-sm flex items-center gap-1.5 ${
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className={`font-mono font-black text-xs sm:text-sm flex items-center gap-1.5 truncate ${
                 isDarkMode ? "text-white" : "text-slate-900"
               }`}>
                 {account.username}
-                {account.authMethod === "google" && <Chrome className="w-3.5 h-3.5 text-rose-500" />}
+                {account.authMethod === "google" && <Chrome className="w-3.5 h-3.5 text-rose-500 shrink-0" />}
               </span>
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 font-bold font-mono">
-                FAOL AKOUNT
+              <span className="text-[9px] sm:text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 font-bold font-mono shrink-0">
+                {account.authMethod === "guest" ? "MEHMON O'YINCHI" : "FAOL AKOUNT"}
               </span>
             </div>
-            <p className="text-xs text-amber-600 dark:text-amber-400 font-mono font-bold mt-0.5">
-              Lvl {account.level} // {account.badge} ({account.xp} XP)
+            <p className="text-[11px] sm:text-xs text-amber-600 dark:text-amber-400 font-mono font-bold mt-0.5 truncate">
+              Lvl {account.level || 1} // {account.badge || "O'yinchi"} ({account.xp || 0} XP)
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 w-full sm:w-auto">
+        <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
           {onOpenAdminPanel && (localStorage.getItem("anvar_admin_logged_in") === "true" || account.username.toLowerCase().includes("admin")) && (
             <button
               type="button"
               onClick={onOpenAdminPanel}
-              className="px-3 py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-700 dark:text-amber-300 border border-amber-500/40 text-xs font-mono font-bold flex items-center gap-1.5 cursor-pointer"
+              className="px-3 py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-700 dark:text-amber-300 border border-amber-500/40 text-xs font-mono font-bold flex items-center gap-1.5 cursor-pointer shrink-0"
             >
               <ShieldCheck className="w-3.5 h-3.5 text-amber-500" />
-              <span>Admin Panel</span>
+              <span className="hidden xs:inline">Admin</span>
             </button>
           )}
 
           <button
             type="button"
             onClick={() => onOpenPlayerAccountModal?.()}
-            className={`flex-1 sm:flex-initial px-3.5 py-2 rounded-xl border text-xs font-mono font-bold flex items-center justify-center gap-1.5 cursor-pointer transition-colors ${
+            className={`flex-1 sm:flex-initial px-3 sm:px-4 py-2 rounded-xl border text-xs font-mono font-bold flex items-center justify-center gap-1.5 cursor-pointer transition-colors ${
               isDarkMode
-                ? "bg-slate-800 hover:bg-slate-700 text-white border-slate-700"
-                : "bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-300"
+                ? "bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border-amber-500/30"
+                : "bg-amber-500 text-slate-950 border-amber-400 shadow-sm"
             }`}
           >
-            <Edit3 className="w-3.5 h-3.5 text-amber-500" />
-            <span>Profil Sozlamalari</span>
+            <Edit3 className="w-3.5 h-3.5" />
+            <span>{account.authMethod === "guest" ? "Kirish / Registratsiya" : "Profil"}</span>
           </button>
 
-          <button
-            onClick={handleLogout}
-            className="px-3.5 py-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 text-xs font-mono font-bold flex items-center justify-center gap-1.5 cursor-pointer"
-            title="Akauntdan chiqish"
-          >
-            <LogOut className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Chiqish</span>
-          </button>
+          {account.authMethod !== "guest" && (
+            <button
+              onClick={handleLogout}
+              className="px-3 py-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 text-xs font-mono font-bold flex items-center justify-center gap-1.5 cursor-pointer shrink-0"
+              title="Akauntdan chiqish"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              <span className="hidden xs:inline">Chiqish</span>
+            </button>
+          )}
         </div>
       </div>
 
