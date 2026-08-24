@@ -44,6 +44,7 @@ async function startServer() {
   const DATA_DIR = path.join(process.cwd(), "data");
   const BUNDLE_FILE = path.join(DATA_DIR, "inbox_bundle.json");
   const CONFIG_FILE = path.join(DATA_DIR, "site_config.json");
+  const HIGHSCORES_FILE = path.join(DATA_DIR, "game_highscores.json");
 
   function ensureDataDir() {
     if (!fs.existsSync(DATA_DIR)) {
@@ -128,7 +129,33 @@ async function startServer() {
     }
   }
 
+  function loadGameHighScores(): Record<string, any> {
+    try {
+      ensureDataDir();
+      if (fs.existsSync(HIGHSCORES_FILE)) {
+        const fileData = fs.readFileSync(HIGHSCORES_FILE, "utf-8");
+        const parsed = JSON.parse(fileData);
+        if (parsed && typeof parsed === "object") {
+          return parsed;
+        }
+      }
+    } catch (err) {
+      console.error("Game high scores faylini o'qishda xatolik:", err);
+    }
+    return {};
+  }
+
+  function saveGameHighScores(scores: Record<string, any>) {
+    try {
+      ensureDataDir();
+      fs.writeFileSync(HIGHSCORES_FILE, JSON.stringify(scores, null, 2), "utf-8");
+    } catch (err) {
+      console.error("Game high scores faylini saqlashda xatolik:", err);
+    }
+  }
+
   let serverSiteConfig = loadSiteConfig();
+  let serverHighScores = loadGameHighScores();
 
   // API endpoint: Get global site config & custom projects across all devices
   app.get("/api/config", (_req, res) => {
@@ -156,6 +183,26 @@ async function startServer() {
       }
     } catch (err) {
       res.status(500).json({ error: "Config saqlashda xatolik." });
+    }
+  });
+
+  app.get("/api/highscores", (_req, res) => {
+    res.json({ scores: serverHighScores });
+  });
+
+  app.post("/api/highscores/save", (req, res) => {
+    try {
+      const { scores } = req.body;
+      if (scores && typeof scores === "object") {
+        serverHighScores = scores;
+        saveGameHighScores(serverHighScores);
+        addLog("SUCCESS", `O'yinlar reytingi serverdiskga saqlandi: ${Object.keys(serverHighScores).length} ta rekord.`);
+        res.json({ success: true, scores: serverHighScores });
+      } else {
+        res.status(400).json({ error: "Yaroqsiz high scores formati." });
+      }
+    } catch (err) {
+      res.status(500).json({ error: "Reytingni saqlashda xatolik." });
     }
   });
 
@@ -290,6 +337,16 @@ async function startServer() {
       status: "ONLINE",
       dbStatus: "HEALTHY (Disk Bundler Active)",
       apiLatency: Math.floor(Math.random() * 15 + 10) + "ms"
+    });
+  });
+
+  // Lightweight healthcheck for process managers and uptime monitors
+  app.get("/health", (_req, res) => {
+    res.json({
+      status: "ok",
+      uptimeSeconds: Math.floor(process.uptime()),
+      aiConfigured: !!process.env.GEMINI_API_KEY,
+      time: new Date().toISOString()
     });
   });
 
@@ -525,4 +582,20 @@ QOIDALAR:
   });
 }
 
-startServer();
+// Global error handlers to ensure process exits on fatal errors
+process.on("uncaughtException", (err) => {
+  console.error("Uncaught Exception:", err);
+  // allow a process manager to restart the app
+  process.exit(1);
+});
+
+process.on("unhandledRejection", (reason) => {
+  console.error("Unhandled Rejection:", reason);
+  // allow a process manager to restart the app
+  process.exit(1);
+});
+
+startServer().catch((err) => {
+  console.error("Failed to start server:", err);
+  process.exit(1);
+});

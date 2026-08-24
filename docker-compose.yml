@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  anvar-portfolio:
+    build: .
+    image: anvar-portfolio:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+    volumes:
+      - ./data:/app/data
+    restart: unless-stopped
