@@ -154,9 +154,6 @@ export default function SnakeGame({ className = "" }: SnakeProps) {
         setScore(engine.score);
         if (engine.score > highScore) {
           setHighScore(engine.score);
-          saveGameHighScore("snake", engine.score);
-        } else {
-          saveGameHighScore("snake", engine.score);
         }
         playBeep(600, "sine");
         spawnFood();
@@ -165,9 +162,6 @@ export default function SnakeGame({ className = "" }: SnakeProps) {
         setScore(engine.score);
         if (engine.score > highScore) {
           setHighScore(engine.score);
-          saveGameHighScore("snake", engine.score);
-        } else {
-          saveGameHighScore("snake", engine.score);
         }
         engine.goldenFood.active = false;
         playBeep(880, "triangle");
@@ -223,16 +217,33 @@ export default function SnakeGame({ className = "" }: SnakeProps) {
     return () => clearInterval(interval);
   }, [gameState, highScore]);
 
+  const changeDirection = (dir: "up" | "down" | "left" | "right") => {
+    const engine = gameEngineRef.current;
+    if (dir === "up" && engine.dy !== 1) {
+      engine.nextDx = 0;
+      engine.nextDy = -1;
+    } else if (dir === "down" && engine.dy !== -1) {
+      engine.nextDx = 0;
+      engine.nextDy = 1;
+    } else if (dir === "left" && engine.dx !== 1) {
+      engine.nextDx = -1;
+      engine.nextDy = 0;
+    } else if (dir === "right" && engine.dx !== -1) {
+      engine.nextDx = 1;
+      engine.nextDy = 0;
+    }
+  };
+
   return (
-    <div className={`bg-slate-950 rounded-3xl border border-slate-800 p-5 text-white shadow-2xl flex flex-col justify-between ${className}`}>
+    <div className={`bg-slate-950 rounded-3xl border border-slate-800 p-3.5 sm:p-5 text-white shadow-2xl flex flex-col justify-between w-full max-w-full ${className}`}>
       {/* Header */}
       <div className="flex items-center justify-between pb-3 border-b border-slate-800">
         <div className="flex items-center gap-2">
-          <Sparkles className="w-5 h-5 text-emerald-400 animate-pulse" />
-          <span className="font-mono text-xs font-black uppercase tracking-wider text-emerald-400">CLASSIC CYBER SNAKE</span>
+          <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-400 animate-pulse" />
+          <span className="font-mono text-xs font-black uppercase tracking-wider text-emerald-400">CYBER SNAKE</span>
         </div>
-        <div className="flex items-center gap-3 font-mono text-xs">
-          <span className="text-slate-400">Ochko: <strong className="text-white">{score}</strong></span>
+        <div className="flex items-center gap-2.5 font-mono text-xs">
+          <span className="text-slate-400">Ball: <strong className="text-white">{score}</strong></span>
           <span className="text-amber-400 flex items-center gap-1"><Trophy className="w-3.5 h-3.5" /> {highScore}</span>
           <button onClick={() => setSoundEnabled(!soundEnabled)} className="text-slate-400 hover:text-white">
             {soundEnabled ? <Volume2 className="w-4 h-4 text-emerald-400" /> : <VolumeX className="w-4 h-4 text-slate-500" />}
@@ -241,16 +252,16 @@ export default function SnakeGame({ className = "" }: SnakeProps) {
       </div>
 
       {/* Canvas Screen */}
-      <div className="relative aspect-square w-full max-w-[360px] mx-auto bg-slate-900 rounded-2xl overflow-hidden my-3 border border-slate-800 flex items-center justify-center">
-        <canvas ref={canvasRef} width={320} height={320} className="w-full h-full block" />
+      <div className="relative aspect-square w-full max-w-[340px] sm:max-w-[360px] mx-auto bg-slate-900 rounded-2xl overflow-hidden my-3 border border-slate-800 flex items-center justify-center">
+        <canvas ref={canvasRef} width={320} height={320} className="w-full h-full block touch-none" />
 
         {gameState === "menu" && (
           <div className="absolute inset-0 bg-slate-950/90 backdrop-blur flex flex-col items-center justify-center p-6 text-center space-y-4">
-            <h4 className="font-serif text-2xl font-light text-emerald-400 uppercase tracking-wider">CYBER SNAKE 2077</h4>
-            <p className="text-xs text-slate-400 font-mono">WASD yoki Klaviatura strelkalari bilan ilonni boshqaring!</p>
+            <h4 className="font-serif text-2xl font-light text-emerald-400 uppercase tracking-wider">CYBER SNAKE</h4>
+            <p className="text-xs text-slate-400 font-mono">WASD, Strelkalar yoki ekrandagi sensor tugmalar bilan boshqaring!</p>
             <button
               onClick={startGame}
-              className="px-6 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-black font-mono font-black text-xs uppercase tracking-widest rounded-full flex items-center gap-2 cursor-pointer shadow-lg"
+              className="px-6 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-black font-mono font-black text-xs uppercase tracking-widest rounded-full flex items-center gap-2 cursor-pointer shadow-lg active:scale-95"
             >
               <Play className="w-4 h-4 fill-black" /> O'yinni Boshlash
             </button>
@@ -268,9 +279,47 @@ export default function SnakeGame({ className = "" }: SnakeProps) {
         )}
       </div>
 
+      {/* Mobile Touch D-Pad Controls */}
+      <div className="flex flex-col items-center gap-1.5 py-1">
+        <button
+          type="button"
+          onClick={() => changeDirection("up")}
+          className="w-12 h-11 bg-slate-800/80 hover:bg-emerald-500 hover:text-black active:bg-emerald-400 text-white rounded-xl font-bold flex items-center justify-center shadow transition-all border border-slate-700"
+          aria-label="Yuqoriga"
+        >
+          ▲
+        </button>
+        <div className="flex items-center gap-6">
+          <button
+            type="button"
+            onClick={() => changeDirection("left")}
+            className="w-12 h-11 bg-slate-800/80 hover:bg-emerald-500 hover:text-black active:bg-emerald-400 text-white rounded-xl font-bold flex items-center justify-center shadow transition-all border border-slate-700"
+            aria-label="Chapga"
+          >
+            ◀
+          </button>
+          <button
+            type="button"
+            onClick={() => changeDirection("down")}
+            className="w-12 h-11 bg-slate-800/80 hover:bg-emerald-500 hover:text-black active:bg-emerald-400 text-white rounded-xl font-bold flex items-center justify-center shadow transition-all border border-slate-700"
+            aria-label="Pastga"
+          >
+            ▼
+          </button>
+          <button
+            type="button"
+            onClick={() => changeDirection("right")}
+            className="w-12 h-11 bg-slate-800/80 hover:bg-emerald-500 hover:text-black active:bg-emerald-400 text-white rounded-xl font-bold flex items-center justify-center shadow transition-all border border-slate-700"
+            aria-label="O'ngga"
+          >
+            ▶
+          </button>
+        </div>
+      </div>
+
       {/* Instructions footer */}
-      <div className="text-[10px] font-mono text-slate-400 text-center">
-        Boshqaruv: <span className="text-emerald-400 font-bold">W A S D</span> / <span className="text-emerald-400 font-bold">⬆️ ⬇️ ⬅️ ➡️</span> Strelkalar
+      <div className="text-[10px] font-mono text-slate-400 text-center pt-1">
+        Boshqaruv: Sensor tugmalar yoki <span className="text-emerald-400 font-bold">W A S D / Strelkalar</span>
       </div>
     </div>
   );

@@ -410,18 +410,6 @@ export default function DinoGame({ className = "" }: DinoGameProps) {
           height={280}
           className="w-full aspect-[320/140] block cursor-pointer"
         />
-
-        {isGameOver && (
-          <div onClick={(e) => e.stopPropagation()} className="absolute inset-0">
-            <GameOverModal
-              score={score}
-              highScore={highScore}
-              gameTitle="DINO RUNNER"
-              unit="ochko"
-              onRestart={restartGame}
-            />
-          </div>
-        )}
       </div>
 
       <div className="mt-2.5 flex justify-between items-center">
@@ -441,6 +429,18 @@ export default function DinoGame({ className = "" }: DinoGameProps) {
           {isGameOver ? "Qaytadan" : !isPlaying ? "Boshlash" : "Sakrash 🦖"}
         </button>
       </div>
+
+      {isGameOver && (
+        <div onClick={(e) => e.stopPropagation()} className="absolute inset-0 z-30">
+          <GameOverModal
+            score={score}
+            highScore={highScore}
+            gameTitle="DINO RUNNER"
+            unit="ochko"
+            onRestart={restartGame}
+          />
+        </div>
+      )}
     </div>
   );
 }

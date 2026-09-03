@@ -9,7 +9,7 @@ const SNIPPETS = [
   "import React, { useState, useEffect } from 'react';",
   "function calculateScore(wpm, accuracy) { return Math.round(wpm * (accuracy / 100)); }",
   "export default function App() { return <div className='p-4 bg-black'>Hello World</div>; }",
-  "const response = await fetch('/api/gemini', { method: 'POST', body: JSON.stringify(prompt) });",
+  "const response = await fetch('/api/data', { method: 'GET', headers: { 'Accept': 'application/json' } });",
 ];
 
 export default function SpeedTypingGame({ className = "" }: { className?: string }) {

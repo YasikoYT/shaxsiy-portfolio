@@ -174,7 +174,6 @@ export default function SpaceInvadersGame({ className = "" }: { className?: stri
               engine.bullets.splice(i, 1);
               engine.score += 50;
               setScore(engine.score);
-              saveGameHighScore("spaceinvaders", engine.score);
               if (engine.score > highScore) setHighScore(engine.score);
               break;
             }
@@ -198,11 +197,13 @@ export default function SpaceInvadersGame({ className = "" }: { className?: stri
       const remainingInvaders = engine.invaders.filter((i) => i.alive);
       if (remainingInvaders.length === 0) {
         setGameState("victory");
+        saveGameHighScore("spaceinvaders", engine.score);
         return;
       }
 
       if (remainingInvaders.some((i) => i.y >= height - 60)) {
         setGameState("gameover");
+        saveGameHighScore("spaceinvaders", engine.score);
         return;
       }
 

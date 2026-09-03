@@ -243,7 +243,6 @@ export default function BubbleShooterGame({ className = "" }: { className?: stri
             const pts = matches.length * 30 + droppedCount * 50;
             engine.score += pts;
             setScore(engine.score);
-            saveGameHighScore("bubbleshooter", engine.score);
             if (engine.score > highScore) setHighScore(engine.score);
 
             // Check if grid is completely cleared
@@ -251,7 +250,6 @@ export default function BubbleShooterGame({ className = "" }: { className?: stri
             if (isEmpty) {
               engine.score += 500; // Clearing bonus
               setScore(engine.score);
-              saveGameHighScore("bubbleshooter", engine.score);
               if (engine.score > highScore) setHighScore(engine.score);
               // Respawn new wave
               for (let row = 0; row < 5; row++) {
@@ -264,7 +262,6 @@ export default function BubbleShooterGame({ className = "" }: { className?: stri
             // Just single shot score if less than 3
             engine.score += 10;
             setScore(engine.score);
-            saveGameHighScore("bubbleshooter", engine.score);
             if (engine.score > highScore) setHighScore(engine.score);
           }
         }

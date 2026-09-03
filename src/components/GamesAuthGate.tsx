@@ -35,7 +35,6 @@ interface GamesAuthGateProps {
   isDarkMode?: boolean;
   onUnlocked?: () => void;
   onOpenPlayerAccountModal?: () => void;
-  onOpenAdminPanel?: () => void;
   children: React.ReactNode;
 }
 
@@ -45,7 +44,6 @@ export default function GamesAuthGate({
   isDarkMode = false,
   onUnlocked,
   onOpenPlayerAccountModal,
-  onOpenAdminPanel,
   children
 }: GamesAuthGateProps) {
   const [account, setAccount] = useState<PlayerAccount>(getCurrentPlayerAccount);
@@ -67,7 +65,6 @@ export default function GamesAuthGate({
 
   const [errorMsg, setErrorMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
-  const [isBypassedGuest, setIsBypassedGuest] = useState(true);
 
   const refreshAccount = () => {
     const cur = getCurrentPlayerAccount();
@@ -81,7 +78,7 @@ export default function GamesAuthGate({
     return () => window.removeEventListener("player_account_updated", handleUpdate);
   }, []);
 
-  const isAuthenticated = account.authMethod !== "guest" || isBypassedGuest;
+  const isAuthenticated = account.authMethod !== "guest";
 
   // Handle Login
   const handleLoginSubmit = (e: React.FormEvent) => {
@@ -198,38 +195,42 @@ export default function GamesAuthGate({
     };
     savePlayerAccount(guestAcc);
     setAccount(guestAcc);
-    setIsBypassedGuest(false);
   };
 
   if (!isAuthenticated) {
     return (
-      <div className={`rounded-3xl p-6 sm:p-10 border shadow-2xl my-6 relative overflow-hidden transition-all ${
-        isDarkMode 
-          ? "bg-[#0b0e1b] border-amber-500/30 text-white" 
-          : "bg-gradient-to-b from-amber-50/80 to-slate-50 border-amber-300 text-slate-900"
-      }`}>
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.97, y: 15 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        transition={{ duration: 0.4, ease: "easeOut" }}
+        className={`rounded-3xl p-6 sm:p-10 border shadow-2xl my-6 relative overflow-hidden transition-all ${
+          isDarkMode 
+            ? "bg-[#0b0e1b] border-amber-500/30 text-white" 
+            : "bg-gradient-to-b from-amber-50/90 to-slate-50 border-amber-300 text-slate-900"
+        }`}
+      >
         {/* Glow ambient background */}
         <div className="absolute -top-24 -left-24 w-72 h-72 bg-amber-500/20 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute -bottom-24 -right-24 w-72 h-72 bg-purple-500/20 rounded-full blur-3xl pointer-events-none" />
 
-        <div className="max-w-2xl mx-auto space-y-6 relative z-10">
+        <div className="max-w-xl mx-auto space-y-6 relative z-10">
           {/* Header Banner */}
           <div className="text-center space-y-3">
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-500 font-mono text-xs font-bold uppercase tracking-wider">
-              <Gamepad2 className="w-4 h-4 text-amber-500 animate-bounce" />
-              <span>INTERAKTIV O'YINLAR ARENASI</span>
+              <KeyRound className="w-4 h-4 text-amber-500 animate-bounce" />
+              <span>O'YINLAR RO'YXATIGA KIRISH</span>
             </div>
 
             <h2 className={`font-serif text-2xl sm:text-4xl font-black tracking-tight ${
               isDarkMode ? "text-white" : "text-slate-900"
             }`}>
-              Nik va Parolingiz Bilan Kiring
+              Login va Parol Kiritish
             </h2>
 
             <p className={`text-xs sm:text-sm font-sans max-w-lg mx-auto ${
               isDarkMode ? "text-slate-300" : "text-slate-600"
             }`}>
-              O'yinlar arenasiga kirish, rekord o'rnatish va reytingdan joy olish uchun o'z nikasizni va parolingizni saqlang. Barcha ma'lumotlar xotirangizda (localStorage) saqlanadi.
+              O'yinlar ro'yxatini ochish, 34+ mini-o'yinlarni o'ynash va shaxsiy rekordlarni saqlash uchun profilingizga kiring yoki yangi nik oching.
             </p>
           </div>
 
@@ -255,7 +256,7 @@ export default function GamesAuthGate({
                 }`}
               >
                 <LogIn className="w-4 h-4" />
-                <span>Kirish</span>
+                <span>Kirish (Login)</span>
               </button>
 
               <button
@@ -401,7 +402,7 @@ export default function GamesAuthGate({
                   <span className={`text-[10px] font-mono mt-1 block ${
                     isDarkMode ? "text-slate-400" : "text-slate-500"
                   }`}>
-                    Ushbu nick unikal bo'ladi va boshqa o'yinchilar undan foydalana olmaydi.
+                    Ushbu nick unikal bo'ladi va o'yinlar ro'yxatida rekordlaringizni saqlaydi.
                   </span>
                 </div>
 
@@ -485,7 +486,7 @@ export default function GamesAuthGate({
                   className="w-full py-3.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-mono font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 active:scale-95 transition-all cursor-pointer"
                 >
                   <UserPlus className="w-4 h-4" />
-                  <span>RO'YXATDAN O'TISH VA ARENANI OCHISH</span>
+                  <span>RO'YXATDAN O'TISH VA O'YINLARNI OCHISH</span>
                 </button>
               </form>
             )}
@@ -498,7 +499,7 @@ export default function GamesAuthGate({
                     <Chrome className="w-4 h-4 text-rose-500" /> Google Bilan Kirish
                   </div>
                   <p className={`text-[11px] ${isDarkMode ? "text-slate-300" : "text-slate-600"}`}>
-                    Gmail hisobingiz orqali 1 bosishda kiring va o'yin rekordlaringizni saqlang.
+                    Gmail hisobingiz orqali 1 bosishda kiring va barcha o'yinlarni oching.
                   </p>
                 </div>
 
@@ -550,91 +551,64 @@ export default function GamesAuthGate({
                 </button>
               </form>
             )}
-
-            {/* Quick Guest Bypass */}
-            <div className={`pt-4 border-t text-center ${
-              isDarkMode ? "border-slate-800" : "border-slate-200"
-            }`}>
-              <button
-                type="button"
-                onClick={() => setIsBypassedGuest(true)}
-                className="text-xs text-slate-500 hover:text-amber-500 font-mono inline-flex items-center gap-1.5 transition-colors cursor-pointer"
-              >
-                <span>Mehmon sifatida o'yinlarni ko'rish</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </button>
-            </div>
           </div>
         </div>
-      </div>
+      </motion.div>
     );
   }
 
   // Logged-in Header Bar for Games Arena
   return (
     <div className="space-y-6">
-      <div className={`p-3 sm:p-4 rounded-2xl sm:rounded-3xl border flex flex-col sm:flex-row items-center justify-between gap-3 shadow-xl ${
+      <div className={`p-4 sm:p-5 md:p-6 rounded-2xl sm:rounded-3xl border flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl ${
         isDarkMode 
           ? "bg-slate-950/90 border-amber-500/30 text-white" 
           : "bg-white border-amber-300 text-neutral-900"
       }`}>
-        <div className="flex items-center gap-2.5 sm:gap-3 w-full sm:w-auto">
-          <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-amber-500/20 border border-amber-500/40 text-xl sm:text-2xl flex items-center justify-center shrink-0">
+        <div className="flex items-center gap-3 sm:gap-4 w-full sm:w-auto">
+          <div className="w-11 h-11 sm:w-13 sm:h-13 rounded-2xl bg-amber-500/20 border border-amber-500/40 text-2xl sm:text-3xl flex items-center justify-center shrink-0 shadow-inner">
             {account.avatarEmoji || "🎮"}
           </div>
-          <div className="min-w-0 flex-1">
+          <div className="min-w-0 flex-1 space-y-1">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className={`font-mono font-black text-xs sm:text-sm flex items-center gap-1.5 truncate ${
+              <span className={`font-mono font-black text-sm sm:text-base flex items-center gap-1.5 truncate ${
                 isDarkMode ? "text-white" : "text-slate-900"
               }`}>
                 {account.username}
-                {account.authMethod === "google" && <Chrome className="w-3.5 h-3.5 text-rose-500 shrink-0" />}
+                {account.authMethod === "google" && <Chrome className="w-4 h-4 text-rose-500 shrink-0" />}
               </span>
-              <span className="text-[9px] sm:text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 font-bold font-mono shrink-0">
-                {account.authMethod === "guest" ? "MEHMON O'YINCHI" : "FAOL AKOUNT"}
+              <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 font-extrabold font-mono shrink-0">
+                FAOL AKOUNT
               </span>
             </div>
-            <p className="text-[11px] sm:text-xs text-amber-600 dark:text-amber-400 font-mono font-bold mt-0.5 truncate">
+            <p className="text-xs text-amber-600 dark:text-amber-400 font-mono font-extrabold truncate">
               Lvl {account.level || 1} // {account.badge || "O'yinchi"} ({account.xp || 0} XP)
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
-          {onOpenAdminPanel && (localStorage.getItem("anvar_admin_logged_in") === "true" || account.username.toLowerCase().includes("admin")) && (
-            <button
-              type="button"
-              onClick={onOpenAdminPanel}
-              className="px-3 py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-700 dark:text-amber-300 border border-amber-500/40 text-xs font-mono font-bold flex items-center gap-1.5 cursor-pointer shrink-0"
-            >
-              <ShieldCheck className="w-3.5 h-3.5 text-amber-500" />
-              <span className="hidden xs:inline">Admin</span>
-            </button>
-          )}
-
+        <div className="flex items-center gap-2.5 w-full sm:w-auto justify-end">
           <button
             type="button"
             onClick={() => onOpenPlayerAccountModal?.()}
-            className={`flex-1 sm:flex-initial px-3 sm:px-4 py-2 rounded-xl border text-xs font-mono font-bold flex items-center justify-center gap-1.5 cursor-pointer transition-colors ${
+            className={`flex-1 sm:flex-initial px-4 py-2.5 rounded-2xl border text-xs font-mono font-bold flex items-center justify-center gap-2 cursor-pointer transition-all active:scale-95 ${
               isDarkMode
                 ? "bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border-amber-500/30"
                 : "bg-amber-500 text-slate-950 border-amber-400 shadow-sm"
             }`}
           >
-            <Edit3 className="w-3.5 h-3.5" />
-            <span>{account.authMethod === "guest" ? "Kirish / Registratsiya" : "Profil"}</span>
+            <Edit3 className="w-4 h-4" />
+            <span>Profilni Tahrirlash</span>
           </button>
 
-          {account.authMethod !== "guest" && (
-            <button
-              onClick={handleLogout}
-              className="px-3 py-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 text-xs font-mono font-bold flex items-center justify-center gap-1.5 cursor-pointer shrink-0"
-              title="Akauntdan chiqish"
-            >
-              <LogOut className="w-3.5 h-3.5" />
-              <span className="hidden xs:inline">Chiqish</span>
-            </button>
-          )}
+          <button
+            onClick={handleLogout}
+            className="px-3.5 py-2.5 rounded-2xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 text-xs font-mono font-bold flex items-center justify-center gap-2 cursor-pointer shrink-0 transition-all active:scale-95"
+            title="Akauntdan chiqish (Qayta login qilish)"
+          >
+            <LogOut className="w-4 h-4" />
+            <span>Chiqish</span>
+          </button>
         </div>
       </div>
 

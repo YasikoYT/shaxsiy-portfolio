@@ -78,7 +78,6 @@ export default function TowerStackGame({ className = "" }: { className?: string 
     engine.blocks.push(newBlock);
     engine.score++;
     setStackHeight(engine.score);
-    saveGameHighScore("towerstack", engine.score);
     if (engine.score > highScore) setHighScore(engine.score);
 
     // Reset slider

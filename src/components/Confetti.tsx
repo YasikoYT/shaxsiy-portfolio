@@ -100,119 +100,17 @@ export function fireConfettiAnimation() {
 }
 
 export default function Confetti({ recordData: propRecordData, onClose }: ConfettiProps) {
-  const [activeBanner, setActiveBanner] = useState<ConfettiRecordData | null>(null);
-
-  const triggerCelebration = useCallback((data: ConfettiRecordData) => {
-    setActiveBanner(data);
-    fireConfettiAnimation();
-    playCelebrationSound();
-
-    // Auto dismiss after 4.5 seconds
-    const timer = setTimeout(() => {
-      setActiveBanner(null);
-      if (onClose) onClose();
-    }, 4500);
-
-    return () => clearTimeout(timer);
-  }, [onClose]);
-
-  // Handle manual prop trigger
+  // We strictly avoid rendering full-screen blocking banners during gameplay
+  // to ensure games never freeze or get obstructed while the user is playing.
   useEffect(() => {
     if (propRecordData && propRecordData.score && propRecordData.score > 0) {
-      triggerCelebration(propRecordData);
-    }
-  }, [propRecordData, triggerCelebration]);
-
-  // Listen for global custom event "new_record_achieved"
-  useEffect(() => {
-    const handleNewRecord = (e: Event) => {
-      const customEvent = e as CustomEvent<ConfettiRecordData>;
-      if (customEvent.detail && customEvent.detail.score) {
-        triggerCelebration(customEvent.detail);
+      fireConfettiAnimation();
+      if (onClose) {
+        const t = setTimeout(onClose, 2000);
+        return () => clearTimeout(t);
       }
-    };
+    }
+  }, [propRecordData, onClose]);
 
-    window.addEventListener("new_record_achieved", handleNewRecord);
-    return () => {
-      window.removeEventListener("new_record_achieved", handleNewRecord);
-    };
-  }, [triggerCelebration]);
-
-  return (
-    <AnimatePresence>
-      {activeBanner && (
-        <div className="fixed inset-0 z-[9999] pointer-events-none flex items-start justify-center pt-8 sm:pt-14 px-4">
-          <motion.div
-            initial={{ opacity: 0, y: -60, scale: 0.8 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -40, scale: 0.9 }}
-            transition={{ type: "spring", stiffness: 400, damping: 25 }}
-            className="pointer-events-auto max-w-md w-full bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600 p-[2px] rounded-3xl shadow-[0_0_50px_rgba(245,158,11,0.5)] overflow-hidden"
-          >
-            <div className="bg-[#121624] p-5 sm:p-6 rounded-[22px] flex flex-col items-center text-center space-y-3 relative overflow-hidden">
-              {/* Background ambient glow */}
-              <div className="absolute -top-12 -left-12 w-32 h-32 bg-amber-500/20 rounded-full blur-2xl" />
-              <div className="absolute -bottom-12 -right-12 w-32 h-32 bg-emerald-500/20 rounded-full blur-2xl" />
-
-              {/* Animated Trophy Badge */}
-              <motion.div
-                initial={{ rotate: -15, scale: 0 }}
-                animate={{ rotate: 0, scale: 1 }}
-                transition={{ delay: 0.1, type: "spring" }}
-                className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-amber-500 to-yellow-300 flex items-center justify-center text-black shadow-lg shadow-amber-500/40 relative"
-              >
-                <Trophy className="w-9 h-9 text-black drop-shadow" />
-                <motion.div
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 6, repeat: Infinity, ease: "linear" }}
-                  className="absolute inset-0 rounded-2xl border-2 border-dashed border-black/30"
-                />
-              </motion.div>
-
-              {/* Celebration Title */}
-              <div className="space-y-1">
-                <div className="inline-flex items-center gap-1.5 px-3 py-0.5 bg-amber-500/10 border border-amber-500/30 rounded-full text-[11px] font-mono font-bold text-amber-400">
-                  <Sparkles className="w-3.5 h-3.5 text-amber-400 animate-pulse" /> YANGI REKORD!
-                </div>
-                <h2 className="text-2xl sm:text-3xl font-serif font-black tracking-tight text-white">
-                  YANGI SHAXSIY REKORD!
-                </h2>
-                {activeBanner.gameName && (
-                  <p className="text-xs font-mono font-bold text-amber-400 uppercase tracking-wide">
-                    🎮 {activeBanner.gameName}
-                  </p>
-                )}
-              </div>
-
-              {/* Score Display */}
-              <div className="py-2 px-6 rounded-2xl bg-black/60 border border-amber-500/30 w-full flex items-center justify-center gap-2">
-                <Flame className="w-5 h-5 text-amber-500 animate-bounce" />
-                <span className="text-3xl sm:text-4xl font-mono font-black text-amber-400 drop-shadow">
-                  {activeBanner.score?.toLocaleString()}
-                </span>
-                <span className="text-xs font-mono font-bold text-neutral-400">
-                  {activeBanner.unit || "ochko"}
-                </span>
-              </div>
-
-              <p className="text-xs text-neutral-400 font-sans max-w-xs">
-                Tabriklaymiz! Siz brauzeringiz xotirasidagi eng yuqori natijani yangiladingiz!
-              </p>
-
-              {/* Close Button */}
-              <button
-                onClick={() => {
-                  setActiveBanner(null);
-                  if (onClose) onClose();
-                }}
-                className="w-full mt-1 py-2 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-black font-mono font-bold text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-md active:scale-95"
-              >
-                <Check className="w-4 h-4" /> Ajoyib! Rahmat!
-              </button>
-            </div>
-          </motion.div>
-        </div>
-      )}
-    </AnimatePresence>
-  );
+  return null;
 }

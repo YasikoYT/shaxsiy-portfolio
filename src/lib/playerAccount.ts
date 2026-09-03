@@ -10,22 +10,26 @@ export interface PlayerAccount {
   level: number;
   xp: number;
   badge: string;
+  gameScores?: Record<string, number>;
+  totalGamesPlayed?: number;
 }
 
 const PLAYER_ACCOUNT_KEY = "anvar_user_account";
 const REGISTERED_PLAYERS_KEY = "anvar_registered_players_list";
 
 const DEFAULT_GUEST_ACCOUNT: PlayerAccount = {
-  id: "guest-1",
+  id: "player-guest",
   username: "Gamer #1",
-  email: "gamer1@gmail.com",
+  email: "gamer1@portfolio.uz",
   password: "",
   authMethod: "guest",
   avatarEmoji: "🎮",
   createdAt: new Date().toISOString(),
   level: 1,
-  xp: 120,
-  badge: "Boshlang'ich O'yinchi ⚡"
+  xp: 0,
+  badge: "Boshlang'ich O'yinchi ⚡",
+  gameScores: {},
+  totalGamesPlayed: 0
 };
 
 export function getCurrentPlayerAccount(): PlayerAccount {
@@ -33,7 +37,15 @@ export function getCurrentPlayerAccount(): PlayerAccount {
     const raw = localStorage.getItem(PLAYER_ACCOUNT_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
-      if (parsed && parsed.username) return parsed;
+      if (parsed && parsed.username) {
+        // Ensure gameScores and fields exist
+        return {
+          ...DEFAULT_GUEST_ACCOUNT,
+          ...parsed,
+          gameScores: parsed.gameScores || {},
+          totalGamesPlayed: parsed.totalGamesPlayed || 0
+        };
+      }
     }
   } catch (e) {
     console.warn("Failed to load player account", e);
@@ -48,14 +60,27 @@ export function savePlayerAccount(account: PlayerAccount): void {
     
     // Also save into registered players list
     const players = getRegisteredPlayersList();
-    const idx = players.findIndex((p) => p.id === account.id || (p.email && p.email.toLowerCase() === account.email.toLowerCase()) || p.username.toLowerCase() === account.username.toLowerCase());
+    const idx = players.findIndex((p) => p.id === account.id || (p.email && account.email && p.email.toLowerCase() === account.email.toLowerCase()) || p.username.toLowerCase() === account.username.toLowerCase());
     if (idx >= 0) {
       players[idx] = account;
     } else {
       players.push(account);
     }
-    localStorage.setItem(REGISTERED_PLAYERS_KEY, JSON.stringify(players));
+    
+    // Filter out old legacy dummy bots if any were stored
+    const cleanedPlayers = players.filter(p => 
+      !p.email?.includes("jasur.cyber") && 
+      !p.email?.includes("malika.gamer") &&
+      p.username !== "Jasur Pro" &&
+      p.username !== "Malika AI"
+    );
 
+    // If cleaned list is empty, include current account
+    if (cleanedPlayers.length === 0) {
+      cleanedPlayers.push(account);
+    }
+
+    localStorage.setItem(REGISTERED_PLAYERS_KEY, JSON.stringify(cleanedPlayers));
     window.dispatchEvent(new Event("player_account_updated"));
   } catch (e) {
     console.warn("Failed to save player account", e);
@@ -67,38 +92,23 @@ export function getRegisteredPlayersList(): PlayerAccount[] {
     const raw = localStorage.getItem(REGISTERED_PLAYERS_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      if (Array.isArray(parsed)) {
+        // Clean out legacy fake bots
+        const cleaned = parsed.filter((p: PlayerAccount) => 
+          p && 
+          p.username &&
+          !p.email?.includes("jasur.cyber") && 
+          !p.email?.includes("malika.gamer") &&
+          p.username !== "Jasur Pro" &&
+          p.username !== "Malika AI"
+        );
+        if (cleaned.length > 0) return cleaned;
+      }
     }
   } catch (e) {}
   
   const cur = getCurrentPlayerAccount();
-  const defaultList: PlayerAccount[] = [
-    cur,
-    {
-      id: "pro-player-2",
-      username: "Jasur Pro",
-      email: "jasur.cyber@gmail.com",
-      password: "pass",
-      authMethod: "google",
-      avatarEmoji: "🔥",
-      createdAt: new Date(Date.now() - 86400000 * 5).toISOString(),
-      level: 5,
-      xp: 1450,
-      badge: "Kiber Chempion 🏆"
-    },
-    {
-      id: "pro-player-3",
-      username: "Malika AI",
-      email: "malika.gamer@gmail.com",
-      password: "pass",
-      authMethod: "google",
-      avatarEmoji: "✨",
-      createdAt: new Date(Date.now() - 86400000 * 2).toISOString(),
-      level: 3,
-      xp: 780,
-      badge: "Aql-idrok Ustasi 🧠"
-    }
-  ];
+  const defaultList: PlayerAccount[] = [cur];
 
   try {
     localStorage.setItem(REGISTERED_PLAYERS_KEY, JSON.stringify(defaultList));
@@ -223,16 +233,71 @@ export function loginWithEmailAccount(username: string, email: string): PlayerAc
 
 export function addXPToCurrentPlayer(amount: number): PlayerAccount {
   const acc = getCurrentPlayerAccount();
-  const newXP = acc.xp + amount;
-  const newLevel = Math.floor(newXP / 300) + 1;
+  const newXP = Math.max(0, acc.xp + amount);
+  const newLevel = Math.max(1, Math.floor(newXP / 250) + 1);
 
-  let newBadge = acc.badge;
-  if (newLevel >= 10) newBadge = "Legenda 👑";
-  else if (newLevel >= 5) newBadge = "Kiber Chempion 🏆";
-  else if (newLevel >= 3) newBadge = "Tajribali Master ⚡";
+  let newBadge = "Boshlang'ich O'yinchi ⚡";
+  if (newLevel >= 15) newBadge = "Buyuk Afsona 👑";
+  else if (newLevel >= 10) newBadge = "Grand Master 🔱";
+  else if (newLevel >= 7) newBadge = "Kiber Chempion 🏆";
+  else if (newLevel >= 4) newBadge = "Tajribali Master ⚡";
+  else if (newLevel >= 2) newBadge = "Faol O'yinchi 🎯";
 
   const updated: PlayerAccount = {
     ...acc,
+    xp: newXP,
+    level: newLevel,
+    badge: newBadge
+  };
+
+  savePlayerAccount(updated);
+  return updated;
+}
+
+export function recordPlayerGameScore(gameId: string, score: number, lowerIsBetter = false): PlayerAccount {
+  const acc = getCurrentPlayerAccount();
+  const currentScores = acc.gameScores || {};
+  const prevBest = currentScores[gameId];
+
+  let isNewPersonalBest = false;
+  if (prevBest === undefined) {
+    isNewPersonalBest = score > 0;
+  } else if (lowerIsBetter) {
+    isNewPersonalBest = prevBest === 0 || (score > 0 && score < prevBest);
+  } else {
+    isNewPersonalBest = score > prevBest;
+  }
+
+  const updatedScores = {
+    ...currentScores,
+    [gameId]: isNewPersonalBest ? score : (prevBest || score)
+  };
+
+  // Award XP based on game score achieved
+  let earnedXP = 30; // base participation XP
+  if (score > 0) {
+    if (lowerIsBetter) {
+      earnedXP += 50;
+    } else {
+      earnedXP += Math.min(200, Math.max(10, Math.round(score / 5)));
+    }
+  }
+
+  const newTotalPlayed = (acc.totalGamesPlayed || 0) + 1;
+  const newXP = (acc.xp || 0) + earnedXP;
+  const newLevel = Math.max(1, Math.floor(newXP / 250) + 1);
+
+  let newBadge = acc.badge;
+  if (newLevel >= 15) newBadge = "Buyuk Afsona 👑";
+  else if (newLevel >= 10) newBadge = "Grand Master 🔱";
+  else if (newLevel >= 7) newBadge = "Kiber Chempion 🏆";
+  else if (newLevel >= 4) newBadge = "Tajribali Master ⚡";
+  else if (newLevel >= 2) newBadge = "Faol O'yinchi 🎯";
+
+  const updated: PlayerAccount = {
+    ...acc,
+    gameScores: updatedScores,
+    totalGamesPlayed: newTotalPlayed,
     xp: newXP,
     level: newLevel,
     badge: newBadge

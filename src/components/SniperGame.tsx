@@ -97,7 +97,6 @@ export default function SniperGame({ className = "" }: SniperProps) {
         hit = true;
         engine.score += t.points;
         setScore(engine.score);
-        saveGameHighScore("sniper", engine.score);
         if (engine.score > highScore) setHighScore(engine.score);
         playBeep(880, "triangle");
 
@@ -111,7 +110,6 @@ export default function SniperGame({ className = "" }: SniperProps) {
     if (!hit) {
       engine.score = Math.max(0, engine.score - 10);
       setScore(engine.score);
-      saveGameHighScore("sniper", engine.score);
     }
   };
 

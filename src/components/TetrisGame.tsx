@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Play, RotateCcw, Volume2, VolumeX, Trophy, Grid } from "lucide-react";
+import { Play, RotateCcw, Volume2, VolumeX, Trophy, Grid, RotateCw, ArrowDown, ArrowLeft, ArrowRight, ChevronsDown } from "lucide-react";
 import { getGameHighScore, saveGameHighScore } from "../lib/highScores";
+import { GameOverModal } from "./GameOverModal";
 
 interface TetrisProps {
   className?: string;
@@ -147,9 +148,6 @@ export default function TetrisGame({ className = "" }: TetrisProps) {
       setLevel(engine.level);
       if (engine.score > highScore) {
         setHighScore(engine.score);
-        saveGameHighScore("tetris", engine.score);
-      } else {
-        saveGameHighScore("tetris", engine.score);
       }
       playBeep(700);
     } else {
@@ -187,6 +185,15 @@ export default function TetrisGame({ className = "" }: TetrisProps) {
       engine.currentPiece.shape = rotated;
       playBeep(500);
     }
+  };
+
+  const hardDrop = () => {
+    const engine = engineRef.current;
+    if (!engine.currentPiece || gameState !== "playing") return;
+    while (!checkCollision(engine.currentPiece.shape, engine.currentPiece.x, engine.currentPiece.y + 1)) {
+      engine.currentPiece.y += 1;
+    }
+    lockPiece();
   };
 
   const startGame = () => {
@@ -301,7 +308,7 @@ export default function TetrisGame({ className = "" }: TetrisProps) {
   }, [gameState]);
 
   return (
-    <div className={`bg-slate-950 rounded-3xl border border-slate-800 p-5 text-white shadow-2xl flex flex-col justify-between ${className}`}>
+    <div className={`relative bg-slate-950 rounded-3xl border border-slate-800 p-3.5 sm:p-5 text-white shadow-2xl flex flex-col justify-between select-none ${className}`}>
       {/* Header */}
       <div className="flex items-center justify-between pb-3 border-b border-slate-800">
         <div className="flex items-center gap-2">
@@ -318,39 +325,86 @@ export default function TetrisGame({ className = "" }: TetrisProps) {
       </div>
 
       {/* Canvas */}
-      <div className="relative w-full max-w-[220px] mx-auto bg-slate-900 rounded-2xl overflow-hidden my-3 border border-slate-800 flex items-center justify-center p-2">
+      <div className="relative w-full max-w-[220px] mx-auto bg-slate-900 rounded-2xl overflow-hidden my-2.5 border border-slate-800 flex items-center justify-center p-2">
         <canvas ref={canvasRef} width={COLS * BLOCK_SIZE} height={ROWS * BLOCK_SIZE} className="block shadow-inner" />
 
         {gameState === "menu" && (
           <div className="absolute inset-0 bg-slate-950/90 backdrop-blur flex flex-col items-center justify-center p-4 text-center space-y-3">
             <h4 className="font-serif text-xl font-light text-cyan-400 uppercase tracking-wider">TETRIS MATRIX</h4>
-            <p className="text-[10px] text-slate-400 font-mono">A / D / S — surish, W — burish!</p>
+            <p className="text-[10px] text-slate-400 font-mono">Ekrandagi tugmalar yoki A/D/S/W bilan boshqaring!</p>
             <button
               onClick={startGame}
-              className="px-5 py-2 bg-cyan-500 hover:bg-cyan-400 text-black font-mono font-black text-xs uppercase tracking-widest rounded-full flex items-center gap-2 cursor-pointer shadow-lg"
+              className="px-5 py-2 bg-cyan-500 hover:bg-cyan-400 text-black font-mono font-black text-xs uppercase tracking-widest rounded-full flex items-center gap-2 cursor-pointer shadow-lg active:scale-95"
             >
               <Play className="w-4 h-4 fill-black" /> Boshlash
             </button>
           </div>
         )}
-
-        {gameState === "gameover" && (
-          <div className="absolute inset-0 bg-slate-950/95 backdrop-blur flex flex-col items-center justify-center p-4 text-center space-y-3">
-            <h4 className="font-serif text-xl font-bold text-red-500">O'YIN TUGADI!</h4>
-            <p className="text-xs text-slate-300 font-mono">Natija: <span className="text-cyan-400 font-bold">{score}</span></p>
-            <button
-              onClick={startGame}
-              className="px-5 py-2 bg-cyan-500 hover:bg-cyan-400 text-black font-mono font-black text-xs uppercase tracking-widest rounded-full flex items-center gap-2 cursor-pointer shadow-lg"
-            >
-              <RotateCcw className="w-4 h-4" /> Qayta O'ynash
-            </button>
-          </div>
-        )}
       </div>
 
-      <div className="text-[10px] font-mono text-slate-400 text-center">
+      {/* Mobile Touch Controls */}
+      <div className="flex flex-col items-center gap-2 py-1">
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => movePiece(-1)}
+            className="w-12 h-11 bg-slate-800/80 hover:bg-cyan-500 hover:text-black active:bg-cyan-400 text-white rounded-xl font-bold flex items-center justify-center shadow transition-all border border-slate-700 active:scale-95"
+            aria-label="Chapga"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+          <button
+            type="button"
+            onClick={rotatePiece}
+            className="w-14 h-11 bg-cyan-500/20 text-cyan-300 hover:bg-cyan-400 hover:text-black active:bg-cyan-400 rounded-xl font-bold flex items-center justify-center shadow transition-all border border-cyan-500/40 active:scale-95 gap-1 text-xs font-mono"
+            aria-label="Aylantirish"
+          >
+            <RotateCw className="w-4 h-4" /> Burish
+          </button>
+          <button
+            type="button"
+            onClick={() => movePiece(1)}
+            className="w-12 h-11 bg-slate-800/80 hover:bg-cyan-500 hover:text-black active:bg-cyan-400 text-white rounded-xl font-bold flex items-center justify-center shadow transition-all border border-slate-700 active:scale-95"
+            aria-label="O'ngga"
+          >
+            <ArrowRight className="w-5 h-5" />
+          </button>
+        </div>
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={dropPiece}
+            className="w-20 h-10 bg-slate-800/80 hover:bg-slate-700 active:bg-cyan-500 active:text-black text-slate-200 rounded-xl font-mono text-xs font-bold flex items-center justify-center gap-1 shadow border border-slate-700 active:scale-95"
+            aria-label="Sekin tushirish"
+          >
+            <ArrowDown className="w-4 h-4" /> Pastga
+          </button>
+          <button
+            type="button"
+            onClick={hardDrop}
+            className="w-24 h-10 bg-amber-500/20 hover:bg-amber-400 hover:text-black active:bg-amber-400 text-amber-300 rounded-xl font-mono text-xs font-bold flex items-center justify-center gap-1 shadow border border-amber-500/40 active:scale-95"
+            aria-label="Tez tushirish"
+          >
+            <ChevronsDown className="w-4 h-4" /> Tashlash
+          </button>
+        </div>
+      </div>
+
+      <div className="text-[10px] font-mono text-slate-400 text-center mt-1">
         Level: <span className="text-cyan-400 font-bold">{level}</span> | Qatorlar: <span className="text-cyan-400 font-bold">{linesCleared}</span>
       </div>
+
+      {gameState === "gameover" && (
+        <div onClick={(e) => e.stopPropagation()} className="absolute inset-0 z-30">
+          <GameOverModal
+            score={score}
+            highScore={highScore}
+            gameTitle="TETRIS MATRIX"
+            unit="ochko"
+            onRestart={startGame}
+          />
+        </div>
+      )}
     </div>
   );
 }

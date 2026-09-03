@@ -50,10 +50,10 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
   badgeText: "<yosh dasturchining portfoliosi>",
   bio: "Mening ismim Akramov Anvar. Men 15 yoshdaman va dasturlash bilan astoydil shug'ullanib kelayotgan professional yosh full-stack dasturchiman. Tengdoshlarimga murakkab algoritmlar va zamonaviy texnologiyalarni sodda, tushunarli tilda o'rgatish orqali IT sohasiga birinchi qadamlarini qo'yishda yordam bermoqdaman.",
   customQuote: "Kod yozish - murakkab g'oyalarni haqiqatga va qulay yechimlarga aylantirish san'atidir.",
-  footerText: "© 2026 Akramov Anvar. Barcha huquqlar himoyalangan. Full-Stack & AI Portfolio.",
+  footerText: "© 2026 Akramov Anvar. Barcha huquqlar himoyalangan. Full-Stack Dasturchi Portfoliyasi.",
   skillsFrontend: "React.js, TypeScript, Tailwind CSS, Next.js, HTML5/CSS3, Redux Toolkit",
   skillsBackend: "Node.js, Express.js, REST API, Python, PostgreSQL, MongoDB, WebSockets",
-  skillsTools: "Git, GitHub, Vite, Docker, VS Code, Gemini AI SDK, Linux Cloud Run",
+  skillsTools: "Git, GitHub, Vite, Docker, VS Code, Linux Cloud Run, REST API",
   autoReplyText: "Assalomu alaykum! Murojaatingiz uchun rahmat. Tez orada siz bilan bog'lanaman.",
   adminUsername: "admin",
   adminPassword: "admin123",
@@ -65,13 +65,13 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
   stat3Label: "Natija",
   goal1Title: "Ajoyib Dasturlar Yasash",
   goal1Desc: "Men kelajakda insonlar hayotini osonlashtiradigan, yuqori sifatli va foydali ajoyib dasturlar yasayman.",
-  goal2Title: "Sun'iy Intellekt Loyihalari",
-  goal2Desc: "Gemini va zamonaviy neyron tarmoqlardan foydalanib, avtomatlashtirilgan aqlli AI platformalarni yaratish.",
+  goal2Title: "Ilg'or Veb Loyihalar",
+  goal2Desc: "Zamonaviy veb-texnologiyalardan foydalanib, tezkor, qulay va xavfsiz raqamli platformalarni yaratish.",
   goal3Title: "Yosh Dasturchilar Hamjamiyati",
   goal3Desc: "O'zbekistonda yoshlar orasida eng faol va do'stona IT o'quv hamjamiyatini shakllantirish va tengdoshlarga yordam berish.",
   goal4Title: "Xalqaro IT Sertifikatsiyalar",
   goal4Desc: "Full-Stack va zamonaviy veb-arxitektura bo'yicha dunyo miqyosidagi nufuzli IT sertifikatlarini muvaffaqiyatli topshirish.",
-  aiCustomKnowledge: "Akramov Anvar 15 yoshda, Surxondaryo viloyatidan. Professional Full-Stack Dasturchi. U React, Node.js va Sun'iy intellekt integratsiyalarini zo'r biladi.",
+  aiCustomKnowledge: "Akramov Anvar 15 yoshda, Surxondaryo viloyatidan. Professional Full-Stack Dasturchi.",
   gameMultiplier: 1,
   gameInitialLives: 3,
   gameTitle: "CYBER STRIKE 2077",
@@ -105,7 +105,7 @@ export default function AdminPanelModal({
   // Config editor state
   const [formData, setFormData] = useState<SiteConfig>(siteConfig);
   const [saveSuccess, setSaveSuccess] = useState(false);
-  const [activeTab, setActiveTab] = useState<"projects" | "profile" | "banner" | "stats" | "contacts" | "skills" | "siteText" | "goals" | "ai" | "game" | "security">("projects");
+  const [activeTab, setActiveTab] = useState<"projects" | "profile" | "banner" | "stats" | "contacts" | "skills" | "siteText" | "goals" | "game" | "security">("projects");
   const [inboxMessages, setInboxMessages] = useState<Array<{ id: string; name: string; email: string; message: string; timestamp: string; status: string }>>([]);
   const [inboxLoading, setInboxLoading] = useState(false);
 
@@ -113,12 +113,20 @@ export default function AdminPanelModal({
   const [editingProjectId, setEditingProjectId] = useState<string | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [projTitle, setProjTitle] = useState("");
-  const [projCategory, setProjCategory] = useState("Full-Stack / AI");
+  const [projCategory, setProjCategory] = useState("Full-Stack / Web");
   const [projDesc, setProjDesc] = useState("");
   const [projImageUrl, setProjImageUrl] = useState("");
   const [projDemoUrl, setProjDemoUrl] = useState("");
   const [projGithubUrl, setProjGithubUrl] = useState("");
   const [projTech, setProjTech] = useState("React, TypeScript, Node.js");
+
+  const formatLinkUrl = (url?: string): string | undefined => {
+    if (!url) return undefined;
+    const trimmed = url.trim();
+    if (!trimmed || trimmed === "#") return undefined;
+    if (/^https?:\/\//i.test(trimmed)) return trimmed;
+    return `https://${trimmed}`;
+  };
 
   const handleSaveProject = () => {
     if (!projTitle.trim()) return;
@@ -135,8 +143,8 @@ export default function AdminPanelModal({
           description: projDesc,
           tech: techArray,
           imageUrl: projImageUrl || undefined,
-          demoUrl: projDemoUrl || undefined,
-          githubUrl: projGithubUrl || undefined,
+          demoUrl: formatLinkUrl(projDemoUrl),
+          githubUrl: formatLinkUrl(projGithubUrl),
         };
       }
     } else {
@@ -147,8 +155,8 @@ export default function AdminPanelModal({
         description: projDesc,
         tech: techArray,
         imageUrl: projImageUrl || undefined,
-        demoUrl: projDemoUrl || undefined,
-        githubUrl: projGithubUrl || undefined,
+        demoUrl: formatLinkUrl(projDemoUrl),
+        githubUrl: formatLinkUrl(projGithubUrl),
       };
       updatedProjects.unshift(newProj);
     }
@@ -188,7 +196,7 @@ export default function AdminPanelModal({
     if (editingProjectId === id) {
       setEditingProjectId(null);
       setProjTitle("");
-      setProjCategory("Full-Stack / AI");
+      setProjCategory("Full-Stack / Web");
       setProjDesc("");
       setProjImageUrl("");
       setProjDemoUrl("");
@@ -196,11 +204,6 @@ export default function AdminPanelModal({
       setProjTech("React, TypeScript, Node.js");
     }
   };
-
-  // AI Test bench state
-  const [aiTestPrompt, setAiTestPrompt] = useState("");
-  const [aiTestResponse, setAiTestResponse] = useState("");
-  const [aiTestLoading, setAiTestLoading] = useState(false);
 
   // Fetch contact messages when inbox tab is opened or on mount
   const fetchInboxMessages = React.useCallback(async () => {
@@ -240,29 +243,6 @@ export default function AdminPanelModal({
       setInboxMessages([]);
       localStorage.removeItem("anvar_inbox_messages");
     } catch (e) {}
-  };
-
-  const handleRunAiTest = async () => {
-    if (!aiTestPrompt.trim()) return;
-    setAiTestLoading(true);
-    setAiTestResponse("");
-    try {
-      const res = await fetch("/api/gemini/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt: aiTestPrompt, history: [] })
-      });
-      const data = await res.json();
-      if (data.text) {
-        setAiTestResponse(data.text);
-      } else {
-        setAiTestResponse(data.error || "Xatolik yuz berdi.");
-      }
-    } catch (e: any) {
-      setAiTestResponse("Bog'lanish xatosi: " + e.message);
-    } finally {
-      setAiTestLoading(false);
-    }
   };
 
   React.useEffect(() => {
@@ -579,18 +559,6 @@ export default function AdminPanelModal({
 
                   <button
                     type="button"
-                    onClick={() => setActiveTab("ai")}
-                    className={`px-4 py-2.5 rounded-xl transition-all cursor-pointer font-bold flex items-center gap-2 ${
-                      activeTab === "ai" 
-                        ? "bg-amber-500 text-black shadow-lg shadow-amber-500/20" 
-                        : "bg-neutral-900 text-neutral-400 hover:bg-neutral-800 hover:text-white"
-                    }`}
-                  >
-                    <Bot className="w-4 h-4" /> AI Assistent Sozlamasi
-                  </button>
-
-                  <button
-                    type="button"
                     onClick={() => setActiveTab("game")}
                     className={`px-4 py-2.5 rounded-xl transition-all cursor-pointer font-bold flex items-center gap-2 ${
                       activeTab === "game" 
@@ -783,25 +751,32 @@ export default function AdminPanelModal({
                       </div>
 
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div className="space-y-1.5">
-                          <label className="text-neutral-400 font-bold uppercase">Veb-sayt / Demo Linki (Demo URL):</label>
+                        <div className="space-y-1.5 p-3 rounded-2xl bg-amber-500/10 border border-amber-500/30 sm:col-span-2">
+                          <label className="text-amber-300 font-bold uppercase text-xs flex items-center gap-1.5">
+                            <Globe className="w-4 h-4 text-amber-400" /> Loyiha Havolasi / Sayt Linki (URL / Link):
+                          </label>
                           <input
                             type="text"
-                            placeholder="https://myproject.com yoki #"
+                            placeholder="https://loyihangiz.uz yoki t.me/mening_botim"
                             value={projDemoUrl}
                             onChange={(e) => setProjDemoUrl(e.target.value)}
-                            className="w-full bg-neutral-900 border border-neutral-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-amber-500"
+                            className="w-full bg-neutral-900 border border-neutral-700 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-amber-400 font-mono"
                           />
+                          <p className="text-[10.5px] text-amber-200/85 font-sans leading-relaxed">
+                            💡 <strong>Muhim:</strong> Ushbu havola loyihangiz kartochkasining tagida turadi va har bir tashrif buyuruvchi o'shani bosganda to'g'ridan-to'g'ri loyihangiz sahifasiga o'tib ketadi.
+                          </p>
                         </div>
 
-                        <div className="space-y-1.5">
-                          <label className="text-neutral-400 font-bold uppercase">GitHub / Manba Kodingiz Linki:</label>
+                        <div className="space-y-1.5 sm:col-span-2">
+                          <label className="text-neutral-400 font-bold uppercase text-xs flex items-center gap-1.5">
+                            <Github className="w-3.5 h-3.5 text-neutral-400" /> GitHub / Manba Kodingiz Linki (ixtiyoriy):
+                          </label>
                           <input
                             type="text"
                             placeholder="https://github.com/username/repository"
                             value={projGithubUrl}
                             onChange={(e) => setProjGithubUrl(e.target.value)}
-                            className="w-full bg-neutral-900 border border-neutral-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-amber-500"
+                            className="w-full bg-neutral-900 border border-neutral-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-amber-500 font-mono"
                           />
                         </div>
                       </div>
@@ -918,6 +893,22 @@ export default function AdminPanelModal({
                                   </span>
                                 ))}
                               </div>
+
+                              {proj.demoUrl && (
+                                <div className="flex items-center gap-2 p-2 rounded-xl bg-black/60 border border-amber-500/25 text-[11px] font-mono">
+                                  <Globe className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                                  <span className="text-neutral-400 text-[10px] uppercase font-bold shrink-0">Link:</span>
+                                  <a
+                                    href={proj.demoUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-amber-400 hover:underline truncate flex-1 font-bold"
+                                    title="Saytga o'tish"
+                                  >
+                                    {proj.demoUrl} ↗
+                                  </a>
+                                </div>
+                              )}
 
                               <div className="flex items-center justify-between pt-2 border-t border-neutral-800">
                                 <span className="text-[10px] text-neutral-500 font-mono">ID: {proj.id}</span>
@@ -1447,94 +1438,6 @@ export default function AdminPanelModal({
                           className="w-full bg-black border border-neutral-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500 font-sans"
                         />
                       </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* TAB 5: AI KNOWLEDGE & LIVE PLAYGROUND */}
-                {activeTab === "ai" && (
-                  <div className="space-y-6 font-mono text-xs">
-                    <div className="space-y-2">
-                      <label className="text-amber-400 font-bold uppercase flex items-center gap-2">
-                        <Sparkles className="w-4 h-4 text-purple-400" /> AI Assistent Bilimlar Bazasi (System Context):
-                      </label>
-                      <p className="text-neutral-400 font-sans">
-                        Saytdagi Gemini 2.5 AI va qisqa javob generatori ushbu kontekst asosida muloqot qiladi:
-                      </p>
-                      <textarea
-                        rows={5}
-                        value={formData.aiCustomKnowledge}
-                        onChange={(e) => setFormData({ ...formData, aiCustomKnowledge: e.target.value })}
-                        className="w-full bg-neutral-900 border border-neutral-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-amber-500 font-sans leading-relaxed"
-                      />
-                    </div>
-
-                    {/* LIVE AI PLAYGROUND / TEST BENCH */}
-                    <div className="p-4 bg-black border border-neutral-800 rounded-2xl space-y-4">
-                      <div className="flex items-center justify-between border-b border-neutral-800 pb-2">
-                        <h4 className="font-bold text-white text-xs uppercase flex items-center gap-2">
-                          <Bot className="w-4 h-4 text-purple-400 animate-pulse" /> Jonli AI Sinov Xonasi (Live Test Bench)
-                        </h4>
-                        <span className="text-[10px] text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded-full font-bold border border-purple-500/20">
-                          Gemini 2.5 Flash Active
-                        </span>
-                      </div>
-
-                      <div className="space-y-2">
-                        <div className="flex flex-wrap gap-1.5">
-                          <span className="text-[10px] text-neutral-400">Tezkor promptlar:</span>
-                          <button
-                            type="button"
-                            onClick={() => setAiTestPrompt("Anvar kim va u qanday proyektlar qiladi?")}
-                            className="text-[10px] bg-neutral-900 hover:bg-neutral-800 text-amber-300 px-2 py-0.5 rounded border border-neutral-800 cursor-pointer"
-                          >
-                            "Anvar kim?"
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setAiTestPrompt("Frontend va Full-stack bo'yicha maslahat ber")}
-                            className="text-[10px] bg-neutral-900 hover:bg-neutral-800 text-sky-300 px-2 py-0.5 rounded border border-neutral-800 cursor-pointer"
-                          >
-                            "Full-Stack maslahat"
-                          </button>
-                        </div>
-
-                        <div className="flex gap-2">
-                          <input
-                            type="text"
-                            placeholder="AIdan nimadir so'rab sinab ko'ring..."
-                            value={aiTestPrompt}
-                            onChange={(e) => setAiTestPrompt(e.target.value)}
-                            onKeyDown={(e) => e.key === "Enter" && handleRunAiTest()}
-                            className="flex-1 bg-neutral-900 border border-neutral-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-amber-500 font-sans"
-                          />
-                          <button
-                            type="button"
-                            onClick={handleRunAiTest}
-                            disabled={aiTestLoading}
-                            className="px-4 py-2.5 bg-purple-600 hover:bg-purple-500 disabled:opacity-50 text-white font-bold rounded-xl transition-all flex items-center gap-1.5 cursor-pointer shadow-lg shadow-purple-600/20"
-                          >
-                            <Play className="w-3.5 h-3.5 fill-current" /> Sinash
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* AI Response Preview */}
-                      {(aiTestLoading || aiTestResponse) && (
-                        <div className="p-3.5 bg-neutral-950 border border-neutral-900 rounded-xl space-y-2 font-sans text-xs">
-                          <div className="flex items-center justify-between text-[10px] text-neutral-500 font-mono border-b border-neutral-900 pb-1">
-                            <span>AIning Javobi:</span>
-                            {aiTestLoading ? (
-                              <span className="text-purple-400 animate-pulse">Generatsiya qilinmoqda...</span>
-                            ) : (
-                              <span className="text-emerald-400 font-bold">200 OK (0.2s)</span>
-                            )}
-                          </div>
-                          <p className="text-neutral-200 leading-relaxed whitespace-pre-wrap">
-                            {aiTestResponse || "Generatsiya..."}
-                          </p>
-                        </div>
-                      )}
                     </div>
                   </div>
                 )}

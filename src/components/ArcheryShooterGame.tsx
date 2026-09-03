@@ -152,7 +152,6 @@ export default function ArcheryShooterGame({ className = "" }: { className?: str
 
               engine.score += points;
               setScore(engine.score);
-              saveGameHighScore("archery", engine.score);
               if (engine.score > highScore) setHighScore(engine.score);
             } else {
               // Missed target

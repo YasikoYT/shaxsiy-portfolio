@@ -50,7 +50,6 @@ export default function AimTrainerGame({ className = "" }: { className?: string 
     setTargetsHit((prev) => prev + 1);
     setScore((prev) => {
       const next = prev + Math.max(10, 1000 - reaction);
-      saveGameHighScore("aimtrainer", next);
       if (next > highScore) setHighScore(next);
       return next;
     });

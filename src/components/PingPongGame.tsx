@@ -66,17 +66,32 @@ export default function PingPongGame({ className = "" }: PingPongProps) {
   };
 
   useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
+    const updatePaddlePos = (clientY: number) => {
       const canvas = canvasRef.current;
       if (!canvas) return;
       const rect = canvas.getBoundingClientRect();
-      const mouseY = e.clientY - rect.top;
+      const scaleY = canvas.height / rect.height;
+      const relativeY = (clientY - rect.top) * scaleY;
       const engine = engineRef.current;
-      engine.playerY = Math.max(0, Math.min(canvas.height - engine.paddleHeight, mouseY - engine.paddleHeight / 2));
+      engine.playerY = Math.max(0, Math.min(canvas.height - engine.paddleHeight, relativeY - engine.paddleHeight / 2));
+    };
+
+    const handleMouseMove = (e: MouseEvent) => {
+      updatePaddlePos(e.clientY);
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (e.touches && e.touches[0]) {
+        updatePaddlePos(e.touches[0].clientY);
+      }
     };
 
     window.addEventListener("mousemove", handleMouseMove);
-    return () => window.removeEventListener("mousemove", handleMouseMove);
+    window.addEventListener("touchmove", handleTouchMove, { passive: true });
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("touchmove", handleTouchMove);
+    };
   }, []);
 
   useEffect(() => {

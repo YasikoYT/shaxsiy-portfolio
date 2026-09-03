@@ -58,7 +58,7 @@ export interface ScoreRecord {
   holderAvatar?: string;
 }
 
-import { getCurrentPlayerAccount } from "./playerAccount";
+import { getCurrentPlayerAccount, recordPlayerGameScore } from "./playerAccount";
 
 export function getHighScoresMap(): Record<string, ScoreRecord> {
   if (typeof window === "undefined") return {};
@@ -75,10 +75,22 @@ export function getHighScoresMap(): Record<string, ScoreRecord> {
 
     let changed = false;
     const activePlayer = getCurrentPlayerAccount();
-    const fallbackNick = activePlayer?.username || "Jasur Pro";
-    const fallbackAvatar = activePlayer?.avatarEmoji || "🎮";
+    const activeNick = activePlayer?.username || "Gamer #1";
+    const activeAvatar = activePlayer?.avatarEmoji || "🎮";
 
-    // Scan all legacy and individual keys to ensure no game score is missed or lost
+    // Clean up any old mock data
+    Object.keys(map).forEach((gameId) => {
+      const rec = map[gameId];
+      if (rec && (rec.holderName === "Jasur Pro" || rec.holderName === "Malika AI")) {
+        // If current user is not Jasur Pro, clean up fake record
+        if (activeNick !== rec.holderName) {
+          delete map[gameId];
+          changed = true;
+        }
+      }
+    });
+
+    // Scan all legacy keys if user had previous high scores
     ALL_GAMES_METADATA.forEach((game) => {
       const currentRecord = map[game.id];
       const currentScore = currentRecord?.score ?? 0;
@@ -90,15 +102,7 @@ export function getHighScoresMap(): Record<string, ScoreRecord> {
         `${game.id}_highscore`,
         `${game.id}_high_wpm`,
         `anvar_game_${game.id}_score`,
-        game.id === "spaceshooter" ? "spaceshooter_highscore" : "",
-        game.id === "simonsays" ? "simon_says_highscore" : "",
-        game.id === "speedtyping" ? "speed_typing_high_wpm" : "",
-        game.id === "archery" ? "archery_high_score" : "",
-        game.id === "gravityrunner" ? "gravity_runner_highscore" : "",
-        game.id === "knifehit" ? "knife_hit_highscore" : "",
-        game.id === "bubbleshooter" ? "bubble_shooter_highscore" : "",
-        game.id === "wordscramble" ? "word_scramble_highscore" : "",
-      ].filter(Boolean);
+      ];
 
       let foundLegacyScore = 0;
       for (const key of legacyKeys) {
@@ -122,26 +126,15 @@ export function getHighScoresMap(): Record<string, ScoreRecord> {
         else if (!lowerIsBetter && foundLegacyScore > currentScore) isBetter = true;
 
         if (isBetter) {
-          const savedHolder = localStorage.getItem(`game_record_holder_${game.id}`) || fallbackNick;
+          const savedHolder = localStorage.getItem(`game_record_holder_${game.id}`) || activeNick;
           map[game.id] = {
             score: foundLegacyScore,
             updatedAt: map[game.id]?.updatedAt || new Date().toISOString(),
-            holderName: savedHolder,
-            holderAvatar: fallbackAvatar
+            holderName: savedHolder === "Jasur Pro" ? activeNick : savedHolder,
+            holderAvatar: activeAvatar
           };
           changed = true;
         }
-      }
-
-      // Ensure holderName exists if record is present
-      if (map[game.id] && !map[game.id].holderName) {
-        const savedHolder = localStorage.getItem(`game_record_holder_${game.id}`) || fallbackNick;
-        map[game.id] = {
-          ...map[game.id],
-          holderName: savedHolder,
-          holderAvatar: map[game.id].holderAvatar || fallbackAvatar
-        };
-        changed = true;
       }
     });
 
@@ -168,17 +161,26 @@ export function getGameHighScore(gameId: string): number {
 }
 
 export function getGameRecordHolder(gameId: string): { name: string; avatar: string; score: number } {
-  if (typeof window === "undefined") return { name: "Gamer #1", avatar: "🎮", score: 0 };
+  if (typeof window === "undefined") return { name: "Rekord xali yo'q", avatar: "👤", score: 0 };
   const map = getHighScoresMap();
   const rec = map[gameId];
   if (rec && rec.score > 0) {
     return {
-      name: rec.holderName || "Jasur Pro",
+      name: rec.holderName || "O'yinchi",
       avatar: rec.holderAvatar || "🎮",
       score: rec.score
     };
   }
   return { name: "Rekord xali yo'q", avatar: "👤", score: 0 };
+}
+
+export function getUserPersonalBestScore(gameId: string): number {
+  if (typeof window === "undefined") return 0;
+  const player = getCurrentPlayerAccount();
+  if (player.gameScores && player.gameScores[gameId] !== undefined) {
+    return player.gameScores[gameId];
+  }
+  return 0;
 }
 
 export function saveGameHighScore(gameId: string, newScore: number, customNickname?: string): boolean {
@@ -187,22 +189,24 @@ export function saveGameHighScore(gameId: string, newScore: number, customNickna
   if (isNaN(scoreNum) || scoreNum < 0) return false;
 
   try {
+    const gameMeta = ALL_GAMES_METADATA.find((g) => g.id === gameId);
+    const lowerIsBetter = gameMeta?.unit === "sekund" || gameMeta?.unit === "yurish";
+
+    // 1. Record score in player's personal account and award XP
+    const activePlayer = recordPlayerGameScore(gameId, scoreNum, lowerIsBetter);
+    const activeNickname = customNickname || activePlayer.username || "Gamer #1";
+    const activeAvatar = activePlayer.avatarEmoji || "🎮";
+
+    // 2. Check and record in overall game high scores leaderboard
     const map = getHighScoresMap();
     const currentRecord = map[gameId];
     const currentScore = currentRecord?.score;
-    const gameMeta = ALL_GAMES_METADATA.find((g) => g.id === gameId);
-
-    const activePlayer = getCurrentPlayerAccount();
-    const activeNickname = customNickname || activePlayer?.username || localStorage.getItem("anvar_player_name") || "Gamer #1";
-    const activeAvatar = activePlayer?.avatarEmoji || "🎮";
-
-    const lowerIsBetter = gameMeta?.unit === "sekund" || gameMeta?.unit === "yurish";
 
     let isNewRecord = false;
-    if (currentScore === undefined) {
+    if (currentScore === undefined || currentScore === 0) {
       if (scoreNum > 0) isNewRecord = true;
     } else if (lowerIsBetter) {
-      if (currentScore === 0 || (scoreNum > 0 && scoreNum < currentScore)) {
+      if (scoreNum > 0 && scoreNum < currentScore) {
         isNewRecord = true;
       }
     } else {
@@ -211,7 +215,7 @@ export function saveGameHighScore(gameId: string, newScore: number, customNickna
       }
     }
 
-    if (isNewRecord) {
+    if (isNewRecord || !currentRecord) {
       map[gameId] = {
         score: scoreNum,
         updatedAt: new Date().toISOString(),
@@ -241,6 +245,9 @@ export function saveGameHighScore(gameId: string, newScore: number, customNickna
         } 
       }));
       return true;
+    } else {
+      // Even if not a global high score, notify of personal update
+      window.dispatchEvent(new CustomEvent("highscore_updated", { detail: { gameId, score: scoreNum } }));
     }
   } catch (e) {
     console.warn("Error saving high score to localStorage:", e);

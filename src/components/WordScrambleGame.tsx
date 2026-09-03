@@ -13,7 +13,7 @@ const WORDS = [
   { word: "TAILWIND", hint: "Zamonaviy utility-first CSS freymvorki" },
   { word: "COMPONENT", hint: "Qayta ishlatiluvchi UI bloki" },
   { word: "EXPRESS", hint: "Node.js uchun tezkor server freymvorki" },
-  { word: "GEMINI", hint: "Google tomonidan yaratilgan ilg'or AI modeli" },
+  { word: "NODEJS", hint: "Server tomonida ishlaydigan JavaScript runtime muhiti" },
   { word: "BACKEND", hint: "Server va ma'lumotlar mantiqiy qismi" },
   { word: "FUNCTION", hint: "Muayyan vazifani bajaruvchi kod bloki" },
 ];
@@ -85,7 +85,6 @@ export default function WordScrambleGame({ className = "" }: { className?: strin
       const addedScore = 10 + streak * 5 + (showHint ? 0 : 5);
       setScore((s) => {
         const next = s + addedScore;
-        saveGameHighScore("wordscramble", next);
         if (next > highScore) setHighScore(next);
         return next;
       });

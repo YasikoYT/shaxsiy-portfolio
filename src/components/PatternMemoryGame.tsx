@@ -65,7 +65,6 @@ export default function PatternMemoryGame({ className = "" }: { className?: stri
 
     // Completed level sequence!
     if (updatedUser.length === pattern.length) {
-      saveGameHighScore("patternmemory", level);
       if (level > highScore) setHighScore(level);
       setTimeout(() => {
         const nextLevel = level + 1;

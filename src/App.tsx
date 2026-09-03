@@ -82,7 +82,6 @@ import PatternMemoryGame from "./components/PatternMemoryGame";
 import ProjectsShowcase from "./components/ProjectsShowcase";
 import DoodleJumpGame from "./components/DoodleJumpGame";
 import NumberMergeChainGame from "./components/NumberMergeChainGame";
-import GamesLeaderboard from "./components/GamesLeaderboard";
 import Confetti from "./components/Confetti";
 import AdminPanelModal, { DEFAULT_SITE_CONFIG } from "./components/AdminPanelModal";
 import PlayerAccountModal from "./components/PlayerAccountModal";
@@ -198,91 +197,6 @@ function HeroTypewriter() {
       </div>
     </div>
   );
-}
-
-// Fallback intelligent responder for AI assistant
-function getFallbackResponse(prompt: string, config: SiteConfig): string {
-  const p = prompt.toLowerCase().trim();
-
-  // 1. Greetings
-  if (p.includes("salom") || p.includes("assalom") || p === "hi" || p === "hello" || p.includes("xayrli") || p.includes("privet")) {
-    return "Salom! Qanday yordam bera olaman?";
-  }
-
-  // 2. CSS creation & history
-  if (p.includes("css") && (p.includes("qachon") || p.includes("yaratilgan") || p.includes("tarix") || p.includes("kim"))) {
-    return "CSS (Cascading Style Sheets) **1996-yil 17-dekabrda** Hakon Wium Lie tomonidan taklif qilingan hamda W3C tomonidan rasman standartlashtirilgan. CSS veb-sahifalarga zamonaviy dizayn, ranglar, shriftlar va moslashuvchan (responsive) tartib berish uchun ishlatiladi.";
-  }
-  if (p.includes("css")) {
-    return "CSS (Cascading Style Sheets) — veb-sahifalarning vizual ko'rinishi va dizaynini shakllantiruvchi til. Flexbox, Grid, CSS animations hamda Tailwind CSS kabi karkaslar bilan juda qulay va tezkor dizayn yaratish mumkin.";
-  }
-
-  // 3. HTML creation & history
-  if (p.includes("html") && (p.includes("qachon") || p.includes("yaratilgan") || p.includes("kim"))) {
-    return "HTML (HyperText Markup Language) **1993-yilda** mashhur olim Tim Berners-Lee tomonidan yaratilgan. HTML veb-sahifaning poydevori va asosiy karkasi hisoblanadi.";
-  }
-  if (p.includes("html")) {
-    return "HTML — veb-dasturlashning poydevori hisoblanadi. U teglar (tags) yordamida veb-sahifa elementlarini (sarlavhalar, tugmalar, formalar, rasmlar) tartibga soladi.";
-  }
-
-  // 4. JavaScript creation & history
-  if ((p.includes("javascript") || p.includes("js")) && (p.includes("qachon") || p.includes("yaratilgan") || p.includes("kim"))) {
-    return "JavaScript **1995-yilda** Brendan Eich tomonidan Netscape kompaniyasida bor-yo'g'i 10 kun ichida yaratilgan. Bugungi kunda JS dunyodagi eng ommabop dasturlash tili bo'lib, ham frontend (React/Vue), ham backend (Node.js) sohasi uchun asosdir.";
-  }
-  if (p.includes("javascript") || p.includes("js")) {
-    return "JavaScript — veb-sahifalarni interaktiv va jonli qiluvchi dasturlash tili. U animatsiyalar, forma tekshiruvlari, API bilan ishlash hamda server (Node.js) va ilovalar yaratish imkonini beradi.";
-  }
-
-  // 5. React history & purpose
-  if (p.includes("react")) {
-    return "React — **2013-yilda** Facebook (Meta) muhandisi Jordan Walke tomonidan yaratilgan. U komponentlarga asoslangan, juda tez ishlaydigan va zamonaviy foydalanuvchi interfeyslarini (UI) qurish uchun dunyodagi eng mashhur JavaScript kutubxonasidir.";
-  }
-
-  // 6. Python history & purpose
-  if (p.includes("python")) {
-    return "Python **1991-yilda** Guido van Rossum tomonidan yaratilgan. U o'qish uchun juda sodda, kodi toza va sun'iy intellekt (AI), ma'lumotlar tahlili (Data Science) hamda veb dasturlashda eng ko'p ishlatiladigan tildir.";
-  }
-
-  // 7. Node.js & Express
-  if (p.includes("node") || p.includes("express")) {
-    return "Node.js **2009-yilda** Ryan Dahl tomonidan yaratilgan runtime muhitdir. U JavaScript kodini brauzerdan tashqarida, ya'ni serverda bajarish imkonini beradi. Express.js esa uning ustiga qurilgan yengil va tezkor web-server karkasidir.";
-  }
-
-  // 8. C++ / Java / SQL
-  if (p.includes("c++") || p.includes("cpp")) {
-    return "C++ **1985-yilda** Bjarne Stroustrup tomonidan yaratilgan. U tezkor va yuqori unumdorlikka ega dasturlash tili bo'lib, o'yin dvigatellari va operatsion tizimlar yaratishda keng qo'llaniladi.";
-  }
-  if (p.includes("java")) {
-    return "Java **1995-yilda** James Gosling tomonidan yaratilgan. U 'bir marta yoz, har qaerda ishlat' tamoyili bilan ishlaydigan mashhur dasturlash tilidir.";
-  }
-  if (p.includes("sql") || p.includes("baza") || p.includes("database")) {
-    return "SQL (Structured Query Language) — ma'lumotlar bazasi (Relational Database) bilan ishlash, ma'lumotlarni saqlash va boshqarish uchun ishlatiladigan standart tildir.";
-  }
-
-  // 9. Anvar profile queries
-  if (p.includes("yosh") || p.includes("necha")) {
-    return `${config.name} Hozirda ${config.age}! U juda yosh bo'lishiga qaramay, 1 yildan ortiq vaqtdan beri professional full-stack dasturlash bilan shug'ullanib keladi.`;
-  }
-  if (p.includes("qayer") || p.includes("manzil") || p.includes("yashaydi") || p.includes("surxon") || p.includes("denov")) {
-    return `${config.name} ${config.location} manzilida istiqomat qiladi.`;
-  }
-  if (p.includes("kim") || p.includes("anvar") || p.includes("haqida")) {
-    return config.bio;
-  }
-  if (p.includes("stak") || p.includes("kod") || p.includes("texnologiya") || p.includes("til")) {
-    return `${config.firstName} asosiy texnologiya sifatida JavaScript, TypeScript, React, Node.js, Express, HTML5, CSS3 hamda Tailwind CSS va Gemini AI dan foydalanadi.`;
-  }
-  if (p.includes("aloqa") || p.includes("email") || p.includes("gmail") || p.includes("murojaat")) {
-    return `${config.firstName} bilan bog'lanish uchun rasmiy email: ${config.email} . Sahifaning pastki qismidagi formadan ham xabar yuborishingiz mumkin!`;
-  }
-
-  // 10. Status check
-  if (p.includes("qandaysiz") || p.includes("qalaysiz") || p.includes("ishlar") || p.includes("yaxshimi") || p.includes("kim siz")) {
-    return "Rahmat, men a'lo kayfiyatdaman! Anvar AI assistenti xizmatingizda. Dasturlash, HTML/CSS, JavaScript, React, Python yoki boshqa istalgan savolingizga mamnuniyat bilan javob beraman.";
-  }
-
-  // 11. Clean intelligent default
-  return "Assalomu alaykum! Men Anvar AI assistentiman. Dasturlash (HTML, CSS, JavaScript, React, Python, Node.js), veb-texnologiyalar tarixi, kompyuter ilmlari va boshqa istalgan savollaringizga mamnuniyat bilan javob berishga tayyorman. Savolingizni berishingiz mumkin!";
 }
 
 export default function App() {
@@ -438,7 +352,6 @@ export default function App() {
   const [activeTab, setActiveTab] = useState("home");
   const [activeGameTab, setActiveGameTab] = useState("tetris");
   const [gameCategory, setGameCategory] = useState("all");
-  const [gamesMainViewMode, setGamesMainViewMode] = useState<"catalog" | "leaderboard">("catalog");
   const gameTabsRef = useRef<HTMLDivElement>(null);
   const gameContainerRef = useRef<HTMLDivElement>(null);
   const [isGameFullScreen, setIsGameFullScreen] = useState(false);
@@ -559,11 +472,7 @@ export default function App() {
   };
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [soundOn, setSoundOn] = useState(() => isSoundEnabled());
-  const [aiMessageInput, setAiMessageInput] = useState("");
-  const [aiIsTyping, setAiIsTyping] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
-  const [copiedMsgId, setCopiedMsgId] = useState<string | null>(null);
-  const [speakingMsgId, setSpeakingMsgId] = useState<string | null>(null);
 
   useEffect(() => {
     const handleSoundToggle = (e: CustomEvent<{ enabled: boolean }>) => {
@@ -572,30 +481,6 @@ export default function App() {
     window.addEventListener("sound_toggle_changed", handleSoundToggle as EventListener);
     return () => window.removeEventListener("sound_toggle_changed", handleSoundToggle as EventListener);
   }, []);
-
-  // Helper: Copy message text to clipboard
-  const handleCopyMessage = (id: string, text: string) => {
-    navigator.clipboard.writeText(text);
-    setCopiedMsgId(id);
-    setTimeout(() => setCopiedMsgId(null), 2000);
-  };
-
-  // Helper: Speak text with Web Speech API
-  const handleSpeakMessage = (id: string, text: string) => {
-    if (!("speechSynthesis" in window)) return;
-    if (speakingMsgId === id) {
-      window.speechSynthesis.cancel();
-      setSpeakingMsgId(null);
-      return;
-    }
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.rate = 1.0;
-    utterance.onend = () => setSpeakingMsgId(null);
-    utterance.onerror = () => setSpeakingMsgId(null);
-    setSpeakingMsgId(id);
-    window.speechSynthesis.speak(utterance);
-  };
   
   // Contact form states
   const [formName, setFormName] = useState("");
@@ -603,54 +488,6 @@ export default function App() {
   const [formMessage, setFormMessage] = useState("");
   const [formSubmitted, setFormSubmitted] = useState(false);
   const [formSending, setFormSending] = useState(false);
-
-  // Chat conversation history
-  const [chatHistory, setChatHistory] = useState<Message[]>([
-    {
-      id: "init-1",
-      sender: "gemini",
-      text: "Assalomu alaykum! Men Akramov Anvarning sun'iy intellekt assistentiman (Gemini 2.5 AI). Men sizga dasturlash, HTML/CSS, JavaScript, React, Python, IT tarixi hamda Anvarning 15 yoshida erishgan tajribasi haqida istalgan vaqtda tezkor va aniq javob beraman. Nima haqida suhbatlashamiz?",
-      timestamp: new Date()
-    }
-  ]);
-
-  // Group consecutive messages from the same sender into compact blocks with time indicators
-  const groupedChatHistory = useMemo(() => {
-    const groups: Array<{
-      groupId: string;
-      sender: "user" | "gemini";
-      messages: Message[];
-      firstTime: string;
-      lastTime: string;
-      timeString: string;
-    }> = [];
-
-    chatHistory.forEach((msg) => {
-      const formattedTime = new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      const lastGroup = groups[groups.length - 1];
-
-      if (lastGroup && lastGroup.sender === msg.sender) {
-        lastGroup.messages.push(msg);
-        lastGroup.lastTime = formattedTime;
-        lastGroup.timeString = lastGroup.firstTime === formattedTime 
-          ? formattedTime 
-          : `${lastGroup.firstTime} - ${formattedTime}`;
-      } else {
-        groups.push({
-          groupId: `group-${msg.id}`,
-          sender: msg.sender,
-          messages: [msg],
-          firstTime: formattedTime,
-          lastTime: formattedTime,
-          timeString: formattedTime,
-        });
-      }
-    });
-
-    return groups;
-  }, [chatHistory]);
-
-  const chatMessagesContainerRef = useRef<HTMLDivElement>(null);
 
   // Fast, high-performance smooth scroll handler using native browser behavior
   const smoothScrollTo = (target: string | number | HTMLElement | null, _duration?: number) => {
@@ -757,80 +594,11 @@ export default function App() {
     } else if (progress < 65) {
       setLoadingPhase("15 yoshli Full-Stack dasturchi ma'lumotlari indekslanmoqda...");
     } else if (progress < 90) {
-      setLoadingPhase("Google Gemini AI va interaktiv arcade tizimi sozlanmoqda...");
+      setLoadingPhase("Interaktiv o'yinlar arenasi va loyihalar tayyorlanmoqda...");
     } else {
       setLoadingPhase("Tizim tayyor. Kirishga ruxsat berildi!");
     }
   }, [progress]);
-
-  // Scroll to bottom of chat container ONLY (prevents jumping main page window scroll)
-  useEffect(() => {
-    if (chatMessagesContainerRef.current) {
-      chatMessagesContainerRef.current.scrollTo({
-        top: chatMessagesContainerRef.current.scrollHeight,
-        behavior: "smooth"
-      });
-    }
-  }, [chatHistory, aiIsTyping]);
-
-  // Chat sending handler
-  const handleSendMessage = async (promptText?: string) => {
-    const userMsgText = (promptText || aiMessageInput).trim();
-    if (!userMsgText) return;
-
-    playClickSound();
-
-    const userMsg: Message = {
-      id: `user-${Date.now()}`,
-      sender: "user",
-      text: userMsgText,
-      timestamp: new Date()
-    };
-
-    setChatHistory(prev => [...prev, userMsg]);
-    setAiMessageInput("");
-    setAiIsTyping(true);
-
-    try {
-      const response = await fetch("/api/gemini/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          prompt: userMsgText,
-          history: chatHistory.slice(-6).map(m => ({ sender: m.sender, text: m.text }))
-        })
-      });
-
-      const data = await response.json();
-      setAiIsTyping(false);
-      
-      let replyText = data.text;
-      if (!replyText || data.error) {
-        replyText = getFallbackResponse(userMsgText, siteConfig);
-      }
-
-      const geminiMsg: Message = {
-        id: `gemini-${Date.now()}`,
-        sender: "gemini",
-        text: replyText,
-        timestamp: new Date()
-      };
-      
-      setChatHistory(prev => [...prev, geminiMsg]);
-      playAIMessageSound();
-    } catch (error: any) {
-      setAiIsTyping(false);
-      const fallbackText = getFallbackResponse(userMsgText, siteConfig);
-      const errorMsg: Message = {
-        id: `gemini-error-${Date.now()}`,
-        sender: "gemini",
-        text: fallbackText,
-        timestamp: new Date()
-      };
-      setChatHistory(prev => [...prev, errorMsg]);
-      playAIMessageSound();
-    }
-  };
 
   // Contact Form Submission handler (Direct routing to Telegram & Gmail)
   const handleContactSubmit = async (e: React.FormEvent) => {
@@ -1030,16 +798,16 @@ export default function App() {
 
           {/* AESTHETIC TOP NAVIGATION BAR */}
           <header className={`sticky top-0 z-30 backdrop-blur-md border-b transition-colors duration-300 ${isDarkMode ? 'bg-[#0b0c10]/90 border-neutral-800' : 'bg-[#fdfdfd]/90 border-[#e5e5ea]'}`}>
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 h-20 flex justify-between items-center">
+            <div className="max-w-7xl mx-auto px-3 sm:px-6 h-16 sm:h-20 flex justify-between items-center">
               
               {/* LOGO & ADMIN PANEL BUTTON - Top Header */}
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 sm:gap-3">
                 {/* Black AA Icon - Clicking opens Admin Login Modal */}
                 <motion.button
                   whileHover={{ scale: 1.08 }}
                   whileTap={{ scale: 0.92 }}
                   onClick={() => setShowAdminModal(true)}
-                  className={`w-10 h-10 rounded-2xl flex items-center justify-center font-mono font-black text-sm tracking-widest shadow-md hover:ring-2 hover:ring-amber-400 cursor-pointer transition-all relative group shrink-0 ${
+                  className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl flex items-center justify-center font-mono font-black text-xs sm:text-sm tracking-widest shadow-md hover:ring-2 hover:ring-amber-400 cursor-pointer transition-all relative group shrink-0 ${
                     isDarkMode ? 'bg-amber-400 text-black hover:bg-amber-300' : 'bg-black text-white hover:bg-neutral-800'
                   }`}
                   title="Admin Panel Login (AA)"
@@ -1059,16 +827,16 @@ export default function App() {
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   id="logo-placeholder"
-                  className={`flex flex-col cursor-pointer select-none py-1 px-1.5 transition-all rounded-xl ${isDarkMode ? 'hover:bg-neutral-800/80' : 'hover:bg-neutral-100'}`}
+                  className={`flex flex-col cursor-pointer select-none py-1 px-1 transition-all rounded-xl ${isDarkMode ? 'hover:bg-neutral-800/80' : 'hover:bg-neutral-100'}`}
                   onClick={() => {
                     setActiveTab("home");
                     smoothScrollTo("home", 1200);
                   }}
                 >
-                  <span className={`font-serif text-xs sm:text-base tracking-normal sm:tracking-[0.15em] font-extrabold uppercase leading-none truncate max-w-[150px] sm:max-w-none ${isDarkMode ? 'text-white' : 'text-black'}`}>
+                  <span className={`font-serif text-xs sm:text-base tracking-tight sm:tracking-[0.15em] font-extrabold uppercase leading-none truncate max-w-[130px] xs:max-w-[180px] sm:max-w-none ${isDarkMode ? 'text-white' : 'text-black'}`}>
                     {siteConfig.firstName} {siteConfig.lastName}
                   </span>
-                  <span className={`text-[9px] sm:text-[10px] font-mono mt-0.5 sm:mt-1 font-semibold ${isDarkMode ? 'text-neutral-400' : 'text-neutral-500'}`}>Full-Stack Dev // {siteConfig.age || 15} yosh</span>
+                  <span className={`text-[8.5px] sm:text-[10px] font-mono mt-0.5 sm:mt-1 font-semibold truncate ${isDarkMode ? 'text-neutral-400' : 'text-neutral-500'}`}>Full-Stack Dev // {siteConfig.age || 15} yosh</span>
                 </motion.div>
               </div>
 
@@ -1078,7 +846,6 @@ export default function App() {
                   { id: "home", label: "Asosiy" },
                   ...(siteConfig.customProjects && siteConfig.customProjects.length > 0 ? [{ id: "projects", label: "Loyihalarim" }] : []),
                   { id: "games", label: "O'yinlar Arena" },
-                  { id: "ai-assistant", label: "AI Markazi" },
                   { id: "goals", label: "Maqsadlarim" },
                   { id: "contact", label: "Bog'lanish" }
                 ].map((item) => (
@@ -1225,7 +992,6 @@ export default function App() {
                       { id: "home", label: "Asosiy Sahifa", icon: Sparkles },
                       ...(siteConfig.customProjects && siteConfig.customProjects.length > 0 ? [{ id: "projects", label: "Loyihalarim", icon: Code2 }] : []),
                       { id: "games", label: "O'yinlar Arena", icon: Gamepad2 },
-                      { id: "ai-assistant", label: "AI Markazi", icon: Brain },
                       { id: "goals", label: "Maqsadlarim", icon: Target },
                       { id: "contact", label: "Menga Bog'laning", icon: Mail }
                     ].map((item) => {
@@ -1281,7 +1047,7 @@ export default function App() {
           </header>
 
           {/* MAIN WRAPPER CONTAINER */}
-          <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8 md:py-16 space-y-24 md:space-y-32">
+          <main className="max-w-7xl mx-auto px-3.5 sm:px-6 py-6 md:py-16 space-y-16 sm:space-y-24 md:space-y-32">
 
             {/* SECTION 1: HERO VIEW */}
             <motion.section 
@@ -1294,14 +1060,14 @@ export default function App() {
             >
               {/* Floating Ambient Glow Background Orbs (Optimized GPU-friendly) */}
               <div 
-                className="absolute w-[380px] sm:w-[500px] h-[380px] sm:h-[500px] rounded-full bg-gradient-to-tr from-emerald-400/20 to-cyan-400/15 blur-2xl sm:blur-3xl -top-28 -left-28 pointer-events-none -z-10 animate-float-glow gpu-accelerated"
+                className="absolute w-[340px] sm:w-[500px] h-[340px] sm:h-[500px] rounded-full bg-gradient-to-tr from-emerald-400/20 to-cyan-400/15 blur-2xl sm:blur-3xl -top-28 -left-28 pointer-events-none -z-10 animate-float-glow gpu-accelerated"
               />
               <div 
-                className="absolute w-[380px] sm:w-[500px] h-[380px] sm:h-[500px] rounded-full bg-gradient-to-br from-purple-500/15 to-amber-400/15 blur-2xl sm:blur-3xl -bottom-28 -right-28 pointer-events-none -z-10 animate-float-glow gpu-accelerated"
+                className="absolute w-[340px] sm:w-[500px] h-[340px] sm:h-[500px] rounded-full bg-gradient-to-br from-purple-500/15 to-amber-400/15 blur-2xl sm:blur-3xl -bottom-28 -right-28 pointer-events-none -z-10 animate-float-glow gpu-accelerated"
                 style={{ animationDelay: '-4s' }}
               />
 
-              <div className="max-w-4xl mx-auto text-center flex flex-col items-center space-y-8 relative z-10">
+              <div className="max-w-4xl mx-auto text-center flex flex-col items-center space-y-6 sm:space-y-8 relative z-10">
                 
                 {/* Subheading Badge */}
                 <motion.div 
@@ -1320,16 +1086,25 @@ export default function App() {
                 </motion.div>
 
                 {/* Main Editorial Heading */}
-                <div className="space-y-4 flex flex-col items-center w-full px-2">
+                <div className="space-y-3 sm:space-y-4 flex flex-col items-center w-full px-2">
                   <motion.h1 
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.3 }}
-                    className="text-4xl xs:text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-black leading-[0.95] tracking-tight sm:tracking-tighter uppercase text-center relative break-words w-full"
+                    className="text-4xl xs:text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-black leading-[1.08] sm:leading-[0.95] tracking-tight sm:tracking-tighter uppercase text-center relative break-words w-full"
                   >
-                    <span className="text-neutral-950 drop-shadow-sm">{siteConfig.firstName}</span>
+                    <span className={isDarkMode ? "text-white drop-shadow-sm" : "text-neutral-950 drop-shadow-sm"}>
+                      {siteConfig.firstName}
+                    </span>
                     <br />
-                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-neutral-900 via-neutral-700 to-neutral-400" style={{ WebkitTextStroke: "1.5px black" }}>
+                    <span 
+                      className={`text-transparent bg-clip-text ${
+                        isDarkMode 
+                          ? "bg-gradient-to-r from-amber-400 via-yellow-200 to-white" 
+                          : "bg-gradient-to-r from-neutral-900 via-neutral-700 to-neutral-400"
+                      }`} 
+                      style={isDarkMode ? undefined : { WebkitTextStroke: "1.5px black" }}
+                    >
                       {siteConfig.lastName}
                     </span>
                   </motion.h1>
@@ -1339,7 +1114,7 @@ export default function App() {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.4 }}
-                    className="pt-2 flex justify-center w-full"
+                    className="pt-1 sm:pt-2 flex justify-center w-full"
                   >
                     <HeroTypewriter />
                   </motion.div>
@@ -1350,7 +1125,9 @@ export default function App() {
                   initial={{ opacity: 0, y: 15 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.5 }}
-                  className="text-neutral-700 text-base md:text-lg leading-relaxed max-w-2xl mx-auto font-sans text-center font-medium"
+                  className={`${
+                    isDarkMode ? "text-neutral-300" : "text-neutral-700"
+                  } text-sm sm:text-base md:text-lg leading-relaxed max-w-2xl mx-auto font-sans text-center font-medium px-2`}
                 >
                   {siteConfig.bio}
                 </motion.p>
@@ -1360,7 +1137,7 @@ export default function App() {
                   initial={{ opacity: 0, y: 15 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.6 }}
-                  className="flex flex-wrap items-center justify-center gap-4 pt-2"
+                  className="flex flex-wrap items-center justify-center gap-3 sm:gap-4 pt-1 sm:pt-2"
                 >
                   <motion.button
                     whileHover={{ scale: 1.05, y: -2 }}
@@ -1369,21 +1146,26 @@ export default function App() {
                       setActiveTab("games");
                       smoothScrollTo("games", 1200);
                     }}
-                    className="px-8 py-4 bg-gradient-to-r from-neutral-950 via-neutral-900 to-neutral-800 text-white text-xs font-mono uppercase font-bold tracking-wider rounded-full hover:shadow-2xl hover:shadow-emerald-500/20 transition-all cursor-pointer flex items-center gap-2.5 border border-neutral-700"
+                    className="px-6 sm:px-8 py-3.5 sm:py-4 bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 text-slate-950 text-xs font-mono uppercase font-black tracking-wider rounded-full hover:shadow-2xl hover:shadow-amber-500/30 transition-all cursor-pointer flex items-center gap-2 border border-amber-400"
                   >
-                    <Gamepad2 className="w-4 h-4 text-emerald-400 animate-bounce" /> O'yinlar Maydoni
+                    <Gamepad2 className="w-4 h-4 animate-bounce" /> O'yinlar Arenasi
                   </motion.button>
                   
                   <motion.button
                     whileHover={{ scale: 1.05, y: -2 }}
                     whileTap={{ scale: 0.95 }}
                     onClick={() => {
-                      setActiveTab("ai-assistant");
-                      smoothScrollTo("ai-assistant", 1200);
+                      const targetId = siteConfig.customProjects && siteConfig.customProjects.length > 0 ? "projects" : "contact";
+                      setActiveTab(targetId);
+                      smoothScrollTo(targetId, 1200);
                     }}
-                    className="px-8 py-4 border border-neutral-300 bg-white/90 backdrop-blur-sm text-black text-xs font-mono uppercase font-bold tracking-wider rounded-full hover:bg-white hover:border-purple-500 transition-all cursor-pointer flex items-center gap-2.5 shadow-lg hover:shadow-purple-500/20"
+                    className={`px-6 sm:px-8 py-3.5 sm:py-4 border rounded-full text-xs font-mono uppercase font-bold tracking-wider transition-all cursor-pointer flex items-center gap-2 shadow-lg ${
+                      isDarkMode 
+                        ? 'border-neutral-700 bg-neutral-900/90 text-white hover:bg-neutral-800 hover:border-amber-400' 
+                        : 'border-neutral-300 bg-white/90 text-black hover:bg-white hover:border-amber-500'
+                    }`}
                   >
-                    <Brain className="w-4 h-4 text-purple-600 animate-pulse" /> AI Assistant
+                    <Target className="w-4 h-4 text-amber-500" /> {siteConfig.customProjects && siteConfig.customProjects.length > 0 ? "Loyihalarim" : "Menga Bog'lanish"}
                   </motion.button>
                 </motion.div>
 
@@ -1392,33 +1174,53 @@ export default function App() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.7 }}
-                  className="grid grid-cols-3 gap-2 sm:gap-6 pt-8 border-t border-neutral-200/80 max-w-2xl mx-auto w-full text-center"
+                  className={`grid grid-cols-3 gap-2 sm:gap-6 pt-6 sm:pt-8 border-t max-w-2xl mx-auto w-full text-center ${
+                    isDarkMode ? 'border-neutral-800' : 'border-neutral-200/80'
+                  }`}
                 >
                   <motion.div 
                     whileHover={{ y: -5, scale: 1.02 }}
-                    className="p-3 sm:p-6 bg-white/80 backdrop-blur-md border border-neutral-200 rounded-2xl sm:rounded-3xl flex-1 shadow-md hover:shadow-xl transition-all relative overflow-hidden group"
+                    className={`p-2.5 sm:p-6 backdrop-blur-md border rounded-2xl sm:rounded-3xl flex-1 shadow-md hover:shadow-xl transition-all relative overflow-hidden group ${
+                      isDarkMode ? 'bg-neutral-900/90 border-neutral-800' : 'bg-white/90 border-neutral-200'
+                    }`}
                   >
                     <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-400 to-teal-500 opacity-80 group-hover:opacity-100 transition-opacity" />
-                    <span className="block text-xl sm:text-4xl font-bold mb-1 font-mono text-black">{siteConfig.stat1Value}</span>
-                    <span className="text-[9px] sm:text-[10px] uppercase tracking-normal sm:tracking-widest text-neutral-500 font-mono font-bold leading-tight block">{siteConfig.stat1Label}</span>
+                    <span className={`block text-lg sm:text-4xl font-bold mb-0.5 sm:mb-1 font-mono ${isDarkMode ? 'text-white' : 'text-black'}`}>
+                      {siteConfig.stat1Value}
+                    </span>
+                    <span className="text-[8.5px] sm:text-[10px] uppercase tracking-normal sm:tracking-widest text-neutral-400 font-mono font-bold leading-tight block truncate">
+                      {siteConfig.stat1Label}
+                    </span>
                   </motion.div>
                   
                   <motion.div 
                     whileHover={{ y: -5, scale: 1.02 }}
-                    className="p-3 sm:p-6 bg-white/80 backdrop-blur-md border border-neutral-200 rounded-2xl sm:rounded-3xl flex-1 shadow-md hover:shadow-xl transition-all relative overflow-hidden group"
+                    className={`p-2.5 sm:p-6 backdrop-blur-md border rounded-2xl sm:rounded-3xl flex-1 shadow-md hover:shadow-xl transition-all relative overflow-hidden group ${
+                      isDarkMode ? 'bg-neutral-900/90 border-neutral-800' : 'bg-white/90 border-neutral-200'
+                    }`}
                   >
                     <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-400 to-orange-500 opacity-80 group-hover:opacity-100 transition-opacity" />
-                    <span className="block text-xl sm:text-4xl font-bold mb-1 font-mono text-black">{siteConfig.stat2Value}</span>
-                    <span className="text-[9px] sm:text-[10px] uppercase tracking-normal sm:tracking-widest text-neutral-500 font-mono font-bold leading-tight block">{siteConfig.stat2Label}</span>
+                    <span className={`block text-lg sm:text-4xl font-bold mb-0.5 sm:mb-1 font-mono ${isDarkMode ? 'text-white' : 'text-black'}`}>
+                      {siteConfig.stat2Value}
+                    </span>
+                    <span className="text-[8.5px] sm:text-[10px] uppercase tracking-normal sm:tracking-widest text-neutral-400 font-mono font-bold leading-tight block truncate">
+                      {siteConfig.stat2Label}
+                    </span>
                   </motion.div>
                   
                   <motion.div 
                     whileHover={{ y: -5, scale: 1.02 }}
-                    className="p-3 sm:p-6 bg-white/80 backdrop-blur-md border border-neutral-200 rounded-2xl sm:rounded-3xl flex-1 shadow-md hover:shadow-xl transition-all relative overflow-hidden group"
+                    className={`p-2.5 sm:p-6 backdrop-blur-md border rounded-2xl sm:rounded-3xl flex-1 shadow-md hover:shadow-xl transition-all relative overflow-hidden group ${
+                      isDarkMode ? 'bg-neutral-900/90 border-neutral-800' : 'bg-white/90 border-neutral-200'
+                    }`}
                   >
                     <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-500 to-cyan-500 opacity-80 group-hover:opacity-100 transition-opacity" />
-                    <span className="block text-lg sm:text-4xl font-bold mb-1 font-mono text-emerald-600">{siteConfig.stat3Value}</span>
-                    <span className="text-[9px] sm:text-[10px] uppercase tracking-normal sm:tracking-widest text-neutral-500 font-mono font-bold leading-tight block">{siteConfig.stat3Label}</span>
+                    <span className="block text-lg sm:text-4xl font-bold mb-0.5 sm:mb-1 font-mono text-emerald-500">
+                      {siteConfig.stat3Value}
+                    </span>
+                    <span className="text-[8.5px] sm:text-[10px] uppercase tracking-normal sm:tracking-widest text-neutral-400 font-mono font-bold leading-tight block truncate">
+                      {siteConfig.stat3Label}
+                    </span>
                   </motion.div>
                 </motion.div>
 
@@ -1461,532 +1263,163 @@ export default function App() {
               <GamesAuthGate
                 isDarkMode={isDarkMode}
                 onOpenPlayerAccountModal={() => setShowPlayerAccountModal(true)}
-                onOpenAdminPanel={() => setShowAdminModal(true)}
               >
-                {/* Clean View Switcher: O'YIN O'YNASH vs TOP REYTING */}
-                <div className="flex items-center justify-center gap-2 p-1.5 bg-black/50 rounded-2xl border border-amber-500/30 max-w-md mx-auto mb-6">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setGamesMainViewMode("catalog");
-                      playClickSound();
-                    }}
-                    className={`flex-1 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-mono font-black transition-all cursor-pointer flex items-center justify-center gap-2 ${
-                      gamesMainViewMode === "catalog"
-                        ? "bg-amber-500 text-slate-950 shadow-md scale-102"
-                        : "text-slate-300 hover:text-white"
-                    }`}
-                  >
-                    <Gamepad2 className="w-4 h-4 shrink-0" />
-                    <span>🎮 O'yin O'ynash</span>
-                  </button>
+                <div className="space-y-6">
+                  {/* ACTIVE GAME STAGE WITH MOBILE-OPTIMIZED CONTROLS */}
+                  {(() => {
+                    const currentGameObj = ALL_GAMES.find(g => g.id === activeGameTab) || ALL_GAMES[0];
+                    const rec = highScoresMap[activeGameTab];
+                    const recScore = rec?.score ?? 0;
+                    const recHolder = rec?.holderName || "O'yinchi";
+                    const recAvatar = rec?.holderAvatar || "🎮";
+                    const meta = ALL_GAMES_METADATA.find(m => m.id === activeGameTab);
+                    const unit = meta?.unit || "ochko";
 
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setGamesMainViewMode("leaderboard");
-                      playClickSound();
-                    }}
-                    className={`flex-1 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-mono font-black transition-all cursor-pointer flex items-center justify-center gap-2 ${
-                      gamesMainViewMode === "leaderboard"
-                        ? "bg-amber-500 text-slate-950 shadow-md scale-102"
-                        : "text-slate-300 hover:text-white"
-                    }`}
-                  >
-                    <Trophy className="w-4 h-4 shrink-0" />
-                    <span>🏆 Top Reyting</span>
-                  </button>
-                </div>
+                    return (
+                      <div className="space-y-4 sm:space-y-6 w-full max-w-full">
+                        {/* Control Bar - Fully Responsive for Mobile & Desktop */}
+                        <div className="bg-neutral-950/95 backdrop-blur-xl text-white p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl shadow-2xl border border-amber-500/40 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 sm:gap-4">
+                          {/* Top / Left: Prev + Dropdown Select + Next */}
+                          <div className="flex items-center gap-2 w-full md:w-auto">
+                            <button
+                              type="button"
+                              onClick={() => { handlePrevGame(); playClickSound(); }}
+                              className="h-11 w-11 rounded-xl sm:rounded-2xl bg-neutral-900 hover:bg-amber-500 hover:text-black border border-neutral-800 text-amber-400 font-mono text-xs font-bold transition-all shrink-0 cursor-pointer shadow-md active:scale-95 flex items-center justify-center"
+                              title="Oldingi o'yin"
+                              aria-label="Oldingi o'yin"
+                            >
+                              <ChevronLeft className="w-5 h-5" />
+                            </button>
 
-                {gamesMainViewMode === "leaderboard" ? (
-                  <div className="space-y-6">
-                    <GamesLeaderboard
-                      isDarkMode={isDarkMode}
-                      onOpenPlayerAccount={() => setShowPlayerAccountModal(true)}
-                      onOpenAdminPanel={() => setShowAdminModal(true)}
-                      onToggleFullScreen={() => toggleGameFullScreen(true)}
-                    />
-                  </div>
-                ) : (
-                  <div className="space-y-8">
-                    {/* ACTIVE GAME STAGE WITH DROPDOWN SELECTOR */}
-                    {(() => {
-                      const currentGameObj = ALL_GAMES.find(g => g.id === activeGameTab) || ALL_GAMES[0];
-                      const rec = highScoresMap[activeGameTab];
-                      const recScore = rec?.score ?? 0;
-                      const recHolder = rec?.holderName || "Jasur Pro";
-                      const recAvatar = rec?.holderAvatar || "🎮";
-                      const meta = ALL_GAMES_METADATA.find(m => m.id === activeGameTab);
-                      const unit = meta?.unit || "ochko";
-
-                      return (
-                        <div className="space-y-4">
-                          {/* Control Bar */}
-                          <div className="flex flex-col sm:flex-row items-center justify-between bg-neutral-950 text-white p-3 sm:p-4 rounded-2xl sm:rounded-3xl shadow-2xl border border-amber-500/30 gap-3">
-                            {/* Left: Prev + Dropdown Select + Next */}
-                            <div className="flex items-center gap-2 w-full sm:w-auto">
-                              <button
-                                type="button"
-                                onClick={() => { handlePrevGame(); playClickSound(); }}
-                                className="p-2 sm:px-3 sm:py-2.5 rounded-xl bg-neutral-900 hover:bg-amber-500 hover:text-black border border-neutral-800 text-amber-400 font-mono text-xs font-bold transition-all shrink-0 cursor-pointer shadow-md active:scale-95"
-                                title="Oldingi o'yin"
+                            {/* Dropdown Selector */}
+                            <div className="relative flex-1 min-w-0 md:w-80">
+                              <select
+                                value={activeGameTab}
+                                onChange={(e) => {
+                                  setActiveGameTab(e.target.value);
+                                  playClickSound();
+                                }}
+                                className="w-full bg-neutral-900 text-amber-300 font-mono font-bold text-xs sm:text-sm py-3 pl-3.5 pr-9 rounded-xl sm:rounded-2xl border border-amber-500/50 focus:outline-none focus:ring-2 focus:ring-amber-400 cursor-pointer appearance-none truncate shadow-inner tracking-wide"
                               >
-                                <ChevronLeft className="w-4 h-4" />
-                              </button>
-
-                              {/* Dropdown Selector */}
-                              <div className="relative flex-1 sm:w-72">
-                                <select
-                                  value={activeGameTab}
-                                  onChange={(e) => {
-                                    setActiveGameTab(e.target.value);
-                                    playClickSound();
-                                  }}
-                                  className="w-full bg-neutral-900 text-amber-300 font-mono font-extrabold text-xs sm:text-sm py-2.5 pl-3 pr-8 rounded-xl border border-amber-500/40 focus:outline-none focus:ring-2 focus:ring-amber-400 cursor-pointer appearance-none truncate shadow-inner"
-                                >
-                                  {ALL_GAMES.map((g) => (
-                                    <option key={g.id} value={g.id} className="bg-neutral-900 text-white font-mono">
-                                      {g.emoji} {g.name} ({g.badge})
-                                    </option>
-                                  ))}
-                                </select>
-                                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2.5 text-amber-400 text-xs">
-                                  ▼
-                                </div>
+                                {ALL_GAMES.map((g) => (
+                                  <option key={g.id} value={g.id} className="bg-neutral-900 text-white font-mono py-1">
+                                    {g.emoji} {g.name} ({g.badge})
+                                  </option>
+                                ))}
+                              </select>
+                              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-amber-400 text-xs">
+                                ▼
                               </div>
-
-                              <button
-                                type="button"
-                                onClick={() => { handleNextGame(); playClickSound(); }}
-                                className="p-2 sm:px-3 sm:py-2.5 rounded-xl bg-neutral-900 hover:bg-amber-500 hover:text-black border border-neutral-800 text-amber-400 font-mono text-xs font-bold transition-all shrink-0 cursor-pointer shadow-md active:scale-95"
-                                title="Keyingi o'yin"
-                              >
-                                <ChevronRight className="w-4 h-4" />
-                              </button>
                             </div>
 
-                            {/* Right: Record & Fullscreen Controls */}
-                            <div className="flex items-center justify-between sm:justify-end w-full sm:w-auto gap-3 text-xs font-mono">
-                              <div className="flex items-center gap-1.5 text-amber-400 font-bold bg-amber-500/10 px-3 py-1.5 rounded-xl border border-amber-500/20 truncate">
-                                <Trophy className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                                <span className="truncate">
-                                  Rekord: <strong>{recScore > 0 ? `${recScore.toLocaleString()} ${unit}` : "Yo'q"}</strong> ({recAvatar} {recHolder})
-                                </span>
-                              </div>
-
-                              <button
-                                type="button"
-                                onClick={() => toggleGameFullScreen()}
-                                className="px-3 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-mono text-xs font-black flex items-center gap-1.5 transition-all cursor-pointer shrink-0 shadow-lg shadow-amber-500/20 active:scale-95"
-                              >
-                                {isGameFullScreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
-                                <span className="hidden sm:inline">{isGameFullScreen ? "Kichiklashtirish" : "Butun ekran"}</span>
-                              </button>
-                            </div>
+                            <button
+                              type="button"
+                              onClick={() => { handleNextGame(); playClickSound(); }}
+                              className="h-11 w-11 rounded-xl sm:rounded-2xl bg-neutral-900 hover:bg-amber-500 hover:text-black border border-neutral-800 text-amber-400 font-mono text-xs font-bold transition-all shrink-0 cursor-pointer shadow-md active:scale-95 flex items-center justify-center"
+                              title="Keyingi o'yin"
+                              aria-label="Keyingi o'yin"
+                            >
+                              <ChevronRight className="w-5 h-5" />
+                            </button>
                           </div>
 
-                          {/* Active Game Canvas */}
-                          <div 
-                            ref={gameContainerRef}
-                            className={
-                              isGameFullScreen 
-                                ? "fixed inset-0 z-[99999] bg-slate-950 p-3 sm:p-8 overflow-y-auto flex flex-col items-center justify-center min-h-screen"
-                                : "w-full relative py-1"
-                            }
-                          >
-                            {isGameFullScreen && (
-                              <button
-                                type="button"
-                                onClick={() => toggleGameFullScreen(false)}
-                                className="fixed top-4 right-4 z-[100000] px-3.5 py-2 bg-neutral-900/90 hover:bg-neutral-800 text-amber-400 border border-amber-500/40 rounded-xl text-xs font-mono font-black flex items-center gap-2 shadow-2xl backdrop-blur-md cursor-pointer transition-all active:scale-95"
-                              >
-                                <Minimize2 className="w-4 h-4" />
-                                <span>Chiqish (ESC)</span>
-                              </button>
-                            )}
+                          {/* Bottom / Right: Record Info & Fullscreen Controls */}
+                          <div className="flex items-center justify-between md:justify-end gap-2.5 text-xs font-mono w-full md:w-auto">
+                            <div className="flex items-center gap-1.5 text-amber-400 font-bold bg-amber-500/10 px-3.5 py-2.5 rounded-xl sm:rounded-2xl border border-amber-500/30 flex-1 md:flex-initial justify-between md:justify-start min-w-0">
+                              <div className="flex items-center gap-1.5 shrink-0">
+                                <Trophy className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-400 shrink-0" />
+                                <span className="hidden xs:inline">Rekord:</span>
+                              </div>
+                              <span className="font-extrabold text-amber-300 truncate text-[11px] sm:text-xs">
+                                {recScore > 0 ? `${recScore.toLocaleString()} ${unit}` : "Yo'q"}
+                              </span>
+                            </div>
 
-                            <AnimatePresence mode="wait">
-                              <motion.div
-                                key={activeGameTab}
-                                initial={{ opacity: 0, y: 15, scale: 0.97 }}
-                                animate={{ opacity: 1, y: 0, scale: 1 }}
-                                exit={{ opacity: 0, y: -15, scale: 0.97 }}
-                                transition={{ duration: 0.25 }}
-                                className={isGameFullScreen ? "w-full max-w-4xl mx-auto my-auto" : "max-w-2xl mx-auto"}
-                              >
-                                {activeGameTab === "bubbleshooter" && <BubbleShooterGame className="w-full shadow-2xl" />}
-                                {activeGameTab === "spaceinvaders" && <SpaceInvadersGame className="w-full shadow-2xl" />}
-                                {activeGameTab === "typingracer" && <TypingSpeedRacerGame className="w-full shadow-2xl" />}
-                                {activeGameTab === "sudoku" && <SudokuMiniGame className="w-full shadow-2xl" />}
-                                {activeGameTab === "helixjump" && <HelixJumpGame className="w-full shadow-2xl" />}
-                                {activeGameTab === "aimtrainer" && <AimTrainerGame className="w-full shadow-2xl" />}
-                                {activeGameTab === "mazerunner" && <MazeRunnerGame className="w-full shadow-2xl" />}
-                                {activeGameTab === "patternmemory" && <PatternMemoryGame className="w-full shadow-2xl" />}
-                                {activeGameTab === "doodlejump" && <DoodleJumpGame className="w-full shadow-2xl" />}
-                                {activeGameTab === "numbermerge" && <NumberMergeChainGame className="w-full shadow-2xl" />}
-                                {activeGameTab === "tetris" && <TetrisGame className="w-full shadow-2xl" />}
-                                {activeGameTab === "whackamole" && <WhackAMoleGame className="w-full shadow-2xl" />}
-                                {activeGameTab === "simonsays" && <SimonSaysGame className="w-full shadow-2xl" />}
-                                {activeGameTab === "wordscramble" && <WordScrambleGame className="w-full shadow-2xl" />}
-                                {activeGameTab === "speedtyping" && <SpeedTypingGame className="w-full shadow-2xl" />}
-                                {activeGameTab === "gravityrunner" && <GravityRunnerGame className="w-full shadow-2xl" />}
-                                {activeGameTab === "connectfour" && <ConnectFourGame className="w-full shadow-2xl" />}
-                                {activeGameTab === "knifehit" && <KnifeHitGame className="w-full shadow-2xl" />}
-                                {activeGameTab === "fruitninja" && <FruitNinjaGame className="w-full shadow-2xl" />}
-                                {activeGameTab === "archery" && <ArcheryShooterGame className="w-full shadow-2xl" />}
-                                {activeGameTab === "towerstack" && <TowerStackGame className="w-full shadow-2xl" />}
-                                {activeGameTab === "tile2048" && <Tile2048Game className="w-full shadow-2xl" />}
-                                {activeGameTab === "brick" && <BrickBreakerGame className="w-full shadow-2xl" />}
-                                {activeGameTab === "sniper" && <SniperGame className="w-full shadow-2xl" />}
-                                {activeGameTab === "colorrush" && <ColorRushGame className="w-full shadow-2xl" />}
-                                {activeGameTab === "minesweeper" && <MinesweeperGame className="w-full shadow-2xl" />}
-                                {activeGameTab === "fastmath" && <FastMathGame className="w-full shadow-2xl" />}
-                                {activeGameTab === "tictactoe" && <TicTacToeGame isDarkMode={isDarkMode} className="w-full shadow-2xl" />}
-                                {activeGameTab === "snake" && <SnakeGame className="w-full shadow-2xl" />}
-                                {activeGameTab === "flappy" && <FlappyBirdGame className="w-full shadow-2xl" />}
-                                {activeGameTab === "pingpong" && <PingPongGame className="w-full shadow-2xl" />}
-                                {activeGameTab === "memory" && <MemoryMatchGame className="w-full shadow-2xl" />}
-                                {activeGameTab === "spaceshooter" && <SpaceShooter className="w-full shadow-2xl" />}
-                                {activeGameTab === "dino" && <DinoGame className="w-full shadow-2xl bg-white border border-neutral-200" />}
-                              </motion.div>
-                            </AnimatePresence>
+                            <button
+                              type="button"
+                              onClick={() => toggleGameFullScreen()}
+                              className="h-11 px-4 sm:px-5 rounded-xl sm:rounded-2xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-mono text-xs font-black flex items-center justify-center gap-2 transition-all cursor-pointer shrink-0 shadow-lg shadow-amber-500/20 active:scale-95"
+                            >
+                              {isGameFullScreen ? <Minimize2 className="w-4 h-4 shrink-0" /> : <Maximize2 className="w-4 h-4 shrink-0" />}
+                              <span className="hidden sm:inline">{isGameFullScreen ? "Kichiklashtirish" : "Butun ekran"}</span>
+                            </button>
                           </div>
                         </div>
-                      );
-                    })()}
 
-                    {/* TOP LEADERBOARD TABLE */}
-                    <div className="pt-4">
-                      <GamesLeaderboard
-                        isDarkMode={isDarkMode}
-                        onOpenPlayerAccount={() => setShowPlayerAccountModal(true)}
-                        onOpenAdminPanel={() => setShowAdminModal(true)}
-                        onToggleFullScreen={() => toggleGameFullScreen(true)}
-                      />
-                    </div>
-                  </div>
-                )}
+                        {/* Active Game Canvas Container */}
+                        <div 
+                          ref={gameContainerRef}
+                          className={
+                            isGameFullScreen 
+                              ? "fixed inset-0 z-[99999] bg-slate-950 p-2 sm:p-6 overflow-y-auto flex flex-col items-center justify-center min-h-screen"
+                              : "w-full max-w-full relative py-1 sm:py-2 overflow-hidden flex flex-col items-center justify-center"
+                          }
+                        >
+                          {isGameFullScreen && (
+                            <button
+                              type="button"
+                              onClick={() => toggleGameFullScreen(false)}
+                              className="fixed top-3 right-3 sm:top-5 sm:right-5 z-[100000] px-3.5 py-2 sm:px-4 sm:py-2.5 bg-neutral-900/95 hover:bg-neutral-800 text-amber-400 border border-amber-500/40 rounded-xl sm:rounded-2xl text-xs font-mono font-black flex items-center gap-2 shadow-2xl backdrop-blur-md cursor-pointer transition-all active:scale-95"
+                            >
+                              <Minimize2 className="w-4 h-4" />
+                              <span>Chiqish</span>
+                            </button>
+                          )}
+
+                          <AnimatePresence mode="wait">
+                            <motion.div
+                              key={activeGameTab}
+                              initial={{ opacity: 0, y: 15, scale: 0.97 }}
+                              animate={{ opacity: 1, y: 0, scale: 1 }}
+                              exit={{ opacity: 0, y: -15, scale: 0.97 }}
+                              transition={{ duration: 0.25 }}
+                              className={isGameFullScreen ? "w-full max-w-4xl mx-auto my-auto flex justify-center" : "w-full max-w-3xl mx-auto flex justify-center"}
+                            >
+                              {activeGameTab === "bubbleshooter" && <BubbleShooterGame className="w-full shadow-2xl" />}
+                              {activeGameTab === "spaceinvaders" && <SpaceInvadersGame className="w-full shadow-2xl" />}
+                              {activeGameTab === "typingracer" && <TypingSpeedRacerGame className="w-full shadow-2xl" />}
+                              {activeGameTab === "sudoku" && <SudokuMiniGame className="w-full shadow-2xl" />}
+                              {activeGameTab === "helixjump" && <HelixJumpGame className="w-full shadow-2xl" />}
+                              {activeGameTab === "aimtrainer" && <AimTrainerGame className="w-full shadow-2xl" />}
+                              {activeGameTab === "mazerunner" && <MazeRunnerGame className="w-full shadow-2xl" />}
+                              {activeGameTab === "patternmemory" && <PatternMemoryGame className="w-full shadow-2xl" />}
+                              {activeGameTab === "doodlejump" && <DoodleJumpGame className="w-full shadow-2xl" />}
+                              {activeGameTab === "numbermerge" && <NumberMergeChainGame className="w-full shadow-2xl" />}
+                              {activeGameTab === "tetris" && <TetrisGame className="w-full shadow-2xl" />}
+                              {activeGameTab === "whackamole" && <WhackAMoleGame className="w-full shadow-2xl" />}
+                              {activeGameTab === "simonsays" && <SimonSaysGame className="w-full shadow-2xl" />}
+                              {activeGameTab === "wordscramble" && <WordScrambleGame className="w-full shadow-2xl" />}
+                              {activeGameTab === "speedtyping" && <SpeedTypingGame className="w-full shadow-2xl" />}
+                              {activeGameTab === "gravityrunner" && <GravityRunnerGame className="w-full shadow-2xl" />}
+                              {activeGameTab === "connectfour" && <ConnectFourGame className="w-full shadow-2xl" />}
+                              {activeGameTab === "knifehit" && <KnifeHitGame className="w-full shadow-2xl" />}
+                              {activeGameTab === "fruitninja" && <FruitNinjaGame className="w-full shadow-2xl" />}
+                              {activeGameTab === "archery" && <ArcheryShooterGame className="w-full shadow-2xl" />}
+                              {activeGameTab === "towerstack" && <TowerStackGame className="w-full shadow-2xl" />}
+                              {activeGameTab === "tile2048" && <Tile2048Game className="w-full shadow-2xl" />}
+                              {activeGameTab === "brick" && <BrickBreakerGame className="w-full shadow-2xl" />}
+                              {activeGameTab === "sniper" && <SniperGame className="w-full shadow-2xl" />}
+                              {activeGameTab === "colorrush" && <ColorRushGame className="w-full shadow-2xl" />}
+                              {activeGameTab === "minesweeper" && <MinesweeperGame className="w-full shadow-2xl" />}
+                              {activeGameTab === "fastmath" && <FastMathGame className="w-full shadow-2xl" />}
+                              {activeGameTab === "tictactoe" && <TicTacToeGame isDarkMode={isDarkMode} className="w-full shadow-2xl" />}
+                              {activeGameTab === "snake" && <SnakeGame className="w-full shadow-2xl" />}
+                              {activeGameTab === "flappy" && <FlappyBirdGame className="w-full shadow-2xl" />}
+                              {activeGameTab === "pingpong" && <PingPongGame className="w-full shadow-2xl" />}
+                              {activeGameTab === "memory" && <MemoryMatchGame className="w-full shadow-2xl" />}
+                              {activeGameTab === "spaceshooter" && <SpaceShooter className="w-full shadow-2xl" />}
+                              {activeGameTab === "dino" && <DinoGame className="w-full shadow-2xl bg-white border border-neutral-200" />}
+                            </motion.div>
+                          </AnimatePresence>
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </div>
               </GamesAuthGate>
             </motion.section>
 
-            {/* SECTION 4: INTERACTIVE AI ASSISTANT SECTION */}
-            <motion.section 
-              id="ai-assistant" 
-              className="scroll-mt-24 space-y-10"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8 }}
-            >
-              
-              {/* Heading */}
-              <div className="text-center max-w-2xl mx-auto space-y-3">
-                <span className="font-mono text-xs uppercase tracking-widest text-amber-500 font-bold bg-amber-500/10 px-4 py-1.5 rounded-full border border-amber-500/30 inline-flex items-center gap-2">
-                  <Zap className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
-                  02 // SUN'IY INTELLEKT MARKAZI
-                </span>
-                <h2 className={`font-serif text-3xl md:text-5xl font-extrabold tracking-tight ${isDarkMode ? 'text-white' : 'text-black'}`}>
-                  Anvar AI Assistant
-                </h2>
-                <p className={`text-xs md:text-sm max-w-lg mx-auto font-sans ${isDarkMode ? 'text-neutral-400' : 'text-neutral-500'}`}>
-                  Google Gemini AI neyron moduli bilan ishlaydigan assistent. Dasturlash va kompyuter bilimlari haqida savollaringizga javob beradi!
-                </p>
-                <div className={`h-0.5 w-12 mx-auto mt-2 ${isDarkMode ? 'bg-amber-400' : 'bg-black'}`} />
-              </div>
-
-              {/* AI Block */}
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
-                
-                {/* Column 1: Live Interactive Chat */}
-                <div className={`lg:col-span-7 border rounded-[36px] flex flex-col justify-between overflow-hidden shadow-2xl min-h-[620px] transition-colors duration-300 ${
-                  isDarkMode ? 'bg-[#0f1118] border-neutral-800' : 'bg-white border-[#e5e5ea]'
-                }`}>
-                  
-                  {/* Chat header */}
-                  <div className={`border-b px-6 py-4 flex justify-between items-center transition-colors ${
-                    isDarkMode ? 'bg-[#151822] border-neutral-800' : 'bg-[#f7f7f9] border-[#e5e5ea]'
-                  }`}>
-                    <div className="flex items-center gap-3">
-                      <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shadow-md ${
-                        isDarkMode ? 'bg-amber-400 text-black' : 'bg-black text-white'
-                      }`}>
-                        <Brain className="w-5 h-5 animate-pulse" />
-                      </div>
-                      <div>
-                        <div className={`text-xs font-bold uppercase tracking-wider flex items-center gap-2 font-mono ${
-                          isDarkMode ? 'text-white' : 'text-black'
-                        }`}>
-                          Anvar AI Neyron Assistenti
-                          <span className="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping" />
-                        </div>
-                        <div className={`text-[10px] font-mono ${isDarkMode ? 'text-neutral-400' : 'text-neutral-500'}`}>
-                          Model: Gemini 2.5 Flash
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center gap-2">
-                      <span className="text-[10px] font-mono text-emerald-500 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/30 font-bold">
-                        ONLINE
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Chat messages container */}
-                  <div ref={chatMessagesContainerRef} className="flex-grow p-5 sm:p-6 overflow-y-auto space-y-4 max-h-[420px]">
-                    <AnimatePresence initial={false}>
-                      {groupedChatHistory.map((group) => (
-                        <motion.div
-                          key={group.groupId}
-                          initial={{ opacity: 0, y: 10, scale: 0.98 }}
-                          animate={{ opacity: 1, y: 0, scale: 1 }}
-                          className={`flex ${group.sender === "user" ? "justify-end" : "justify-start"}`}
-                        >
-                          <div
-                            className={`max-w-[88%] sm:max-w-[82%] rounded-2xl px-4 py-3 text-xs md:text-sm leading-relaxed relative group ${
-                              group.sender === "user"
-                                ? (isDarkMode ? "bg-amber-400 text-black font-semibold rounded-tr-none" : "bg-black text-white rounded-tr-none")
-                                : (isDarkMode 
-                                    ? "bg-[#1a1d29] text-neutral-100 rounded-tl-none border border-neutral-800" 
-                                    : "bg-[#f1f3f5] text-neutral-800 rounded-tl-none border border-[#e5e5ea]")
-                            }`}
-                          >
-                            {/* Header for Gemini Assistant */}
-                            {group.sender === "gemini" && (
-                              <div className="flex items-center justify-between gap-1.5 mb-2 border-b border-black/10 dark:border-white/10 pb-1.5 text-[10px] font-mono uppercase font-bold text-amber-500">
-                                <span className="flex items-center gap-1.5">
-                                  <Cpu className="w-3.5 h-3.5" /> GEMINI AI
-                                  {group.messages.length > 1 && (
-                                    <span className="bg-amber-500/20 text-amber-500 text-[9px] px-1.5 py-0.5 rounded-full border border-amber-500/30">
-                                      {group.messages.length} ta xabar
-                                    </span>
-                                  )}
-                                </span>
-                                <span className="text-[9px] font-mono text-neutral-400 font-normal">
-                                  {group.timeString}
-                                </span>
-                              </div>
-                            )}
-
-                            {/* Grouped Messages List */}
-                            <div className="space-y-2.5">
-                              {group.messages.map((msg, idx) => (
-                                <div key={msg.id} className={idx > 0 ? "pt-2 border-t border-black/10 dark:border-white/10" : ""}>
-                                  <div className="whitespace-pre-line font-normal">
-                                    {msg.text}
-                                  </div>
-
-                                  {/* Actions for Gemini messages (TTS & Copy) */}
-                                  {group.sender === "gemini" && (
-                                    <div className="flex items-center justify-between mt-1 pt-0.5 text-[10px] font-mono text-neutral-400">
-                                      {group.messages.length > 1 && (
-                                        <span className="text-[9px] opacity-75">
-                                          {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                        </span>
-                                      )}
-                                      <div className="flex items-center gap-1 ml-auto">
-                                        <button
-                                          onClick={() => handleSpeakMessage(msg.id, msg.text)}
-                                          className={`p-1 rounded hover:bg-black/10 dark:hover:bg-white/10 transition-colors cursor-pointer ${
-                                            speakingMsgId === msg.id ? "text-amber-400 animate-pulse" : "text-neutral-400"
-                                          }`}
-                                          title="Ovozli eshitish"
-                                        >
-                                          <Volume2 className="w-3.5 h-3.5" />
-                                        </button>
-                                        <button
-                                          onClick={() => handleCopyMessage(msg.id, msg.text)}
-                                          className="p-1 rounded hover:bg-black/10 dark:hover:bg-white/10 text-neutral-400 hover:text-amber-400 transition-colors cursor-pointer"
-                                          title="Nusxalash"
-                                        >
-                                          {copiedMsgId === msg.id ? (
-                                            <Check className="w-3.5 h-3.5 text-emerald-400" />
-                                          ) : (
-                                            <Copy className="w-3.5 h-3.5" />
-                                          )}
-                                        </button>
-                                      </div>
-                                    </div>
-                                  )}
-                                </div>
-                              ))}
-                            </div>
-
-                            {/* Footer time indicator for User messages */}
-                            {group.sender === "user" && (
-                              <div className={`text-[9px] font-mono mt-1.5 text-right flex items-center justify-end gap-1.5 ${
-                                isDarkMode ? "text-black/60" : "text-white/60"
-                              }`}>
-                                {group.messages.length > 1 && (
-                                  <span className="text-[8.5px] opacity-80 font-sans font-normal">
-                                    ({group.messages.length} ta xabar)
-                                  </span>
-                                )}
-                                <span>{group.timeString}</span>
-                              </div>
-                            )}
-                          </div>
-                        </motion.div>
-                      ))}
-
-                      {aiIsTyping && (
-                        <motion.div
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          className="flex justify-start"
-                        >
-                          <div className={`rounded-2xl rounded-tl-none px-4 py-3 border ${
-                            isDarkMode ? 'bg-[#1a1d29] border-neutral-800 text-neutral-300' : 'bg-[#f1f3f5] border-[#e5e5ea] text-neutral-600'
-                          }`}>
-                            <div className="flex items-center gap-1.5 text-[10px] font-mono uppercase font-semibold mb-1 text-amber-500">
-                              <Sparkles className="w-3.5 h-3.5 animate-spin" /> Anvar AI javob bermoqda...
-                            </div>
-                            <div className="flex gap-1 py-1">
-                              <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-bounce" />
-                              <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-bounce [animation-delay:0.2s]" />
-                              <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-bounce [animation-delay:0.4s]" />
-                            </div>
-                          </div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
-
-
-
-                  {/* Chat input form */}
-                  <form onSubmit={(e) => { e.preventDefault(); handleSendMessage(); }} className={`p-4 border-t ${
-                    isDarkMode ? 'border-neutral-800 bg-[#12141d]' : 'border-[#e5e5ea] bg-neutral-50'
-                  }`}>
-                    <div className="flex gap-2">
-                      <input
-                        type="text"
-                        value={aiMessageInput}
-                        onChange={(e) => setAiMessageInput(e.target.value)}
-                        placeholder="Anvar AI assistentiga istalgan savolingizni yozing..."
-                        className={`flex-grow border rounded-xl px-4 py-3 text-xs focus:outline-none transition-colors ${
-                          isDarkMode 
-                            ? 'bg-[#1a1d29] border-neutral-700 text-white focus:border-amber-400 placeholder:text-neutral-500' 
-                            : 'bg-white border-[#e5e5ea] text-black focus:border-black'
-                        }`}
-                        disabled={aiIsTyping}
-                      />
-                      <button
-                        type="submit"
-                        className={`px-5 rounded-xl transition-colors flex items-center justify-center cursor-pointer font-bold shrink-0 ${
-                          isDarkMode 
-                            ? 'bg-amber-400 text-black hover:bg-amber-300 disabled:bg-neutral-800 disabled:text-neutral-600' 
-                            : 'bg-black text-white hover:bg-neutral-800 disabled:bg-neutral-300'
-                        }`}
-                        disabled={aiIsTyping || !aiMessageInput.trim()}
-                      >
-                        <Send className="w-4 h-4" />
-                      </button>
-                    </div>
-                    
-                    <div className="flex justify-between items-center mt-2 px-1">
-                      <span className={`text-[10px] font-mono flex items-center gap-1.5 ${
-                        isDarkMode ? 'text-neutral-400' : 'text-neutral-500'
-                      }`}>
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                        AI Konsultatsiya Bepul
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => setChatHistory([
-                          {
-                            id: `init-${Date.now()}`,
-                            sender: "gemini",
-                            text: "Suhbat tozalandi. Menga yana istalgan savolingizni berishingiz mumkin!",
-                            timestamp: new Date()
-                          }
-                        ])}
-                        className="text-[10px] font-mono text-neutral-400 hover:text-red-400 transition-colors flex items-center gap-1 cursor-pointer"
-                      >
-                        <RotateCcw className="w-3 h-3" /> Tozalash
-                      </button>
-                    </div>
-                  </form>
-
-                </div>
-
-                {/* Column 2: Holographic AI Core Visualization */}
-                <div className="lg:col-span-5 bg-black text-white rounded-[36px] p-8 flex flex-col justify-between shadow-2xl relative overflow-hidden group">
-                  <div className="absolute -right-20 -top-20 w-52 h-52 bg-emerald-500 rounded-full blur-[80px] opacity-30 animate-pulse pointer-events-none" />
-                  <div className="absolute -left-20 -bottom-20 w-52 h-52 bg-purple-500 rounded-full blur-[80px] opacity-20 pointer-events-none" />
-
-                  <div className="space-y-6 z-10">
-                    <div className="flex justify-between items-center">
-                      <div className="flex items-center gap-2">
-                        <Sparkles className="w-4 h-4 text-emerald-400 animate-spin" />
-                        <span className="font-mono text-xs uppercase tracking-widest text-neutral-400 font-bold">
-                          AI ENGINE CORE
-                        </span>
-                      </div>
-                      <span className="font-mono text-[9px] text-emerald-400 animate-pulse">● FAOL</span>
-                    </div>
-
-                    <div className="space-y-2">
-                      <h3 className="font-serif text-2xl font-light text-white">Sun'iy Intellekt Markazi</h3>
-                      <p className="text-xs text-neutral-400 leading-relaxed font-sans">
-                        Google Gemini API bilan uzviy bog'langan ushbu neyron tarmoq assistenti har bir so'rovingizga tezkor va aniq javob berish uchun sozlangan.
-                      </p>
-                    </div>
-
-                    <div className="h-44 border border-neutral-800 rounded-2xl flex flex-col items-center justify-center relative overflow-hidden bg-neutral-950/50">
-                      <motion.div 
-                        className="absolute w-32 h-32 rounded-full border border-dashed border-emerald-500/40"
-                        animate={{ rotate: 360 }}
-                        transition={{ duration: 12, repeat: Infinity, ease: "linear" }}
-                      />
-
-                      <motion.div 
-                        className={`w-16 h-16 rounded-full flex items-center justify-center bg-gradient-to-tr ${
-                          aiIsTyping 
-                            ? "from-emerald-500 via-teal-500 to-purple-500 shadow-[0_0_30px_rgba(16,185,129,0.6)]" 
-                            : "from-neutral-800 via-neutral-900 to-black shadow-[0_0_20px_rgba(255,255,255,0.05)]"
-                        } transition-all duration-500 z-10`}
-                        animate={{ scale: aiIsTyping ? [1, 1.15, 1] : [1, 1.05, 1] }}
-                        transition={{ duration: aiIsTyping ? 1.5 : 3, repeat: Infinity }}
-                      >
-                        <Brain className={`w-8 h-8 ${aiIsTyping ? "text-white animate-bounce" : "text-emerald-400"}`} />
-                      </motion.div>
-
-                      <div className="absolute top-2 left-3 font-mono text-[8px] text-neutral-500">
-                        SYS.STATUS: ACTIVE // MODEL: GEMINI
-                      </div>
-                      <div className="absolute top-2 right-3 font-mono text-[8px] text-neutral-500">
-                        PING: {aiIsTyping ? "85ms" : "ONLINE"}
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-3 pt-2 font-mono">
-                      <div className="p-3 bg-neutral-900/80 rounded-xl border border-neutral-800">
-                        <span className="block text-[10px] text-neutral-500">KASB</span>
-                        <span className="text-xs font-bold text-white">Full-Stack Dev</span>
-                      </div>
-                      <div className="p-3 bg-neutral-900/80 rounded-xl border border-neutral-800">
-                        <span className="block text-[10px] text-neutral-500">MANZIL</span>
-                        <span className="text-xs font-bold text-emerald-400">Denov, Surxon</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="border-t border-white/10 pt-4 mt-4 flex justify-between items-center text-xs font-mono text-neutral-400 z-10">
-                    <span>XAVFSIZLIK:</span>
-                    <span className="text-emerald-400 flex items-center gap-1.5 font-bold">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" /> 
-                      100% Shifrlangan Shlyuz
-                    </span>
-                  </div>
-
-                </div>
-
-              </div>
-
-            </motion.section>
-
-            {/* SECTION 5: KELAJAKDAGI MARRALAR VA MAQSADLAR */}
+            {/* SECTION 3: KELAJAKDAGI MARRALAR VA MAQSADLAR */}
             <motion.section 
               id="goals" 
               className={`rounded-3xl p-6 sm:p-12 space-y-8 relative overflow-hidden scroll-mt-24 shadow-sm border transition-colors ${
@@ -2010,7 +1443,7 @@ export default function App() {
                   </div>
                   
                   {/* Requested Title */}
-                  <h3 className={`font-serif text-3xl md:text-4xl font-light tracking-tight leading-tight ${
+                  <h3 className={`font-serif text-3xl md:text-4xl font-extrabold tracking-tight leading-tight ${
                     isDarkMode ? 'text-white' : 'text-black'
                   }`}>
                     Mening keyingi marralarim va maqsadlarim.
@@ -2126,7 +1559,7 @@ export default function App() {
                 }`}>
                   04 // MENGA BOG'LANING
                 </span>
-                <h2 className={`font-serif text-3xl md:text-5xl font-light tracking-tight ${
+                <h2 className={`font-serif text-3xl md:text-5xl font-extrabold tracking-tight ${
                   isDarkMode ? 'text-white' : 'text-black'
                 }`}>
                   Menga bog'laning.
@@ -2140,7 +1573,7 @@ export default function App() {
                 <div className="lg:col-span-5 bg-black text-white rounded-[36px] p-8 sm:p-10 flex flex-col justify-between shadow-2xl relative overflow-hidden border border-neutral-800">
                   <div className="space-y-8 z-10">
                     <div className="space-y-3">
-                      <h3 className="font-serif text-2xl font-light">Sizni eshitishdan xursandman</h3>
+                      <h3 className="font-serif text-2xl font-bold">Sizni eshitishdan xursandman</h3>
                       <p className="text-xs text-neutral-400 leading-relaxed font-sans">
                         Yangi loyihalar, takliflar yoki savollaringiz bo'lsa, istalgan vaqtda xabar qoldiring. Men tez fursatda javob qaytaraman.
                       </p>
@@ -2192,7 +1625,7 @@ export default function App() {
                       <div className="w-16 h-16 bg-emerald-500/20 text-emerald-400 rounded-full flex items-center justify-center mx-auto border border-emerald-500/40 shadow-sm">
                         <Check className="w-8 h-8" />
                       </div>
-                      <h3 className={`font-serif text-2xl font-light ${isDarkMode ? 'text-white' : 'text-black'}`}>
+                      <h3 className={`font-serif text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-black'}`}>
                         Xabaringiz Tayyorlandi!
                       </h3>
                       <div className="p-4 bg-sky-500/10 border border-sky-500/30 rounded-2xl max-w-md mx-auto text-xs font-mono text-sky-400 space-y-1">

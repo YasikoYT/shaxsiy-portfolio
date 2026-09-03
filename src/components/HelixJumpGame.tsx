@@ -100,7 +100,6 @@ export default function HelixJumpGame({ className = "" }: { className?: string }
             // Passed through floor!
             engine.score += 20;
             setScore(engine.score);
-            saveGameHighScore("helixjump", engine.score);
             if (engine.score > highScore) setHighScore(engine.score);
           } else {
             // Bounce!

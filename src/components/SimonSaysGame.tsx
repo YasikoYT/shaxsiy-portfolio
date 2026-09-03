@@ -86,7 +86,6 @@ export default function SimonSaysGame({ className = "" }: { className?: string }
       if (userStep + 1 === sequence.length) {
         // Round completed!
         const score = sequence.length;
-        saveGameHighScore("simonsays", score);
         if (score > highScore) setHighScore(score);
 
         const nextSequence = [...sequence, Math.floor(Math.random() * 4)];

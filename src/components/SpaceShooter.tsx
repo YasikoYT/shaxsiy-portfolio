@@ -209,7 +209,6 @@ export default function SpaceShooter({ className = "" }: SpaceShooterProps) {
                 playSound(150, "sawtooth", 0.15);
                 state.score += enemy.maxHp * 10;
                 setScore(state.score);
-                saveGameHighScore("spaceshooter", state.score);
                 if (state.score > highScore) {
                   setHighScore(state.score);
                 }
@@ -468,16 +467,6 @@ export default function SpaceShooter({ className = "" }: SpaceShooterProps) {
           <Flame className="w-3.5 h-3.5 text-orange-500 animate-pulse" />
           <span>OCHKO: {score}</span>
         </div>
-
-        {isGameOver && (
-          <GameOverModal
-            score={score}
-            highScore={highScore}
-            gameTitle="SPACE SHOOTER"
-            unit="ochko"
-            onRestart={startGame}
-          />
-        )}
       </div>
 
       {/* Footer controls */}
@@ -502,6 +491,18 @@ export default function SpaceShooter({ className = "" }: SpaceShooterProps) {
           </button>
         )}
       </div>
+
+      {isGameOver && (
+        <div onClick={(e) => e.stopPropagation()} className="absolute inset-0 z-30">
+          <GameOverModal
+            score={score}
+            highScore={highScore}
+            gameTitle="SPACE SHOOTER"
+            unit="ochko"
+            onRestart={startGame}
+          />
+        </div>
+      )}
     </div>
   );
 }

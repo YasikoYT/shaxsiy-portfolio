@@ -90,7 +90,6 @@ export default function FastMathGame({ className = "" }: FastMathProps) {
     if (selected === question.answer) {
       const nextScore = score + 10;
       setScore(nextScore);
-      saveGameHighScore("fastmath", nextScore);
       if (nextScore > highScore) setHighScore(nextScore);
       setTimeLeft((t) => Math.min(20, t + 2)); // Bonus time!
       playBeep(750);

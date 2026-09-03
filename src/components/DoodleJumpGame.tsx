@@ -109,7 +109,6 @@ export default function DoodleJumpGame({ className = "" }: { className?: string 
         engine.playerY = height / 2;
         engine.score += Math.round(diff);
         setScore(engine.score);
-        saveGameHighScore("doodlejump", engine.score);
         if (engine.score > highScore) setHighScore(engine.score);
 
         engine.platforms.forEach((p) => {

@@ -135,7 +135,6 @@ export default function WhackAMoleGame({ className = "" }: { className?: string 
       added = 30 + combo * 5;
       setScore((s) => {
         const next = s + added;
-        saveGameHighScore("whackamole", next);
         if (next > highScore) setHighScore(next);
         return next;
       });
@@ -144,7 +143,6 @@ export default function WhackAMoleGame({ className = "" }: { className?: string 
       added = 10 + combo * 2;
       setScore((s) => {
         const next = s + added;
-        saveGameHighScore("whackamole", next);
         if (next > highScore) setHighScore(next);
         return next;
       });

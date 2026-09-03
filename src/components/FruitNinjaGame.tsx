@@ -82,7 +82,6 @@ export default function FruitNinjaGame({ className = "" }: { className?: string 
           } else {
             engine.score += 10;
             setScore(engine.score);
-            saveGameHighScore("fruitninja", engine.score);
             if (engine.score > highScore) setHighScore(engine.score);
 
             // Spawn juice particles

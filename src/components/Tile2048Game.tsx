@@ -116,18 +116,15 @@ export default function Tile2048Game({ className = "" }: Tile2048Props) {
     if (changed) {
       const spawnedBoard = spawnRandomTile(finalBoard);
       setBoard(spawnedBoard);
-      setScore((s) => {
-        const next = s + gain;
-        if (next > highScore) setHighScore(next);
-        saveGameHighScore("tile2048", next);
-        return next;
-      });
+      const nextScore = score + gain;
+      setScore(nextScore);
+      if (nextScore > highScore) setHighScore(nextScore);
       playBeep(400 + gain);
 
       // Check Game Over
       if (!canMove(spawnedBoard)) {
         setGameState("gameover");
-        saveGameHighScore("tile2048", score + gain);
+        saveGameHighScore("tile2048", nextScore);
         playBeep(200);
       }
     }

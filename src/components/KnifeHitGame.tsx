@@ -153,7 +153,6 @@ export default function KnifeHitGame({ className = "" }: { className?: string })
           engine.flyingKnife = null;
           engine.score += 10;
           setScore(engine.score);
-          saveGameHighScore("knifehit", engine.score);
           if (engine.score > highScore) setHighScore(engine.score);
 
           // Stage completion check

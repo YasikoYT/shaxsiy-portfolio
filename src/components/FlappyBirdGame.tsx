@@ -24,7 +24,8 @@ export default function FlappyBirdGame({ className = "" }: FlappyProps) {
     gravity: 0.38,
     jumpForce: -6.5,
     pipes: [] as { x: number; top: number; bottom: number; passed: boolean }[],
-    frame: 0
+    frame: 0,
+    score: 0
   });
 
   const playBeep = (freq = 400) => {
@@ -59,6 +60,7 @@ export default function FlappyBirdGame({ className = "" }: FlappyProps) {
     engine.birdVy = 0;
     engine.pipes = [];
     engine.frame = 0;
+    engine.score = 0;
     setScore(0);
     setGameState("playing");
   };
@@ -136,6 +138,7 @@ export default function FlappyBirdGame({ className = "" }: FlappyProps) {
       // Ceiling / Floor Collision
       if (engine.birdY - birdRadius <= 0 || engine.birdY + birdRadius >= canvas.height) {
         setGameState("gameover");
+        saveGameHighScore("flappy", engine.score);
         playBeep(180);
         return;
       }
@@ -145,6 +148,7 @@ export default function FlappyBirdGame({ className = "" }: FlappyProps) {
         if (birdX + birdRadius > p.x && birdX - birdRadius < p.x + 35) {
           if (engine.birdY - birdRadius < p.top || engine.birdY + birdRadius > canvas.height - p.bottom) {
             setGameState("gameover");
+            saveGameHighScore("flappy", engine.score);
             playBeep(180);
             return;
           }
@@ -152,12 +156,9 @@ export default function FlappyBirdGame({ className = "" }: FlappyProps) {
 
         if (!p.passed && p.x + 35 < birdX) {
           p.passed = true;
-          setScore((s) => {
-            const next = s + 1;
-            if (next > highScore) setHighScore(next);
-            saveGameHighScore("flappy", next);
-            return next;
-          });
+          engine.score += 1;
+          setScore(engine.score);
+          if (engine.score > highScore) setHighScore(engine.score);
           playBeep(750);
         }
       }
@@ -210,7 +211,7 @@ export default function FlappyBirdGame({ className = "" }: FlappyProps) {
   }, [gameState, highScore]);
 
   return (
-    <div className={`bg-slate-950 rounded-3xl border border-slate-800 p-5 text-white shadow-2xl flex flex-col justify-between ${className}`}>
+    <div className={`relative bg-slate-950 rounded-3xl border border-slate-800 p-3.5 sm:p-5 text-white shadow-2xl flex flex-col justify-between ${className}`}>
       {/* Header */}
       <div className="flex items-center justify-between pb-3 border-b border-slate-800">
         <div className="flex items-center gap-2">
@@ -239,22 +240,10 @@ export default function FlappyBirdGame({ className = "" }: FlappyProps) {
             <p className="text-xs text-slate-400 font-mono">Probel / Sichqoncha tugmasini bosib qushni balandlikda ushlab turing!</p>
             <button
               onClick={(e) => { e.stopPropagation(); startGame(); }}
-              className="px-6 py-2.5 bg-amber-500 hover:bg-amber-400 text-black font-mono font-black text-xs uppercase tracking-widest rounded-full flex items-center gap-2 cursor-pointer shadow-lg"
+              className="px-6 py-2.5 bg-amber-500 hover:bg-amber-400 text-black font-mono font-black text-xs uppercase tracking-widest rounded-full flex items-center gap-2 cursor-pointer shadow-lg active:scale-95"
             >
               <Play className="w-4 h-4 fill-black" /> O'yinni Boshlash
             </button>
-          </div>
-        )}
-
-        {gameState === "gameover" && (
-          <div onClick={(e) => e.stopPropagation()} className="absolute inset-0">
-            <GameOverModal
-              score={score}
-              highScore={highScore}
-              gameTitle="FLAPPY BIRD"
-              unit="ochko"
-              onRestart={startGame}
-            />
           </div>
         )}
       </div>
@@ -262,6 +251,18 @@ export default function FlappyBirdGame({ className = "" }: FlappyProps) {
       <div className="text-[10px] font-mono text-slate-400 text-center">
         Boshqaruv: <span className="text-amber-400 font-bold">Probel tugmasi</span> yoki <span className="text-amber-400 font-bold">Ekran ustiga bosing</span>
       </div>
+
+      {gameState === "gameover" && (
+        <div onClick={(e) => e.stopPropagation()} className="absolute inset-0 z-30">
+          <GameOverModal
+            score={score}
+            highScore={highScore}
+            gameTitle="FLAPPY BIRD"
+            unit="ochko"
+            onRestart={startGame}
+          />
+        </div>
+      )}
     </div>
   );
 }

@@ -127,7 +127,6 @@ export default function ColorRushGame({ className = "" }: ColorRushProps) {
         // Successful pass
         engine.score += 10;
         setScore(engine.score);
-        saveGameHighScore("colorrush", engine.score);
         if (engine.score > highScore) setHighScore(engine.score);
         playBeep(880);
 

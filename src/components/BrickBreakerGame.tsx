@@ -168,7 +168,6 @@ export default function BrickBreakerGame({ className = "" }: BrickBreakerProps) 
           engine.ballVy *= -1;
           engine.score += 20;
           setScore(engine.score);
-          saveGameHighScore("brick", engine.score);
           if (engine.score > highScore) setHighScore(engine.score);
           playBeep(750);
         }

@@ -49,7 +49,6 @@ export default function NumberMergeChainGame({ className = "" }: { className?: s
     if (gainedScore > 0) {
       setScore((s) => {
         const next = s + gainedScore;
-        saveGameHighScore("numbermerge", next);
         if (next > highScore) setHighScore(next);
         return next;
       });
